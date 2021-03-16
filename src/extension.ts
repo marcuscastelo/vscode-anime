@@ -3,59 +3,12 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import DocumentReader from './document-reader';
+import AnimeContextParser from './anime-context-parser';
 
-type Anime = {
-	name: string,
-	lastEp: number,
-	lastLine: number,
-};
+import { Anime, Tag } from './types';
+import AnimeDataStore from './anime-data-store';
 
-type WatchEntry = {
-	animeName: string,
-	startTime: string,
-	endTime: string,
-	episode: number
-};
-
-type WatchSession = {
-	startLine: number,
-	entries: WatchEntry[],
-	tags: Tag[]
-};
-
-let animeDict: {
-	[name: string]: Anime
-} = {};
-
-enum TagApplyInfo {
-	WATCH_LINE, // such as [EPISODE-ORDER-VIOLATION]
-	WATCH_SESSION, // such as [REWATCH]
-	SCRIPT_TAG, //such as [SKIP-LINES=100]
-}
-
-type Tag = {
-	tagType: string
-	appliesTo: TagApplyInfo
-	parameters: string[]
-};
-
-
-type EnvironmentVars = {
-	currDate?: string,
-	currAnimeTitle?: string,
-	currTag?: Tag
-};
-
-let currentEnv : EnvironmentVars = {};
-
-enum LineType {
-	AnimeTitle = 1,
-	Date,
-	Watch,
-	Tag,
-	Invalid,
-	Ignored,
-}
 
 function insertDate(textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit): void {
 	if (textEditor.selections.length !== 1) return;
@@ -76,132 +29,29 @@ function insertTime(textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit):
 	edit.insert(textEditor.selection.active, currTime);
 }
 
-class DocumentReader {
-	document: vscode.TextDocument;
-	currentLineIdx: number;
-	constructor(document: vscode.TextDocument) {
-		this.document = document;
-		this.currentLineIdx = 0;
-	}
-
-	getline(advance = true): (string | null) {
-		if (this.currentLineIdx >= this.document.lineCount) return null;
 
 
-		let text = this.document.lineAt(this.currentLineIdx).text;
-
-		if (advance) this.skiplines(1);
-
-		return text;
-	}
-
-	skiplines(count: number) {
-		this.currentLineIdx = Math.min(this.currentLineIdx + count, this.document.lineCount);
-	}
-
-}
-
-function readAnimes(textEditor: vscode.TextEditor) {
+function readFileIntoAnimeData(textEditor: vscode.TextEditor): AnimeDataStore {
 	let reader = new DocumentReader(textEditor.document);
-	
-	let currentLine: string | null = reader.getline();
+
+	let animeStorage = new AnimeDataStore();
+
+	let contextParser = new AnimeContextParser(animeStorage);
+
+	let currentLine: vscode.TextLine | null = reader.getline();
 	while (currentLine !== null) {
+
 		if (reader.currentLineIdx % (reader.document.lineCount/10) ) {
 			console.log(`${reader.currentLineIdx}/${reader.document.lineCount} lines read (${(reader.currentLineIdx/reader.document.lineCount * 100).toFixed(2)}%)`);
 		}
-		console.log("");
-		let [type, params] = getLineInfo(currentLine);
 
-		if (type === LineType.AnimeTitle) {
-			processAnimeTitleLine(params, reader);
-		} else if (type === LineType.Watch) {
-			processWatchLine(params, reader);
-		}
+		contextParser.processLine(currentLine);
 		currentLine = reader.getline();
 	}
+
+	return animeStorage;
 }
 
-function processAnimeTitleLine(params: { [key: string]: string }, reader: DocumentReader) {
-	if (params["0"] === undefined) return;
-
-	let animeName: string = params[0];
-
-	let currentAnime = animeDict[animeName];
-	if (!currentAnime) { //If anime never registered
-		currentAnime = {
-			name: animeName,
-			lastEp: 0, //Never watched any episode
-			lastLine: -1
-		};
-		animeDict[animeName] = currentAnime;
-	}
-	currentAnime.lastLine = reader.currentLineIdx;
-	currentEnv.currAnimeTitle = animeName;
-}
-
-function processWatchLine(params: { [key: string] : string }, reader: DocumentReader) {
-	let currAnimeName = currentEnv.currAnimeTitle;
-	let currentAnime = animeDict[currAnimeName ?? "_-1_unknown___$$_$"];
-
-	if (!currAnimeName) {
-		console.error("400: Invalid state (episode with no anime) at line ", reader.currentLineIdx);
-		return;
-	}
-
-	if (!currentAnime) {
-		console.error(`500: Unexpected error: anime '${currAnimeName}' not found in list, despite being the current anime`);
-		return;
-	}
-
-	let startTime = params["1"];
-	let endTime = params["2"];
-	let episode = params["3"];
-
-	if (parseInt(episode) === NaN) {
-		console.error(`400: episode isn't a number`);
-		return;
-	}
-
-	currentAnime.lastEp = parseInt(episode);
-	currentAnime.lastLine = reader.currentLineIdx;
-	//TODO: if tag is episode, clear tag from env
-
-}
-
-function getLineInfo(line: string): [LineType, { [key: string]: string}] {
-	const animeTitleReg = /(^[a-zA-Z](.)*)\:/g;
-	const dateReg = /(\d{2}\/\d{2}\/\d{4})/g;
-	const watchReg = /(\d{2}:\d{2})\s*\-\s*(\d{2}:\d{2})\s+(\d{2,})/;
-	const tagReg = /[(.+)]/;
-
-
-	let groups: { [key: string]: any } | null;
-
-	groups = line.match(animeTitleReg);
-	if (groups) return [LineType.AnimeTitle, groups];
-
-	groups = line.match(dateReg);
-	if (groups) return [LineType.Date, groups];
-
-	groups = line.match(watchReg);
-	if (groups) return [LineType.Watch, groups];
-
-	groups = line.match(tagReg);
-	if (groups) return [LineType.Tag, groups];
-
-	return [LineType.Ignored, {}];
-
-}
-
-function processTag(tag: string, reader: DocumentReader) {
-	let [tagType, parameters] = tag.indexOf(`=`) === -1 ? [tag, []] : tag.split(`=`);
-	tagType = tagType.toLocaleLowerCase();
-
-	if (tagType === `skip-lines`) {
-		let skipCount = parseInt(parameters[0]);
-		reader.skiplines(skipCount);
-	}
-}
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -209,12 +59,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 	if (vscode.window.activeTextEditor) {
 		console.log("Reading document lines...");
-		readAnimes(vscode.window.activeTextEditor);
+		let animeStorage = readFileIntoAnimeData(vscode.window.activeTextEditor);
 		console.log("All document lines read!");
 
-		for(let anime of Object.keys(animeDict)){
-			console.log(animeDict[anime]);
-		}
+		console.log(animeStorage.getAnime("Lucifer IV"));
 	}
 
 	context.subscriptions.push(
