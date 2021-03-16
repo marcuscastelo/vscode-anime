@@ -2,13 +2,25 @@
 /* eslint-disable curly */
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import { assert, group } from 'node:console';
 import * as vscode from 'vscode';
 
 type Anime = {
 	name: string,
 	lastEp: number,
 	lastLine: number,
+};
+
+type WatchEntry = {
+	animeName: string,
+	startTime: string,
+	endTime: string,
+	episode: number
+};
+
+type WatchSession = {
+	startLine: number,
+	entries: WatchEntry[],
+	tags: Tag[]
 };
 
 let animeDict: {
@@ -25,7 +37,7 @@ type Tag = {
 	tagType: string
 	appliesTo: TagApplyInfo
 	parameters: string[]
-}
+};
 
 
 type EnvironmentVars = {
@@ -95,41 +107,77 @@ function readAnimes(textEditor: vscode.TextEditor) {
 	let currentLine: string | null = reader.getline();
 	while (currentLine !== null) {
 		if (reader.currentLineIdx % (reader.document.lineCount/10) ) {
-			console.log(`${reader.currentLineIdx}/${reader.document.lineCount} lines read (${(reader.currentLineIdx/reader.document.lineCount * 100).toFixed(2)}%)`)
+			console.log(`${reader.currentLineIdx}/${reader.document.lineCount} lines read (${(reader.currentLineIdx/reader.document.lineCount * 100).toFixed(2)}%)`);
 		}
 		console.log("");
 		let [type, params] = getLineInfo(currentLine);
 
 		if (type === LineType.AnimeTitle) {
-			if (params["0"] === undefined) continue;
-			let animeName: string = params[0];
-
-			let currentAnime = animeDict[animeName];
-			if (!currentAnime) { //If anime never registered
-				currentAnime = {
-					name: animeName,
-					lastEp: 0, //Never watched any episode
-					lastLine: -1
-				};
-				animeDict[animeName] = currentAnime;
-			}
-			currentAnime.lastLine = reader.currentLineIdx - 1;
-			currentEnv.currAnimeTitle = animeName;
+			processAnimeTitleLine(params, reader);
+		} else if (type === LineType.Watch) {
+			processWatchLine(params, reader);
 		}
 		currentLine = reader.getline();
 	}
 }
 
+function processAnimeTitleLine(params: { [key: string]: string }, reader: DocumentReader) {
+	if (params["0"] === undefined) return;
+
+	let animeName: string = params[0];
+
+	let currentAnime = animeDict[animeName];
+	if (!currentAnime) { //If anime never registered
+		currentAnime = {
+			name: animeName,
+			lastEp: 0, //Never watched any episode
+			lastLine: -1
+		};
+		animeDict[animeName] = currentAnime;
+	}
+	currentAnime.lastLine = reader.currentLineIdx;
+	currentEnv.currAnimeTitle = animeName;
+}
+
+function processWatchLine(params: { [key: string] : string }, reader: DocumentReader) {
+	let currAnimeName = currentEnv.currAnimeTitle;
+	let currentAnime = animeDict[currAnimeName ?? "_-1_unknown___$$_$"];
+
+	if (!currAnimeName) {
+		console.error("400: Invalid state (episode with no anime) at line ", reader.currentLineIdx);
+		return;
+	}
+
+	if (!currentAnime) {
+		console.error(`500: Unexpected error: anime '${currAnimeName}' not found in list, despite being the current anime`);
+		return;
+	}
+
+	let startTime = params["1"];
+	let endTime = params["2"];
+	let episode = params["3"];
+
+	if (parseInt(episode) === NaN) {
+		console.error(`400: episode isn't a number`);
+		return;
+	}
+
+	currentAnime.lastEp = parseInt(episode);
+	currentAnime.lastLine = reader.currentLineIdx;
+	//TODO: if tag is episode, clear tag from env
+
+}
+
 function getLineInfo(line: string): [LineType, { [key: string]: string}] {
 	const animeTitleReg = /(^[a-zA-Z](.)*)\:/g;
 	const dateReg = /(\d{2}\/\d{2}\/\d{4})/g;
-	const watchReg = /(\d{2}:\d{2}\s*\-\s*\d{2})\s+(\d{2,})/;
+	const watchReg = /(\d{2}:\d{2})\s*\-\s*(\d{2}:\d{2})\s+(\d{2,})/;
 	const tagReg = /[(.+)]/;
 
 
 	let groups: { [key: string]: any } | null;
 
-	groups = line.match(animeTitleReg)
+	groups = line.match(animeTitleReg);
 	if (groups) return [LineType.AnimeTitle, groups];
 
 	groups = line.match(dateReg);
@@ -165,7 +213,7 @@ export function activate(context: vscode.ExtensionContext) {
 		console.log("All document lines read!");
 
 		for(let anime of Object.keys(animeDict)){
-			console.log(animeDict[anime])
+			console.log(animeDict[anime]);
 		}
 	}
 
