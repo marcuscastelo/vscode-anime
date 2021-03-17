@@ -4,7 +4,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import DocumentReader from './document-reader';
-import AnimeContextParser from './anime-context-parser';
+import AnimeContextfulParser from './anime-contextful-parser';
 
 import { Anime, Tag } from './types';
 import AnimeDataStore from './anime-data-store';
@@ -36,7 +36,7 @@ function readFileIntoAnimeData(textEditor: vscode.TextEditor): AnimeDataStore {
 
 	let animeStorage = new AnimeDataStore();
 
-	let contextParser = new AnimeContextParser(animeStorage);
+	let contextParser = new AnimeContextfulParser(animeStorage);
 
 	let currentLine: vscode.TextLine | null = reader.getline();
 	while (currentLine !== null) {

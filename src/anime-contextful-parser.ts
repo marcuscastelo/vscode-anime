@@ -4,34 +4,52 @@
 import { TextLine } from "vscode";
 import AnimeDataStore from "./anime-data-store";
 import DocumentReader from "./document-reader";
-import { Tag } from "./types";
+import { AnimeContext, LineType } from "./types";
 
-enum LineType {
-	AnimeTitle = 1,
-	Date,
-	Watch,
-	Tag,
-	Invalid,
-	Ignored,
+
+export function getLineInfo(line: TextLine): [LineType, { [key: string]: string}] {
+    const animeTitleReg = /^\s*([a-zA-Z].*)\:/g;
+    const dateReg = /(\d{2}\/\d{2}\/\d{4})/g;
+    const watchReg = /(\d{2}:\d{2})\s*\-\s*(\d{2}:\d{2})\s+(\d{2,})/;
+    const tagReg = /[(.+)]/;
+    
+    let text = line.text;
+
+    let groups: { [key: string]: any } | null;
+
+    groups = animeTitleReg.exec(text);
+    if (groups) 
+        return [LineType.AnimeTitle, groups];
+    groups = dateReg.exec(text);
+    if (groups) 
+        return [LineType.Date, groups];
+
+    groups = watchReg.exec(text);
+    if (groups) 
+        return [LineType.Watch, groups];
+
+    groups = tagReg.exec(text);
+    if (groups) 
+        return [LineType.Tag, groups];
+
+    return [LineType.Ignored, {}];
+
 }
 
-type Context = {
-	currDate?: string,
-	currAnimeName?: string,
-	currTag?: Tag
-};
-
-
-export default class AnimeContextParser {
+export default class AnimeContextfulParser {
     
-    currentContext : Context = {};
+    currentContext : AnimeContext = {
+        currAnimeName: "",
+        currDate: ""
+    };
+    
     storage: AnimeDataStore;
     constructor(storage: AnimeDataStore) {
         this.storage = storage;
     }
 
     processLine(line: TextLine) {
-		let [type, params] = this.getLineInfo(line);
+		let [type, params] = getLineInfo(line);
 
 		if (type === LineType.AnimeTitle) {
 			this.processAnimeTitleLine(params, line);
@@ -77,34 +95,7 @@ export default class AnimeContextParser {
         currentAnime.lastLine = line.lineNumber;
     }
     
-    getLineInfo(line: TextLine): [LineType, { [key: string]: string}] {
-        const animeTitleReg = /^\s*([a-zA-Z].*)\:/g;
-        const dateReg = /(\d{2}\/\d{2}\/\d{4})/g;
-        const watchReg = /(\d{2}:\d{2})\s*\-\s*(\d{2}:\d{2})\s+(\d{2,})/;
-        const tagReg = /[(.+)]/;
-        
-        let text = line.text;
     
-        let groups: { [key: string]: any } | null;
-    
-        groups = animeTitleReg.exec(text);
-        if (groups) 
-
-        groups = dateReg.exec(text);
-        if (groups) 
-            return [LineType.Date, groups];
-    
-        groups = watchReg.exec(text);
-        if (groups) 
-            return [LineType.Watch, groups];
-    
-        groups = tagReg.exec(text);
-        if (groups) 
-            return [LineType.Tag, groups];
-    
-        return [LineType.Ignored, {}];
-    
-    }
     
     // processTag(tag: string, reader: DocumentReader) {
     //     let [tagType, parameters] = tag.indexOf(`=`) === -1 ? [tag, []] : tag.split(`=`);

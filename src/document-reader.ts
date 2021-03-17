@@ -27,4 +27,8 @@ export default class DocumentReader {
 		this.currentLineIdx = Math.min(this.currentLineIdx + count, this.document.lineCount);
 	}
 
+	gotoLine(line: number) {
+		this.currentLineIdx = line;
+	}
+
 }

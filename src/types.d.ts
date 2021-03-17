@@ -7,6 +7,22 @@ export enum TagApplyInfo {
 	SCRIPT_TAG, //such as [SKIP-LINES=100]
 }
 
+
+export enum LineType {
+	AnimeTitle = 1,
+	Date,
+	Watch,
+	Tag,
+	Invalid,
+	Ignored,
+}
+
+type AnimeContext = {
+	currDate?: string,
+	currAnimeName?: string,
+	currTag?: Tag
+};
+
 export type Tag = {
 	tagType: string
 	appliesTo: TagApplyInfo
