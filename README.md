@@ -20,7 +20,7 @@ Dates are in orange, anime titles in green, watch times in blue and episodes in 
 `Alt + T` - inserts current time (mm:ss) below the cursor
 `Alt + N` - inserts current anime's next episode (last episode + 1)
 
-![kebinds example gif](images/keybinds-example.mp4)
+![kebinds example gif](images/keybinds-example.gif)
 
 # WIP README
 
