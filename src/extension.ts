@@ -28,6 +28,20 @@ function insertTime(textEditor: vscode.TextEditor, edit: vscode.TextEditorEdit):
 		minute: `2-digit`
 	});
 
+	let currentLineText = textEditor.document.lineAt(textEditor.selection.start.line).text;
+
+
+	let emptyLine = currentLineText.match(/^\s*$/g) !== null;
+	let half_way = currentLineText.match(/^\s*(\d{2}:\d{2})\s*\-?\s*$/g) !== null;
+	let has_dash = currentLineText.indexOf('-');
+
+	if (!emptyLine && !half_way) return;
+
+	if (half_way){
+		if(!has_dash) currTime = ' - ' + currTime.trim();
+		currTime += ' ';
+	}
+	else if (emptyLine) currTime += currentLineText.endsWith(' ') ? '- ' : ' - ';
 	edit.insert(textEditor.selection.active, currTime);
 }
 
