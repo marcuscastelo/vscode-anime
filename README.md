@@ -8,9 +8,10 @@ This extension provides syntax highlighting, syntax checking, field autocompleti
 ### Syntax Highlighting
 
 Here is a simple example:
+## TODO: change image size and include friend example
 ![syntax example](images/syntax-example.png)
 
-Dates are in orange, anime titles in green, watch times in blue and episodes in green.
+Dates are in orange, anime titles in green, watch times in blue, episodes in cyan and friends in yellow.
 
 ### WIP: autocompletion
 
