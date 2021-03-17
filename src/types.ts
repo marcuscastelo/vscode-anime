@@ -17,9 +17,9 @@ export enum LineType {
 	Ignored,
 }
 
-type AnimeContext = {
-	currDate?: string,
-	currAnimeName?: string,
+export type AnimeContext = {
+	currDate: string,
+	currAnimeName: string,
 	currTag?: Tag
 };
 

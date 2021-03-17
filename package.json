@@ -22,9 +22,11 @@
 			{
 				"command": "marucs-anime.insertTime",
 				"title": "Insert Time"
+			},
+			{
+				"command": "marucs-anime.insertNextEpisode",
+				"title": "Insert Next Episode"
 			}
-
-			
 		],
 		"languages": [
 			{

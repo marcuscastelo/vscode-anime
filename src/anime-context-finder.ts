@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable curly */
 import { read } from "node:fs";
 import { Selection, TextEditor, TextLine } from "vscode";
 import { getLineInfo } from "./anime-contextful-parser";
@@ -11,8 +13,8 @@ export default function findContext(textEditor: TextEditor, textSelection: Selec
     reader.skiplines(+1);
     let currentLine: TextLine | null = null;
     
-    let currAnimeName;
-    let currDate;
+    let currAnimeName = "";
+    let currDate = "";
     //TODO: find tag (remember tags are valid in short scopes)
     let currTag = undefined;
 
@@ -27,12 +29,12 @@ export default function findContext(textEditor: TextEditor, textSelection: Selec
             throw new Error("Unexpected state: currentLine out of text document");
         [lineType, params] = getLineInfo(currentLine);  
 
-        if (lineType === LineType.AnimeTitle) {
+        if (lineType === LineType.AnimeTitle && (remainingFields & 0b01) !== 0) {
             currAnimeName = params["1"];
-            remainingFields &= 0b10;
-        } else if (lineType === LineType.Date) {
+            remainingFields &= ~0b01;
+        } else if (lineType === LineType.Date && (remainingFields & 0b10) !== 0) {
             currDate = params["1"];
-            remainingFields &= 0b01;
+            remainingFields &= ~0b10;
         }
 
     } while(remainingFields !== 0b0);
