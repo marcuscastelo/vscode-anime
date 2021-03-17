@@ -6,9 +6,9 @@ import { getLineInfo } from "./anime-contextful-parser";
 import DocumentReader from "./document-reader";
 import { AnimeContext, LineType } from "./types";
 
-export default function findContext(textEditor: TextEditor, textSelection: Selection): AnimeContext {
+export default function findContext(textEditor: TextEditor, lineNumber: number): AnimeContext {
     let reader = new DocumentReader(textEditor.document);
-    reader.gotoLine(textSelection.start.line);
+    reader.gotoLine(lineNumber);
     
     reader.skiplines(+1);
     let currentLine: TextLine | null = null;
