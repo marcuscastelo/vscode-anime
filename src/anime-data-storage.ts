@@ -8,8 +8,10 @@ type AnimeDict = {
 
 export default class AnimeDataStorage {
 	animeDict: AnimeDict;
+	friendList: string[];
 	constructor() {
 		this.animeDict = {};
+		this.friendList = [];
 	}
 
 	registerAnime(animeName: string, overwrite = true): Anime {
@@ -23,6 +25,11 @@ export default class AnimeDataStorage {
 			lastEp: 0,
 			lastLine: -1,
 		};
+	}
+
+	registerFriend(friendName: string) {
+		if (this.friendList.indexOf(friendName) === -1)
+			this.friendList.push(friendName);
 	}
 
 	getAnime(animeName: string): Anime | null {
@@ -52,5 +59,9 @@ export default class AnimeDataStorage {
 
 	listAnimes() {
 		return Object.keys(this.animeDict);
+	}
+
+	listFriends() {
+		return [...this.friendList];
 	}
 }

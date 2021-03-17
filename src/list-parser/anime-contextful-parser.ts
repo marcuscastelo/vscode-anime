@@ -10,7 +10,7 @@ import { AnimeContext, LineType } from "../types";
 export function getLineInfo(line: TextLine): [LineType, { [key: string]: string}] {
     const animeTitleReg = /^\s*([a-zA-Z].*)\:/g;
     const dateReg = /(\d{2}\/\d{2}\/\d{4})/g;
-    const watchReg = /(\d{2}:\d{2})\s*\-\s*(\d{2}:\d{2})\s+(\d{2,})/;
+    const watchReg = /^([0-9]{2}:[0-9]{2})[ ]*-[ ]*([0-9]{2}:[0-9]{2})?[ ]*([0-9][0-9.]{1,})?[ ]*(?:\{(.*)\})?/;
     const tagReg = /[(.+)]/;
     
     let text = line.text;
@@ -79,12 +79,15 @@ export default class AnimeContextfulParser {
     
         if (!currentAnime) {
             console.error(`500: Unexpected error: anime '${currAnimeName}' not found in list, despite being the current anime`);
-            return;
+            return;     
         }
     
         let startTime = params["1"];
         let endTime = params["2"];
         let episode = params["3"];
+
+        let friends = params["4"]?.split(',').map(name => name.trim()) ?? [];
+
     
         if (parseInt(episode) === NaN) {
             console.error(`400: episode isn't a number`);
@@ -93,6 +96,11 @@ export default class AnimeContextfulParser {
     
         currentAnime.lastEp = parseInt(episode);
         currentAnime.lastLine = line.lineNumber;
+
+        //TODO: create a WatchEntry and store it
+        for (let friend of friends)
+            this.storage.registerFriend(friend);
+        //
     }
     
     

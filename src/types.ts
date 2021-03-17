@@ -39,7 +39,8 @@ export type WatchEntry = {
 	animeName: string,
 	startTime: string,
 	endTime: string,
-	episode: number
+	episode: number,
+	company?: string[], //Friends
 };
 
 export type WatchSession = {

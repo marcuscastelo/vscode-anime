@@ -36,14 +36,14 @@ function readFileIntoAnimeData(textEditor: TextEditor): AnimeDataStorage {
 	let currentLine: TextLine | null = reader.getline();
 	while (currentLine !== null) {
 
-		if (reader.currentLineIdx % (reader.document.lineCount / 10)) {
+		if (reader.currentLineIdx % Math.floor(reader.document.lineCount / 10) === 0) {
 			console.log(`${reader.currentLineIdx}/${reader.document.lineCount} lines read (${(reader.currentLineIdx / reader.document.lineCount * 100).toFixed(2)}%)`);
 		}
 
 		contextParser.processLine(currentLine);
 		currentLine = reader.getline();
 	}
-
+	
 	return animeStorage;
 }
 
@@ -84,6 +84,8 @@ export function activate(context: ExtensionContext) {
 			let animeStorage = context.workspaceState.get<AnimeDataStorage>("marucs-anime:storage");
 			if (!animeStorage) return;
 
+			
+
 			let animeContext = findContext(vscode.window.activeTextEditor, position.line);
 
 			let animeInfo =  animeStorage.getAnime(animeContext.currAnimeName);
@@ -110,11 +112,29 @@ export function activate(context: ExtensionContext) {
 			let animeStorage = context.workspaceState.get<AnimeDataStorage>("marucs-anime:storage");
 			if (!animeStorage) return;
 
+			let lineText = document.lineAt(position.line).text;
+
+			let lastOpenBracketsIndex = lineText.indexOf('{');
+			let insideFriendSyntax = lastOpenBracketsIndex !== -1 ;// && lineText.match(/\{.*\}/g);
+			
+			
+			let lineStartCI = lineText.trim().toLowerCase();
+			
+			//Friends autocompletion
+			if (insideFriendSyntax) {
+				let currentFriendText = lineStartCI.substr(lastOpenBracketsIndex+1);
+
+				let friends = animeStorage.listFriends();
+				let friendsFiltered = friends.filter(name => (name.toLowerCase().trim()).startsWith(currentFriendText));
+				let friendsCompletion = friendsFiltered.map(friendName => { return { label: friendName, kind: vscode.CompletionItemKind.User } as vscode.CompletionItem; });
+				return friendsCompletion;
+			}
+
 			//TODO: support other completions other than anime names
 
-			let lineStart = document.lineAt(position.line).text.trim();
+			//Anime autocompletion
 
-			let possibleAnimes = animeStorage.listAnimes().filter(animeName => animeName.startsWith(lineStart));
+			let possibleAnimes = animeStorage.listAnimes().filter(animeName => (animeName.toLowerCase()).startsWith(lineStartCI));
 
 			let strCompletions = possibleAnimes.map(animeName => animeName + ':');
 
