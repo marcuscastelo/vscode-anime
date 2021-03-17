@@ -49,4 +49,8 @@ export default class AnimeDataStore {
 		}
 
 	}
+
+	listAnimes() {
+		return Object.keys(this.animeDict);
+	}
 }

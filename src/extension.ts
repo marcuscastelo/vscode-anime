@@ -152,9 +152,31 @@ export function activate(context: ExtensionContext) {
 		}
 	};
 
+	let completionItemProvider: vscode.CompletionItemProvider<vscode.CompletionItem> = {
+        provideCompletionItems(document: TextDocument, position: Position, token: CancellationToken, completionContext: vscode.CompletionContext): ProviderResult<vscode.CompletionItem[]> {
+			if (!vscode.window.activeTextEditor) return;
+
+			let animeStorage = context.workspaceState.get<AnimeDataStore>("marucs-anime:storage");
+			if (!animeStorage) return;
+
+			//TODO: support other completions other than anime names
+
+			let lineStart = document.lineAt(position.line).text.trim();
+
+			let possibleAnimes = animeStorage.listAnimes().filter(animeName => animeName.startsWith(lineStart));
+
+			let strCompletions = possibleAnimes.map(animeName => animeName + ':');
+
+			let completions = strCompletions.map(animeName => { return { label: animeName , kind: vscode.CompletionItemKind.Class } as vscode.CompletionItem; });
+			return completions;
+		}
+	};
+
 	context.subscriptions.push(
 		vscode.languages.registerHoverProvider(animelistFilter, hoverProvider),
+		vscode.languages.registerCompletionItemProvider(animelistFilter, completionItemProvider),
 	);
+	
 }
 
 
