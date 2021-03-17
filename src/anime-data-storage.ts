@@ -6,7 +6,7 @@ type AnimeDict = {
 	[name: string]: Anime
 };
 
-export default class AnimeDataStore {
+export default class AnimeDataStorage {
 	animeDict: AnimeDict;
 	constructor() {
 		this.animeDict = {};

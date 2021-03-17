@@ -2,9 +2,9 @@
 /* eslint-disable curly */
 
 import { TextLine } from "vscode";
-import AnimeDataStore from "./anime-data-store";
-import DocumentReader from "./document-reader";
-import { AnimeContext, LineType } from "./types";
+import AnimeDataStorage from "../anime-data-storage";
+import DocumentReader from "../utils/document-reader";
+import { AnimeContext, LineType } from "../types";
 
 
 export function getLineInfo(line: TextLine): [LineType, { [key: string]: string}] {
@@ -43,8 +43,8 @@ export default class AnimeContextfulParser {
         currDate: ""
     };
     
-    storage: AnimeDataStore;
-    constructor(storage: AnimeDataStore) {
+    storage: AnimeDataStorage;
+    constructor(storage: AnimeDataStorage) {
         this.storage = storage;
     }
 

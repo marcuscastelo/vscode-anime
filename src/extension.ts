@@ -2,11 +2,11 @@
 /* eslint-disable curly */
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
-import DocumentReader from './document-reader';
-import AnimeContextfulParser from './anime-contextful-parser';
+import DocumentReader from './utils/document-reader';
+import AnimeContextfulParser from './list-parser/anime-contextful-parser';
 
-import AnimeDataStore from './anime-data-store';
-import findContext from './anime-context-finder';
+import AnimeDataStorage from './anime-data-storage';
+import findContext from './list-parser/anime-context-finder';
 import * as vscode from 'vscode';
 import { ExtensionContext } from 'vscode';
 import { TextEditor } from 'vscode';
@@ -20,51 +20,16 @@ import { ProviderResult } from 'vscode';
 import { Hover } from 'vscode';
 import { TextLine } from 'vscode';
 import { Selection } from 'vscode';
+import { insertDate } from './commands/insert-date';
+import { insertTime } from './commands/insert-time';
+import { insertNextEpisode } from './commands/insert-next-episode';
 
 let extensionContext: ExtensionContext | null;
 
-function isEditingSimpleCursor(textEditor: TextEditor) {
-	return textEditor.selections.length === 1 && textEditor.selection.isSingleLine && textEditor.selection.start === textEditor.selection.end;
-}
-
-function insertDate(textEditor: TextEditor, edit: TextEditorEdit): void {
-	if (!isEditingSimpleCursor(textEditor)) return;
-
-	let currDate = (new Date(Date.now())).toLocaleDateString();
-
-	edit.insert(textEditor.selection.active, currDate);
-}
-
-function insertTime(textEditor: TextEditor, edit: TextEditorEdit): void {
-	if (!isEditingSimpleCursor(textEditor)) return;
-
-	let currTime = (new Date(Date.now())).toLocaleTimeString(undefined, {
-		hour: `2-digit`,
-		minute: `2-digit`
-	});
-
-	let currentLineText = textEditor.document.lineAt(textEditor.selection.start.line).text;
-
-
-	let emptyLine = currentLineText.match(/^\s*$/g) !== null;
-	let half_way = currentLineText.match(/^\s*(\d{2}:\d{2})\s*\-?\s*$/g) !== null;
-	let has_dash = currentLineText.indexOf('-');
-
-	if (!emptyLine && !half_way) return;
-
-	if (half_way) {
-		if (!has_dash) currTime = ' - ' + currTime.trim();
-		currTime += ' ';
-	}
-	else if (emptyLine) currTime += currentLineText.endsWith(' ') ? '- ' : ' - ';
-	edit.insert(textEditor.selection.active, currTime);
-}
-
-
-function readFileIntoAnimeData(textEditor: TextEditor): AnimeDataStore {
+function readFileIntoAnimeData(textEditor: TextEditor): AnimeDataStorage {
 	let reader = new DocumentReader(textEditor.document);
 
-	let animeStorage = new AnimeDataStore();
+	let animeStorage = new AnimeDataStorage();
 
 	let contextParser = new AnimeContextfulParser(animeStorage);
 
@@ -82,42 +47,28 @@ function readFileIntoAnimeData(textEditor: TextEditor): AnimeDataStore {
 	return animeStorage;
 }
 
-function insertNextEpisode(textEditor: TextEditor, edit: TextEditorEdit): void {
-	if (!extensionContext) return;
-
-	let animeStorage = extensionContext.workspaceState.get<AnimeDataStore>("marucs-anime:storage");
-
-	if (!isEditingSimpleCursor(textEditor)) return;
-
-	let animeContext = findContext(textEditor, textEditor.selection.start.line);
-
-	let anime = animeStorage?.getAnime(animeContext.currAnimeName);
-
-	let nextEpStr = ((anime?.lastEp ?? 0) + 1).toString();
-	if (nextEpStr.length < 2) nextEpStr = "0" + nextEpStr;
-	edit.insert(textEditor.selection.start, nextEpStr);
-}
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: ExtensionContext) {
 	extensionContext = context;
 
+	let animeStorage: AnimeDataStorage;
+
+
 	if (vscode.window.activeTextEditor) {
 		console.log("Reading document lines...");
-		let animeStorage = readFileIntoAnimeData(vscode.window.activeTextEditor);
+		animeStorage = readFileIntoAnimeData(vscode.window.activeTextEditor);
 		console.log("All document lines read!");
 
 		console.log(animeStorage);
 		context.workspaceState.update("marucs-anime:storage", animeStorage);
 	}
 
-
-
 	context.subscriptions.push(
 		vscode.commands.registerTextEditorCommand('marucs-anime.insertDate', insertDate),
 		vscode.commands.registerTextEditorCommand('marucs-anime.insertTime', insertTime),
-		vscode.commands.registerTextEditorCommand('marucs-anime.insertNextEpisode', insertNextEpisode),
+		vscode.commands.registerTextEditorCommand('marucs-anime.insertNextEpisode', (a, b) => insertNextEpisode(a, b, animeStorage)),
 
 	);
 
@@ -130,7 +81,7 @@ export function activate(context: ExtensionContext) {
 		provideHover(document: TextDocument, position: Position, token: CancellationToken) {
 			if (!vscode.window.activeTextEditor) return;
 
-			let animeStorage = context.workspaceState.get<AnimeDataStore>("marucs-anime:storage");
+			let animeStorage = context.workspaceState.get<AnimeDataStorage>("marucs-anime:storage");
 			if (!animeStorage) return;
 
 			let animeContext = findContext(vscode.window.activeTextEditor, position.line);
@@ -156,7 +107,7 @@ export function activate(context: ExtensionContext) {
         provideCompletionItems(document: TextDocument, position: Position, token: CancellationToken, completionContext: vscode.CompletionContext): ProviderResult<vscode.CompletionItem[]> {
 			if (!vscode.window.activeTextEditor) return;
 
-			let animeStorage = context.workspaceState.get<AnimeDataStore>("marucs-anime:storage");
+			let animeStorage = context.workspaceState.get<AnimeDataStorage>("marucs-anime:storage");
 			if (!animeStorage) return;
 
 			//TODO: support other completions other than anime names

@@ -3,8 +3,8 @@
 import { read } from "node:fs";
 import { Selection, TextEditor, TextLine } from "vscode";
 import { getLineInfo } from "./anime-contextful-parser";
-import DocumentReader from "./document-reader";
-import { AnimeContext, LineType } from "./types";
+import DocumentReader from "../utils/document-reader";
+import { AnimeContext, LineType } from "../types";
 
 export default function findContext(textEditor: TextEditor, lineNumber: number): AnimeContext {
     let reader = new DocumentReader(textEditor.document);
