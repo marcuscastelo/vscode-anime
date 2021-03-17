@@ -28,6 +28,23 @@
 				"title": "Insert Next Episode"
 			}
 		],
+		"keybindings":[
+			{
+				"command": "marucs-anime.insertDate",
+				"key": "alt+d",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "marucs-anime.insertTime",
+				"key": "alt+t",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "marucs-anime.insertNextEpisode",
+				"key": "alt+n",
+				"when": "editorTextFocus"
+			}
+		],
 		"languages": [
 			{
 				"id": "anime-list",
