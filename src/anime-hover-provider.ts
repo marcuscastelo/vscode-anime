@@ -1,0 +1,46 @@
+import { CancellationToken, ExtensionContext, Hover, MarkdownString, Position, TextDocument, window } from "vscode";
+
+import AnimeDataStorage from "./anime-data-storage";
+import findContext from "./list-parser/anime-context-finder";
+import { searchAnime } from "./services/mal";
+import { AnimeSearchResultItem } from "./types";
+
+async function searchMAL(animeTitle: string) {
+    let foundAnimes = await searchAnime(animeTitle);
+    return foundAnimes.length > 0 ? foundAnimes[0] : undefined
+}
+
+function getAnimeID(animeTitle: string) {
+
+}
+
+export function createHoverProvider(extensionContext: ExtensionContext) {
+    return {
+        async provideHover(document: TextDocument, position: Position, token: CancellationToken) {
+            let animeStorage = extensionContext.workspaceState.get<AnimeDataStorage>("marucs-anime:storage");
+            if (!animeStorage) return;
+
+            if (!window.activeTextEditor) return;
+
+            let animeContext = findContext(window.activeTextEditor, position.line);
+
+            let animeInfo = animeStorage.getAnime(animeContext.currAnimeName);
+            if (!animeInfo) {
+                throw new Error("Impossible state");
+            }
+
+            let mdString;
+
+            let animeMAL = await searchMAL(animeInfo.name);
+            // let animeMAL = {url: "Bom dia"} as AnimeSearchResultItem;
+
+            mdString = new MarkdownString(
+                `### ${animeContext.currAnimeName}: ` +
+                `\n- Last episode: ${animeInfo.lastEp}` +
+                `\n- URL: ${animeMAL?.url ?? '404'}`
+            );
+
+            return new Hover(mdString);
+        }
+    };
+}

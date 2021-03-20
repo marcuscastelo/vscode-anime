@@ -1,42 +1,52 @@
-import axios, { AxiosResponse } from 'axios'
-import { Console } from 'node:console';
+import axios, { AxiosResponse } from 'axios';
+import { AnimeSearchResultItem } from '../types';
 
 const API = axios.create({
     baseURL: "https://api.jikan.moe/v3/"
 });
 
-const { CLIENT_ID, CLIENT_SECRET } = require('../../mal-api.json');
+let _processing = false;
+function _wakeUpProcess() {
+    if (_processing) return;
+
+    _processPendingRequests();
+}
 
 let _pendingRequests: [string, (res: AxiosResponse<any>) => void][] = [];
 async function _processPendingRequests() {
-    let needsSleeping = _pendingRequests.length === 0;
+    _processing = true;
+
+    let i = 0;
     while (_pendingRequests.length > 0) {
         let [resPath, resolve] = _pendingRequests.shift() ?? ['', undefined];
-        await new Promise(r => setTimeout(r, 5000));
+        if (i > 0) {
+            await new Promise(r => setTimeout(r, 5000));
+        }
+        i++;
 
         console.log((new Date(Date.now()).toLocaleTimeString()), "Making request: ", resPath);
         let response = await API.get(resPath);
+        console.log("Response = ", response);
 
+        console.log('\n\n');
         if (resolve) {
-            resolve(response);
+            resolve(response.data);
         }
     }
     
-    setTimeout(_processPendingRequests, needsSleeping ? 5000 : 1);
+    setTimeout(() => _processing = false, (i === 1) ? 5000: 1);
 }
 
 function request(resourcePath: string) {
+
     return new Promise((res, rej) => {
         _pendingRequests.push([resourcePath, response => res(response)]);
+        _wakeUpProcess();
     });
 }
 
-export async function testee() {
-    console.log("Starting MAL test")
-    let searchResult = await request('/search/anime?q=one');
-    let searchResult2 = await request('/search/anime?q=re:z');
-    console.log(searchResult);
-    console.log(searchResult2);
+export async function searchAnime(animeTitle: string) {
+    return ((await request('/search/anime?q=' + animeTitle)) as {results: AnimeSearchResultItem[]}).results;
 }
 
 _processPendingRequests();

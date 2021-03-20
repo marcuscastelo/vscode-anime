@@ -23,7 +23,7 @@ import { Selection } from 'vscode';
 import { insertDate } from './commands/insert-date';
 import { insertTime } from './commands/insert-time';
 import { insertNextEpisode } from './commands/insert-next-episode';
-import { testee } from './services/mal';
+import { createHoverProvider } from './anime-hover-provider';
 
 let extensionContext: ExtensionContext;
 
@@ -65,10 +65,6 @@ function updateAnimeStorage(textDocument: TextDocument) {
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: ExtensionContext) {
-	await testee();
-}
-
-function disasdsD(context: ExtensionContext) {
 	extensionContext = context;
 	let textEditor = vscode.window.activeTextEditor;
 
@@ -89,34 +85,6 @@ function disasdsD(context: ExtensionContext) {
 
 	let animelistFilter: DocumentFilter = {
 		language: "anime-list",
-	};
-
-	let hoverProvider = {
-		provideHover(document: TextDocument, position: Position, token: CancellationToken) {
-			if (!vscode.window.activeTextEditor) return;
-
-			let animeStorage = context.workspaceState.get<AnimeDataStorage>("marucs-anime:storage");
-			if (!animeStorage) return;
-
-			
-
-			let animeContext = findContext(vscode.window.activeTextEditor, position.line);
-
-			let animeInfo =  animeStorage.getAnime(animeContext.currAnimeName);
-			if (!animeInfo) {
-				throw new Error("Impossible state");
-			}
-
-			let mdString;
-
-			mdString = new MarkdownString(
-				`### ${animeContext.currAnimeName}: ` +
-				`\n- Last episode: ${animeInfo.lastEp}`
-			);
-
-
-			return new Hover(mdString);
-		}
 	};
 
 	let completionItemProvider: vscode.CompletionItemProvider<vscode.CompletionItem> = {
@@ -156,6 +124,8 @@ function disasdsD(context: ExtensionContext) {
 			return completions;
 		}
 	};
+
+	let hoverProvider = await createHoverProvider(extensionContext);
 
 	context.subscriptions.push(
 		vscode.languages.registerHoverProvider(animelistFilter, hoverProvider),
