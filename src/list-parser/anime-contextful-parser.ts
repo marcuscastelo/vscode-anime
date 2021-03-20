@@ -2,7 +2,7 @@
 /* eslint-disable curly */
 
 import { TextLine } from "vscode";
-import AnimeDataStorage from "../anime-data-storage";
+import AnimeDataStorage from "../cache/anime/anime-data-storage";
 import DocumentReader from "../utils/document-reader";
 import { AnimeContext, LineType } from "../types";
 
@@ -64,7 +64,9 @@ export default class AnimeContextfulParser {
         let animeName: string = params["1"];
         let currentAnime = this.storage.getOrCreateAnime(animeName);
     
-        currentAnime.lastLine = line.lineNumber;
+        //TODO: check for empty sessions ( i.e: no watch entries between titles )
+        currentAnime.updateLastMentionedLine(line.lineNumber);
+        
         this.currentContext.currAnimeName = animeName;
     }
     
@@ -84,20 +86,20 @@ export default class AnimeContextfulParser {
     
         let startTime = params["1"];
         let endTime = params["2"];
-        let episode = params["3"];
+        let episode = parseInt(params["3"]);
 
         let friends = params["4"]?.split(',').map(name => name.trim()) ?? [];
 
     
-        if (parseInt(episode) === NaN) {
+        if (episode === NaN) {
             console.error(`400: episode isn't a number`);
             return;
         }
     
-        currentAnime.lastEp = parseInt(episode);
-        currentAnime.lastLine = line.lineNumber;
+        
+        //TODO: create a WatchEntry and store it ( also remove .updateLastWatchedEpisode )
+        currentAnime.updateLastWatchedEpisode(episode, line.lineNumber);
 
-        //TODO: create a WatchEntry and store it
         for (let friend of friends)
             this.storage.registerFriend(friend);
         //

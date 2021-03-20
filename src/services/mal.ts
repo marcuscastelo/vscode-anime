@@ -7,7 +7,7 @@ const API = axios.create({
 
 let _processing = false;
 function _wakeUpProcess() {
-    if (_processing) return;
+    if (_processing) { return; }
 
     _processPendingRequests();
 }
@@ -33,8 +33,8 @@ async function _processPendingRequests() {
             resolve(response.data);
         }
     }
-    
-    setTimeout(() => _processing = false, (i === 1) ? 5000: 1);
+
+    setTimeout(() => _processing = false, (i === 1) ? 5000 : 1);
 }
 
 function request(resourcePath: string) {
@@ -46,7 +46,7 @@ function request(resourcePath: string) {
 }
 
 export async function searchAnime(animeTitle: string) {
-    return ((await request('/search/anime?q=' + animeTitle)) as {results: AnimeSearchResultItem[]}).results;
+    return ((await request('/search/anime?q=' + animeTitle)) as { results: AnimeSearchResultItem[] }).results;
 }
 
 _processPendingRequests();

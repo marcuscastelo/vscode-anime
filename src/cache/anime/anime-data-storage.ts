@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable curly */
-import { Anime, WatchEntry } from "./types";
+import { WatchEntry } from "../../types";
+import Anime from "./anime";
 
 type AnimeDict = {
 	[name: string]: Anime
@@ -20,11 +21,9 @@ export default class AnimeDataStorage {
 			return this.getAnime(animeName) as Anime;
 		}
 
-		return this.animeDict[animeName] = {
-			name: animeName,
-			lastEp: 0,
-			lastLine: -1,
-		};
+		let anime = new Anime(animeName);
+		this.animeDict[animeName] = anime;
+		return anime;
 	}
 
 	registerFriend(friendName: string) {
@@ -47,7 +46,7 @@ export default class AnimeDataStorage {
 	addWatchEntry(animeName: string, entry: WatchEntry) {
 		let anime = this.getAnime(animeName);
 		if (anime) {
-			anime.lastEp = entry.episode;
+			anime.updateLastWatchedEpisode(entry.episode, entry.line);
 		}
 		else {
 			console.error(`Trying to add watch entry to unkown anime: \n\

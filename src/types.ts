@@ -29,18 +29,13 @@ export type Tag = {
 	parameters: string[]
 };
 
-export type Anime = {
-	name: string,
-	lastEp: number,
-	lastLine: number,
-};
-
 export type WatchEntry = {
 	animeName: string,
 	startTime: string,
 	endTime: string,
 	episode: number,
 	company?: string[], //Friends
+	line: number,
 };
 
 export type WatchSession = {
