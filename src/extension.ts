@@ -23,7 +23,8 @@ import { Selection } from 'vscode';
 import { insertDate } from './commands/insert-date';
 import { insertTime } from './commands/insert-time';
 import { insertNextEpisode } from './commands/insert-next-episode';
-import ShowHoverProvider from './anime-hover-provider';
+import ShowHoverProvider from './lang/anime-hover-provider';
+import AnimeCompletionItemProvider from './lang/anime-completion-provider';
 
 let extensionContext: ExtensionContext;
 
@@ -80,53 +81,8 @@ export async function activate(context: ExtensionContext) {
 		vscode.commands.registerTextEditorCommand('marucs-anime.insertTime', insertTime),
 		vscode.commands.registerTextEditorCommand('marucs-anime.insertNextEpisode', (a, b) => insertNextEpisode(a, b)),
 
-	);
-
-	let animelistFilter: DocumentFilter = {
-		language: "anime-list",
-	};
-
-	let completionItemProvider: vscode.CompletionItemProvider<vscode.CompletionItem> = {
-        provideCompletionItems(document: TextDocument, position: Position, token: CancellationToken, completionContext: vscode.CompletionContext): ProviderResult<vscode.CompletionItem[]> {
-			if (!vscode.window.activeTextEditor) return;
-
-			let animeStorage = context.workspaceState.get<AnimeDataStorage>("marucs-anime:storage");
-			if (!animeStorage) return;
-
-			let lineText = document.lineAt(position.line).text;
-
-			let lastOpenBracketsIndex = lineText.indexOf('{');
-			let insideFriendSyntax = lastOpenBracketsIndex !== -1 ;// && lineText.match(/\{.*\}/g);
-			
-			
-			let lineStartCI = lineText.trim().toLowerCase();
-			
-			//Friends autocompletion
-			if (insideFriendSyntax) {
-				let currentFriendText = lineStartCI.substr(lastOpenBracketsIndex+1);
-
-				let friends = animeStorage.listFriends();
-				let friendsFiltered = friends.filter(name => (name.toLowerCase().trim()).startsWith(currentFriendText));
-				let friendsCompletion = friendsFiltered.map(friendName => { return { label: friendName, kind: vscode.CompletionItemKind.User } as vscode.CompletionItem; });
-				return friendsCompletion;
-			}
-
-			//TODO: support other completions other than anime names
-
-			//Anime autocompletion
-
-			let possibleAnimes = animeStorage.listAnimes().filter(animeName => (animeName.toLowerCase()).startsWith(lineStartCI));
-
-			let strCompletions = possibleAnimes.map(animeName => animeName + ':');
-
-			let completions = strCompletions.map(animeName => { return { label: animeName , kind: vscode.CompletionItemKind.Class } as vscode.CompletionItem; });
-			return completions;
-		}
-	};
-
-	context.subscriptions.push(
 		ShowHoverProvider.register(context),
-		vscode.languages.registerCompletionItemProvider(animelistFilter, completionItemProvider),
+		AnimeCompletionItemProvider.register(context),
 	);
 	
 }

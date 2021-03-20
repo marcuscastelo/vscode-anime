@@ -1,9 +1,9 @@
 import { CancellationToken, ExtensionContext, Hover, HoverProvider, languages, MarkdownString, Position, TextDocument, window } from "vscode";
 
-import AnimeDataStorage from "./cache/anime/anime-data-storage";
-import findContext from "./list-parser/anime-context-finder";
-import { searchAnime } from "./services/mal";
-import { AnimeSearchResultItem, Tags } from "./types";
+import AnimeDataStorage from "../cache/anime/anime-data-storage";
+import findContext from "../list-parser/anime-context-finder";
+import { searchAnime } from "../services/mal";
+import { AnimeSearchResultItem, Tags } from "../types";
 
 async function searchMAL(animeTitle: string) {
     let foundAnimes = await searchAnime(animeTitle);
