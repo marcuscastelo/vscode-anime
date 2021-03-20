@@ -24,10 +24,14 @@ import { insertDate } from './commands/insert-date';
 import { insertTime } from './commands/insert-time';
 import { insertNextEpisode } from './commands/insert-next-episode';
 
-let extensionContext: ExtensionContext | null;
+let extensionContext: ExtensionContext;
 
-function readFileIntoAnimeData(textEditor: TextEditor): AnimeDataStorage {
-	let reader = new DocumentReader(textEditor.document);
+export function getContext() {
+	return extensionContext;
+}
+
+function parseDocumentFromStart(textDocument: TextDocument): AnimeDataStorage {
+	let reader = new DocumentReader(textDocument);
 
 	let animeStorage = new AnimeDataStorage();
 
@@ -43,39 +47,44 @@ function readFileIntoAnimeData(textEditor: TextEditor): AnimeDataStorage {
 		contextParser.processLine(currentLine);
 		currentLine = reader.getline();
 	}
-	
+
 	return animeStorage;
 }
 
+function updateAnimeStorage(textDocument: TextDocument) {
+	vscode.window.setStatusBarMessage(`Parsing all animes...`);
+	let animeStorage = parseDocumentFromStart(textDocument);
+
+	console.log(animeStorage);
+
+	extensionContext.workspaceState.update("marucs-anime:storage", animeStorage);
+	vscode.window.setStatusBarMessage(`Parsing completed!`,);
+}
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-export function activate(context: ExtensionContext) {
+export async function activate(context: ExtensionContext) {
 	extensionContext = context;
+	let textEditor = vscode.window.activeTextEditor;
 
-	let animeStorage: AnimeDataStorage;
-
-
-	if (vscode.window.activeTextEditor) {
-		console.log("Reading document lines...");
-		animeStorage = readFileIntoAnimeData(vscode.window.activeTextEditor);
-		console.log("All document lines read!");
-
-		console.log(animeStorage);
-		context.workspaceState.update("marucs-anime:storage", animeStorage);
+	if (!vscode.window.activeTextEditor) {
+		vscode.window.showErrorMessage("vscode-anime couldn't find a TextEditor");
+		return;
 	}
+
+	updateAnimeStorage(vscode.window.activeTextEditor.document);
+	vscode.workspace.onDidSaveTextDocument((e) => void updateAnimeStorage(e));
 
 	context.subscriptions.push(
 		vscode.commands.registerTextEditorCommand('marucs-anime.insertDate', insertDate),
 		vscode.commands.registerTextEditorCommand('marucs-anime.insertTime', insertTime),
-		vscode.commands.registerTextEditorCommand('marucs-anime.insertNextEpisode', (a, b) => insertNextEpisode(a, b, animeStorage)),
+		vscode.commands.registerTextEditorCommand('marucs-anime.insertNextEpisode', (a, b) => insertNextEpisode(a, b)),
 
 	);
 
 	let animelistFilter: DocumentFilter = {
 		language: "anime-list",
 	};
-
 
 	let hoverProvider = {
 		provideHover(document: TextDocument, position: Position, token: CancellationToken) {
