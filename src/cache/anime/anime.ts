@@ -7,9 +7,11 @@ type ShowCacheInfo = {
 };
 
 type MALShowCacheInfo = {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     mal_id: number,
     title: string,
     url: string,
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     image_url: string,
     type: string,
     episodes: number,
@@ -51,6 +53,12 @@ export default class Anime {
         for (let anime of foundAnimes) {
             if (anime.title === this.info.title) {
                 console.log("Found!\n", anime);
+                this.info = {
+                    ...this.info,
+                    ...anime
+                };
+                
+                this.info.stage = AnimeCacheStage.full;
             }
         }
     }

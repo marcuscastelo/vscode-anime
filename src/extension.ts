@@ -5,7 +5,7 @@
 import DocumentReader from './utils/document-reader';
 import AnimeContextfulParser from './list-parser/anime-contextful-parser';
 
-import AnimeDataStorage from './anime-data-storage';
+import AnimeDataStorage from './cache/anime/anime-data-storage';
 import findContext from './list-parser/anime-context-finder';
 import * as vscode from 'vscode';
 import { ExtensionContext } from 'vscode';

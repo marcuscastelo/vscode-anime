@@ -33,11 +33,16 @@ export function createHoverProvider(extensionContext: ExtensionContext) {
                 await anime.searchMAL();
             }
 
-            let animeInfo = anime.getFullInfo() ?? { ...anime.getBasicInfo(), url: "Error" };
+            let animeInfo = anime.getFullInfo() ??
+            {
+                ...anime.getBasicInfo(),
+                url: "Error",
+                episodes: NaN
+            };
 
             let mdString = new MarkdownString(
                 `### ${animeContext.currAnimeName}: ` +
-                `\n- Last episode: ${animeInfo.lastWatchedEpisode}` +
+                `\n- Last episode: ${animeInfo.lastWatchedEpisode}/${animeInfo.episodes}` +
                 `\n- URL: ${animeInfo.url}`
             );
 

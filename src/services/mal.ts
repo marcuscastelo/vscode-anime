@@ -1,5 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 import { AnimeSearchResultItem } from '../types';
+import { sleep } from '../utils/time-utils';
 
 const API = axios.create({
     baseURL: "https://api.jikan.moe/v3/"
@@ -12,33 +13,36 @@ function _wakeUpProcess() {
     _processPendingRequests();
 }
 
+const WAIT_TIME = 4500;
+let _lastTime = 0;
 let _pendingRequests: [string, (res: AxiosResponse<any>) => void][] = [];
 async function _processPendingRequests() {
     _processing = true;
 
-    let i = 0;
     while (_pendingRequests.length > 0) {
         let [resPath, resolve] = _pendingRequests.shift() ?? ['', undefined];
-        if (i > 0) {
-            await new Promise(r => setTimeout(r, 5000));
-        }
-        i++;
 
+        // Sleeps if too many requests are being made
+        let elapsedTime = Date.now() - _lastTime;
+        await sleep(Math.max(0, WAIT_TIME - elapsedTime));
+        _lastTime = Date.now();
+
+        // Makes the request
         console.log((new Date(Date.now()).toLocaleTimeString()), "Making request: ", resPath);
         let response = await API.get(resPath);
         console.log("Response = ", response);
-
         console.log('\n\n');
+
+        // Returns the request to the informed callback
         if (resolve) {
             resolve(response.data);
         }
     }
 
-    setTimeout(() => _processing = false, (i === 1) ? 5000 : 1);
+    _processing = false;
 }
 
 function request(resourcePath: string) {
-
     return new Promise((res, rej) => {
         _pendingRequests.push([resourcePath, response => res(response)]);
         _wakeUpProcess();
