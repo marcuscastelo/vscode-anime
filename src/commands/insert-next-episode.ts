@@ -1,12 +1,14 @@
 
 import { TextEditor, TextEditorEdit } from "vscode";
 import AnimeDataStorage from "../anime-data-storage";
+import { getContext } from "../extension";
 import findContext from "../list-parser/anime-context-finder";
 import { isEditingSimpleCursor } from "../utils/editor-utils";
 
-export function insertNextEpisode(textEditor: TextEditor, edit: TextEditorEdit, animeStorage: AnimeDataStorage): void {
-
+export function insertNextEpisode(textEditor: TextEditor, edit: TextEditorEdit): void {
 	if (!isEditingSimpleCursor(textEditor)) return;
+
+	let animeStorage = getContext().workspaceState.get<AnimeDataStorage>("marucs-anime:storage");
 
 	let animeContext = findContext(textEditor, textEditor.selection.start.line);
 
