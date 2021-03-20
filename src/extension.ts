@@ -23,7 +23,7 @@ import { Selection } from 'vscode';
 import { insertDate } from './commands/insert-date';
 import { insertTime } from './commands/insert-time';
 import { insertNextEpisode } from './commands/insert-next-episode';
-import { createHoverProvider } from './anime-hover-provider';
+import ShowHoverProvider from './anime-hover-provider';
 
 let extensionContext: ExtensionContext;
 
@@ -124,10 +124,8 @@ export async function activate(context: ExtensionContext) {
 		}
 	};
 
-	let hoverProvider = await createHoverProvider(extensionContext);
-
 	context.subscriptions.push(
-		vscode.languages.registerHoverProvider(animelistFilter, hoverProvider),
+		ShowHoverProvider.register(context),
 		vscode.languages.registerCompletionItemProvider(animelistFilter, completionItemProvider),
 	);
 	
