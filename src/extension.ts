@@ -23,6 +23,7 @@ import { Selection } from 'vscode';
 import { insertDate } from './commands/insert-date';
 import { insertTime } from './commands/insert-time';
 import { insertNextEpisode } from './commands/insert-next-episode';
+import { testee } from './services/mal';
 
 let extensionContext: ExtensionContext;
 
@@ -64,6 +65,10 @@ function updateAnimeStorage(textDocument: TextDocument) {
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export async function activate(context: ExtensionContext) {
+	await testee();
+}
+
+function disasdsD(context: ExtensionContext) {
 	extensionContext = context;
 	let textEditor = vscode.window.activeTextEditor;
 
