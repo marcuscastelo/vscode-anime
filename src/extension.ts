@@ -33,10 +33,9 @@ export function getContext() {
 
 function parseDocumentFromStart(textDocument: TextDocument): AnimeDataStorage {
 	let reader = new DocumentReader(textDocument);
-
 	let animeStorage = new AnimeDataStorage();
 
-	let contextParser = new AnimeContextfulParser(animeStorage);
+	let contextParser = new AnimeContextfulParser(animeStorage, reader);
 
 	let currentLine: TextLine | null = reader.getline();
 	while (currentLine !== null) {

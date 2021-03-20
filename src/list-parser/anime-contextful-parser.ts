@@ -4,14 +4,35 @@
 import { TextLine } from "vscode";
 import AnimeDataStorage from "../cache/anime/anime-data-storage";
 import DocumentReader from "../utils/document-reader";
-import { AnimeContext, LineType } from "../types";
+import { AnimeContext, LineType, Tag, Tags } from "../types";
+import Anime from "../cache/anime/anime";
+import { read } from "node:fs";
 
+type Params = {
+    [key: string]: string
+};
 
-export function getLineInfo(line: TextLine): [LineType, { [key: string]: string}] {
-    const animeTitleReg = /^\s*([a-zA-Z].*)\:/g;
-    const dateReg = /(\d{2}\/\d{2}\/\d{4})/g;
-    const watchReg = /^([0-9]{2}:[0-9]{2})[ ]*-[ ]*([0-9]{2}:[0-9]{2})?[ ]*([0-9][0-9.]{1,})?[ ]*(?:\{(.*)\})?/;
-    const tagReg = /[(.+)]/;
+const animeTitleReg = /^\s*([a-zA-Z].*)\:/g;
+const dateReg = /(\d{2}\/\d{2}\/\d{4})/g;
+const watchReg = /^([0-9]{2}:[0-9]{2})[ ]*-[ ]*([0-9]{2}:[0-9]{2})?[ ]*([0-9][0-9.]{1,})?[ ]*(?:\{(.*)\})?/;
+const tagReg = /\[(.+)\]/;
+
+function checkAnimeDeclHasRightTags(anime: Anime, reader: DocumentReader): boolean {
+    return true;
+
+    let declLine = reader.currentLineIdx;
+
+    let tags = anime.getBasicInfo();
+    for (let tag in tags) {
+        
+    }
+    //TODO: check if anime previously Tagged with some tags is tagged again the same
+
+    reader.gotoLine(declLine);
+}
+
+export function getLineInfo(line: TextLine): [LineType, Params] {
+    
     
     let text = line.text;
 
@@ -40,12 +61,15 @@ export default class AnimeContextfulParser {
     
     currentContext : AnimeContext = {
         currAnimeName: "",
-        currDate: ""
+        currDate: "",
+        currTags: []
     };
     
     storage: AnimeDataStorage;
-    constructor(storage: AnimeDataStorage) {
+    reader: DocumentReader;
+    constructor(storage: AnimeDataStorage, reader: DocumentReader) {
         this.storage = storage;
+        this.reader = reader;
     }
 
     processLine(line: TextLine) {
@@ -55,22 +79,34 @@ export default class AnimeContextfulParser {
 			this.processAnimeTitleLine(params, line);
 		} else if (type === LineType.Watch) {
 			this.processWatchLine(params, line);
-		}
+		} else if (type === LineType.Tag) {
+            this.processTag(params, line);
+        }
     }
 
-    processAnimeTitleLine(params: { [key: string]: string }, line: TextLine) {
+    processAnimeTitleLine(params: Params, line: TextLine) {
         if (params["1"] === undefined) return;
     
         let animeName: string = params["1"];
-        let currentAnime = this.storage.getOrCreateAnime(animeName);
-    
+
+        let currentAnime = this.storage.getOrCreateAnime(animeName, this.currentContext.currTags);
+        //TODO: checkAnimeDeclHasRightTags(currentAnime, this.reader);
+
         //TODO: check for empty sessions ( i.e: no watch entries between titles )
         currentAnime.updateLastMentionedLine(line.lineNumber);
         
         this.currentContext.currAnimeName = animeName;
+
+        //TODO: distinguish tag targets
+        this.currentContext.currTags = [];
+        // for (let i = 0; i < this.currentContext.currTags.length; i++) {
+        //     if (isShowTag()) {
+        //         this.currentContext.currTags.splice(i, 1);
+        //     }
+        // }
     }
     
-    processWatchLine(params: { [key: string] : string }, line: TextLine) {
+    processWatchLine(params: Params, line: TextLine) {
         let currAnimeName = this.currentContext.currAnimeName ?? "unknown__definetelynotusednameindict";
         let currentAnime = this.storage.getAnime(currAnimeName);
     
@@ -105,16 +141,20 @@ export default class AnimeContextfulParser {
         //
     }
     
+    processTag(params: Params, line: TextLine) {
+        let tagType = params["1"];
+        let tag = Tags[tagType];
+
+        //TODO: tag restrict context
+        this.currentContext.currTags.push(tag);
+
+        // let [tagType, parameters] = tag.indexOf(`=`) === -1 ? [tag, []] : tag.split(`=`);
+        // tagType = tagType.toLocaleLowerCase();
     
-    
-    // processTag(tag: string, reader: DocumentReader) {
-    //     let [tagType, parameters] = tag.indexOf(`=`) === -1 ? [tag, []] : tag.split(`=`);
-    //     tagType = tagType.toLocaleLowerCase();
-    
-    //     if (tagType === `skip-lines`) {
-    //         let skipCount = parseInt(parameters[0]);
-    //         reader.skiplines(skipCount);
-    //     }
-    // }
+        // if (tagType === `skip-lines`) {
+        //     let skipCount = parseInt(parameters[0]);
+        //     this.reader.skiplines(skipCount);
+        // }
+    }
     
 }

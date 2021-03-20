@@ -5,6 +5,7 @@ export enum TagApplyInfo {
 	WATCH_LINE, // such as [EPISODE-ORDER-VIOLATION]
 	WATCH_SESSION, // such as [REWATCH]
 	SCRIPT_TAG, //such as [SKIP-LINES=100]
+	SHOW, //such as [NOT-ANIME]
 }
 
 
@@ -20,13 +21,21 @@ export enum LineType {
 export type AnimeContext = {
 	currDate: string,
 	currAnimeName: string,
-	currTag?: Tag
+	currTags: Tag[]
 };
 
 export type Tag = {
 	tagType: string
 	appliesTo: TagApplyInfo
 	parameters: string[]
+};
+
+export const Tags: { [key: string]: Tag } = {
+	"NOT-ANIME": {
+		tagType: 'NOT-ANIME',
+		appliesTo: TagApplyInfo.SHOW,
+		parameters: []
+	},
 };
 
 export type WatchEntry = {

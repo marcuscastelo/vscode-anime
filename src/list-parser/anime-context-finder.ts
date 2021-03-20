@@ -4,7 +4,7 @@ import { read } from "node:fs";
 import { Selection, TextEditor, TextLine } from "vscode";
 import { getLineInfo } from "./anime-contextful-parser";
 import DocumentReader from "../utils/document-reader";
-import { AnimeContext, LineType } from "../types";
+import { AnimeContext, LineType, Tag } from "../types";
 
 export default function findContext(textEditor: TextEditor, lineNumber: number): AnimeContext {
     let reader = new DocumentReader(textEditor.document);
@@ -16,7 +16,7 @@ export default function findContext(textEditor: TextEditor, lineNumber: number):
     let currAnimeName = "";
     let currDate = "";
     //TODO: find tag (remember tags are valid in short scopes)
-    let currTag = undefined;
+    let currTags: Tag[] = [];
 
     let remainingFields = 0b11;
 
@@ -42,7 +42,7 @@ export default function findContext(textEditor: TextEditor, lineNumber: number):
     let context: AnimeContext = {
         currAnimeName,
         currDate,
-        currTag,
+        currTags,
     };
 
     return context;

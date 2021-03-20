@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable curly */
-import { WatchEntry } from "../../types";
+import { WatchEntry, Tag } from "../../types";
 import Anime from "./anime";
 
 type AnimeDict = {
@@ -15,13 +15,13 @@ export default class AnimeDataStorage {
 		this.friendList = [];
 	}
 
-	registerAnime(animeName: string, overwrite = true): Anime {
+	registerAnime(animeName: string, animeTags: Tag[] = [], overwrite = true): Anime {
 		if (!overwrite && this.isAnimeRegistered(animeName)) {
 			console.warn(`Not registering already registered anime: `, animeName);
 			return this.getAnime(animeName) as Anime;
 		}
 
-		let anime = new Anime(animeName);
+		let anime = new Anime(animeName, animeTags);
 		this.animeDict[animeName] = anime;
 		return anime;
 	}
@@ -35,8 +35,8 @@ export default class AnimeDataStorage {
 		return this.animeDict[animeName];
 	}
 
-	getOrCreateAnime(animeName: string): Anime {
-		return this.getAnime(animeName) ?? this.registerAnime(animeName);
+	getOrCreateAnime(animeName: string, animeTagsAtCreation: Tag[] = []): Anime {
+		return this.getAnime(animeName) ?? this.registerAnime(animeName, animeTagsAtCreation);
 	}
 
 	isAnimeRegistered(animeName: string): boolean {

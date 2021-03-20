@@ -3,7 +3,7 @@ import { CancellationToken, ExtensionContext, Hover, MarkdownString, Position, T
 import AnimeDataStorage from "./cache/anime/anime-data-storage";
 import findContext from "./list-parser/anime-context-finder";
 import { searchAnime } from "./services/mal";
-import { AnimeSearchResultItem } from "./types";
+import { AnimeSearchResultItem, Tags } from "./types";
 
 async function searchMAL(animeTitle: string) {
     let foundAnimes = await searchAnime(animeTitle);
@@ -29,23 +29,34 @@ export function createHoverProvider(extensionContext: ExtensionContext) {
                 throw new Error("Impossible state");
             }
 
-            if (!anime.hasFullInfo()) {
-                await anime.searchMAL();
+            let animeInfo = anime.getBasicInfo();
+
+            let mdString: MarkdownString;
+
+            if (animeInfo.tags.indexOf(Tags["NOT-ANIME"]) !== -1) {
+                mdString = new MarkdownString(
+                    `### ${animeContext.currAnimeName}:` +
+                    `\n NOT-ANIME`
+                );
+            } else {
+
+                if (!anime.hasFullInfo()) {
+                    await anime.searchMAL();
+                }
+    
+                let animeInfo = anime.getFullInfo() ??
+                {
+                    ...anime.getBasicInfo(),
+                    url: "Error",
+                    episodes: NaN
+                };
+
+                mdString = new MarkdownString(
+                    `### ${animeContext.currAnimeName}: ` +
+                    `\n- Last episode: ${animeInfo.lastWatchedEpisode}/${animeInfo.episodes}` +
+                    `\n- URL: ${animeInfo.url}`
+                );
             }
-
-            let animeInfo = anime.getFullInfo() ??
-            {
-                ...anime.getBasicInfo(),
-                url: "Error",
-                episodes: NaN
-            };
-
-            let mdString = new MarkdownString(
-                `### ${animeContext.currAnimeName}: ` +
-                `\n- Last episode: ${animeInfo.lastWatchedEpisode}/${animeInfo.episodes}` +
-                `\n- URL: ${animeInfo.url}`
-            );
-
             return new Hover(mdString);
         }
     };

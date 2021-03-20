@@ -1,9 +1,11 @@
 import { searchAnime } from "../../services/mal";
+import { Tag } from "../../types";
 
 type ShowCacheInfo = {
     title: string,
     lastWatchedEpisode: number,
     lastMentionedLine: number,
+    tags: Tag[]
 };
 
 type MALShowCacheInfo = {
@@ -27,12 +29,14 @@ type FullAnimeCacheInfo = BasicAnimeCacheInfo & MALShowCacheInfo;
 
 export default class Anime {
     info: FullAnimeCacheInfo;
-    constructor(title: string) {
+    searching: boolean = false;
+    constructor(title: string, tags: Tag[] = []) {
         this.info = {
             title,
             lastMentionedLine: -1,
             lastWatchedEpisode: 0,
-            stage: AnimeCacheStage.basic
+            tags,
+            stage: AnimeCacheStage.basic,
         } as FullAnimeCacheInfo;
     }
 
@@ -49,6 +53,9 @@ export default class Anime {
     hasFullInfo() { return this.info.stage === AnimeCacheStage.full; }
 
     async searchMAL() {
+        if (this.searching) { return; }
+        this.searching = true;
+
         let foundAnimes = await searchAnime(this.info.title);
         for (let anime of foundAnimes) {
             if (anime.title === this.info.title) {
@@ -57,7 +64,7 @@ export default class Anime {
                     ...this.info,
                     ...anime
                 };
-                
+
                 this.info.stage = AnimeCacheStage.full;
             }
         }
@@ -72,5 +79,5 @@ export default class Anime {
         this.info.lastMentionedLine = line;
         this.info.lastWatchedEpisode = episode;
     }
-    
+
 }
