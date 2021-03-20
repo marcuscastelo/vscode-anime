@@ -48,11 +48,13 @@ export function createHoverProvider(extensionContext: ExtensionContext) {
                 {
                     ...anime.getBasicInfo(),
                     url: "Error",
-                    episodes: NaN
+                    episodes: NaN,
+                    image_url: ''
                 };
 
                 mdString = new MarkdownString(
                     `### ${animeContext.currAnimeName}: ` +
+                    `\n ![anime image](${animeInfo.image_url})` +
                     `\n- Last episode: ${animeInfo.lastWatchedEpisode}/${animeInfo.episodes}` +
                     `\n- URL: ${animeInfo.url}`
                 );
