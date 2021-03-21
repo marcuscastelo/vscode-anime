@@ -25,6 +25,7 @@ import { insertTime } from './commands/insert-time';
 import { insertNextEpisode } from './commands/insert-next-episode';
 import ShowHoverProvider from './lang/anime-hover-provider';
 import AnimeCompletionItemProvider from './lang/anime-completion-provider';
+import MADiagnosticController from './lang/maDiagnosticCollection';
 
 let extensionContext: ExtensionContext;
 
@@ -72,6 +73,8 @@ export async function activate(context: ExtensionContext) {
 		vscode.window.showErrorMessage("vscode-anime couldn't find a TextEditor");
 		return;
 	}
+
+	let diagnosticCollectionProvider = MADiagnosticController.register(context, 'vscode-anime');
 
 	updateAnimeStorage(vscode.window.activeTextEditor.document);
 	vscode.workspace.onDidSaveTextDocument((e) => void updateAnimeStorage(e));
