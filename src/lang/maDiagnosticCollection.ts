@@ -8,9 +8,10 @@ export default class MADiagnosticController {
         return provider;
     }
 
+    private currentDiagnostics: Diagnostic[] = [];
     private collection: DiagnosticCollection;
     private document?: TextDocument;
-    
+
     private constructor(
         private readonly context: ExtensionContext,
         private readonly collectionName: string
@@ -20,16 +21,19 @@ export default class MADiagnosticController {
     }
 
     public clearDiagnostics(): void {
+        this.currentDiagnostics = [];
         this.collection.clear();
     }
 
     public setCurrentDocument(document?: TextDocument) {
-        this.collection.clear();
+        this.clearDiagnostics();
         this.document = document;
     }
 
-    private addDiagnostic() {
-
+    private addDiagnostic(diagnostic: Diagnostic) {
+        if (!this.document) { return; }
+        this.currentDiagnostics.push(diagnostic);
+        this.collection.set(this.document.uri, this.currentDiagnostics);
     }
 
     public markUnknownLineType(line: TextLine) {
@@ -39,6 +43,6 @@ export default class MADiagnosticController {
             severity: DiagnosticSeverity.Error
         };
 
-        this.addDiagnostic();
+        this.addDiagnostic(diag);
     }
 }

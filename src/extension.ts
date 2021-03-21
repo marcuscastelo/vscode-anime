@@ -33,63 +33,70 @@ export function getContext() {
 	return extensionContext;
 }
 
-function parseDocumentFromStart(textDocument: TextDocument): AnimeDataStorage {
-	let reader = new DocumentReader(textDocument);
-	let animeStorage = new AnimeDataStorage();
 
-	let contextParser = new AnimeContextfulParser(animeStorage, reader);
-
-	let currentLine: TextLine | null = reader.getline();
-	while (currentLine !== null) {
-
-		if (reader.currentLineIdx % Math.floor(reader.document.lineCount / 10) === 0) {
-			console.log(`${reader.currentLineIdx}/${reader.document.lineCount} lines read (${(reader.currentLineIdx / reader.document.lineCount * 100).toFixed(2)}%)`);
-		}
-
-		contextParser.processLine(currentLine);
-		currentLine = reader.getline();
-	}
-
-	return animeStorage;
-}
-
-function updateAnimeStorage(textDocument: TextDocument) {
-	vscode.window.setStatusBarMessage(`Parsing all animes...`);
-	let animeStorage = parseDocumentFromStart(textDocument);
-
-	console.log(animeStorage);
-
-	extensionContext.workspaceState.update("marucs-anime:storage", animeStorage);
-	vscode.window.setStatusBarMessage(`Parsing completed!`,);
-}
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
-export async function activate(context: ExtensionContext) {
-	extensionContext = context;
-	let textEditor = vscode.window.activeTextEditor;
-
-	if (!vscode.window.activeTextEditor) {
-		vscode.window.showErrorMessage("vscode-anime couldn't find a TextEditor");
-		return;
-	}
-
-	let diagnosticCollectionProvider = MADiagnosticController.register(context, 'vscode-anime');
-
-	updateAnimeStorage(vscode.window.activeTextEditor.document);
-	vscode.workspace.onDidSaveTextDocument((e) => void updateAnimeStorage(e));
-
-	context.subscriptions.push(
-		vscode.commands.registerTextEditorCommand('marucs-anime.insertDate', insertDate),
-		vscode.commands.registerTextEditorCommand('marucs-anime.insertTime', insertTime),
-		vscode.commands.registerTextEditorCommand('marucs-anime.insertNextEpisode', (a, b) => insertNextEpisode(a, b)),
-
-		ShowHoverProvider.register(context),
-		AnimeCompletionItemProvider.register(context),
-	);
-	
+export function activate(context: ExtensionContext) {
+	MAExtension.activate(context);
 }
 
 
 // this method is called when your extension is deactivated
 export function deactivate() { }
+
+
+class MAExtension {
+	public static activate(context: ExtensionContext) {
+		const extension = new MAExtension(context);
+		//TODO: read again when textEditor changes
+		if (vscode.window.activeTextEditor)
+		extension.readEntireDocument(vscode.window.activeTextEditor.document);
+		extension.registerMembers();
+	}
+
+	private constructor(private readonly context: ExtensionContext) {}
+
+	private readEntireDocument(document: TextDocument) {
+		
+		vscode.window.setStatusBarMessage(`Parsing all animes...`);
+		let animeStorage = this.parseDocumentFromStart(document);
+		
+		console.log(animeStorage);
+		
+		extensionContext.workspaceState.update("marucs-anime:storage", animeStorage);
+		vscode.window.setStatusBarMessage(`Parsing completed!`,);
+	}
+	
+	private parseDocumentFromStart(textDocument: TextDocument): AnimeDataStorage {
+		let diagnosticController = MADiagnosticController.register(this.context, 'vscode-anime');
+		let reader = new DocumentReader(textDocument);
+		let animeStorage = new AnimeDataStorage();
+	
+		let contextParser = new AnimeContextfulParser(animeStorage, reader, diagnosticController);
+	
+		let currentLine: TextLine | null = reader.getline();
+		while (currentLine !== null) {
+	
+			if (reader.currentLineIdx % Math.floor(reader.document.lineCount / 10) === 0) {
+				console.log(`${reader.currentLineIdx}/${reader.document.lineCount} lines read (${(reader.currentLineIdx / reader.document.lineCount * 100).toFixed(2)}%)`);
+			}
+	
+			contextParser.processLine(currentLine);
+			currentLine = reader.getline();
+		}
+	
+		return animeStorage;
+	}
+
+	private registerMembers() {
+		this.context.subscriptions.push(
+			vscode.commands.registerTextEditorCommand('marucs-anime.insertDate', insertDate),
+			vscode.commands.registerTextEditorCommand('marucs-anime.insertTime', insertTime),
+			vscode.commands.registerTextEditorCommand('marucs-anime.insertNextEpisode', (a, b) => insertNextEpisode(a, b)),
+	
+			ShowHoverProvider.register(this.context),
+			AnimeCompletionItemProvider.register(this.context),
+		);
+	}
+}

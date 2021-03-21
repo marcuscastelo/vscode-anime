@@ -7,6 +7,7 @@ import DocumentReader from "../utils/document-reader";
 import { AnimeContext, LineType, Tag, Tags } from "../types";
 import Anime from "../cache/anime/anime";
 import { read } from "node:fs";
+import MADiagnosticController from "../lang/maDiagnosticCollection";
 
 type Params = {
     [key: string]: string
@@ -53,7 +54,9 @@ export function getLineInfo(line: TextLine): [LineType, Params] {
     if (groups) 
         return [LineType.Tag, groups];
 
-    return [LineType.Ignored, {}];
+    if (line.isEmptyOrWhitespace) return [LineType.Ignored, {}];
+
+    return [LineType.Invalid, {}];
 
 }
 
@@ -65,12 +68,11 @@ export default class AnimeContextfulParser {
         currTags: []
     };
     
-    storage: AnimeDataStorage;
-    reader: DocumentReader;
-    constructor(storage: AnimeDataStorage, reader: DocumentReader) {
-        this.storage = storage;
-        this.reader = reader;
-    }
+    constructor(
+        private storage: AnimeDataStorage,
+        private reader: DocumentReader,
+        private diagnosticController: MADiagnosticController
+    ) {}
 
     processLine(line: TextLine) {
 		let [type, params] = getLineInfo(line);
@@ -81,6 +83,8 @@ export default class AnimeContextfulParser {
 			this.processWatchLine(params, line);
 		} else if (type === LineType.Tag) {
             this.processTag(params, line);
+        } else if (type === LineType.Invalid) {
+            this.diagnosticController.markUnknownLineType(line);
         }
     }
 
