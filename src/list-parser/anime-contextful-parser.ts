@@ -1,87 +1,58 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable curly */
 
-import { TextLine } from "vscode";
+import { TextDocument, TextLine } from "vscode";
 import AnimeDataStorage from "../cache/anime/anime-data-storage";
 import DocumentReader from "../utils/document-reader";
-import { AnimeContext, LineType, Tag, Tags } from "../types";
+import { Tag, Tags } from "../types";
 import Anime from "../cache/anime/anime";
-import { read } from "node:fs";
 import MADiagnosticController from "../lang/maDiagnosticCollection";
+import AnimeContext from "./anime-context";
+import MAListContextUtils, { Params } from "./maListContext";
+import { LineType } from "./lineTypes";
 
-type Params = {
-    [key: string]: string
-};
 
-const commentTokenSplitter = '//';
-const animeTitleReg = /^\s*([a-zA-Z].*)\:\s*$/g;
-const dateReg = /^(\d{2}\/\d{2}\/\d{4})\s*$/g;
-const watchReg = /^([0-9]{2}:[0-9]{2})\s*-\s*([0-9]{2}:[0-9]{2})?\s+([0-9][0-9.]{1,})?\s*(?:\{(.*)\})?\s*$/;
-const tagReg = /^\s*\[(.+)\]\s*$/;
 
 function checkAnimeDeclHasRightTags(anime: Anime, reader: DocumentReader): boolean {
     return true;
 
-    let declLine = reader.currentLineIdx;
+    // let declLine = reader.currentLineIdx;
 
-    let tags = anime.getBasicInfo();
-    for (let tag in tags) {
+    // let tags = anime.getBasicInfo();
+    // for (let tag in tags) {
 
-    }
-    //TODO: check if anime previously Tagged with some tags is tagged again the same
+    // }
+    // //TODO: check if anime previously Tagged with some tags is tagged again the same
 
-    reader.gotoLine(declLine);
+    // reader.jumpTo(declLine);
 }
 
-export function getLineInfo(line: TextLine): [LineType, Params] {
 
+export default class MALineParser {
 
-    let text = line.text;
-
-    let commentTokenPosition = text.indexOf(commentTokenSplitter);
-    if (commentTokenPosition !== -1) {
-        text = text.substring(0, commentTokenPosition);
-    }
-
-    let groups: { [key: string]: any } | null;
-
-    groups = animeTitleReg.exec(text);
-    if (groups)
-        return [LineType.AnimeTitle, groups];
-    groups = dateReg.exec(text);
-    if (groups)
-        return [LineType.Date, groups];
-
-    groups = watchReg.exec(text);
-    if (groups)
-        return [LineType.Watch, groups];
-
-    groups = tagReg.exec(text);
-    if (groups)
-        return [LineType.Tag, groups];
-
-    if (text === '') return [LineType.Ignored, {}];
-
-    return [LineType.Invalid, {}];
-
-}
-
-export default class AnimeContextfulParser {
-
-    currentContext: AnimeContext = {
-        currAnimeName: "",
-        currDate: "",
-        currTags: []
-    };
-
+    private context: AnimeContext;
     constructor(
         private storage: AnimeDataStorage,
-        private reader: DocumentReader,
         private diagnosticController: MADiagnosticController
-    ) { }
+    ) {
+        this.context = new AnimeContext();
+    }
 
-    processLine(line: TextLine) {
-        let [type, params] = getLineInfo(line);
+    processAllLines(document: TextDocument) {
+		let reader = new DocumentReader(document);
+
+		for (let currentLine of reader.getIterator()) {
+
+			if (currentLine.lineNumber % Math.floor(reader.lineCount / 10) === 0) {
+				console.log(`${currentLine.lineNumber}/${reader.lineCount} lines read (${(currentLine.lineNumber / reader.lineCount * 100).toFixed(2)}%)`);
+			}
+
+			this.processLine(currentLine, reader);
+		}
+    }
+
+    processLine(line: TextLine, reader: DocumentReader) {
+        let {type, params} = MAListContextUtils.getLineInfo(line);
 
         if (type === LineType.AnimeTitle) {
             this.processAnimeTitleLine(params, line);
@@ -99,16 +70,16 @@ export default class AnimeContextfulParser {
 
         let animeName: string = params["1"];
 
-        let currentAnime = this.storage.getOrCreateAnime(animeName, this.currentContext.currTags);
+        let currentAnime = this.storage.getOrCreateAnime(animeName, this.context.currTags);
         //TODO: checkAnimeDeclHasRightTags(currentAnime, this.reader);
 
         //TODO: check for empty sessions ( i.e: no watch entries between titles )
         currentAnime.updateLastMentionedLine(line.lineNumber);
 
-        this.currentContext.currAnimeName = animeName;
+        this.context.currShowName = animeName;
 
         //TODO: distinguish tag targets
-        this.currentContext.currTags = [];
+        this.context.currTags = [];
         // for (let i = 0; i < this.currentContext.currTags.length; i++) {
         //     if (isShowTag()) {
         //         this.currentContext.currTags.splice(i, 1);
@@ -117,7 +88,7 @@ export default class AnimeContextfulParser {
     }
 
     processWatchLine(params: Params, line: TextLine) {
-        let currAnimeName = this.currentContext.currAnimeName ?? "unknown__definetelynotusednameindict";
+        let currAnimeName = this.context.currShowName ?? "unknown__definetelynotusednameindict";
         let currentAnime = this.storage.getAnime(currAnimeName);
 
         if (!currAnimeName) {
@@ -156,7 +127,7 @@ export default class AnimeContextfulParser {
         let tag = Tags[tagType];
 
         //TODO: tag restrict context
-        this.currentContext.currTags.push(tag);
+        this.context.currTags.push(tag);
 
         // let [tagType, parameters] = tag.indexOf(`=`) === -1 ? [tag, []] : tag.split(`=`);
         // tagType = tagType.toLocaleLowerCase();

@@ -2,7 +2,7 @@
 import { TextEditor, TextEditorEdit } from "vscode";
 import AnimeDataStorage from "../cache/anime/anime-data-storage";
 import { getContext } from "../extension";
-import findContext from "../list-parser/anime-context-finder";
+import MAListContextUtils from "../list-parser/maListContext";
 import { isEditingSimpleCursor } from "../utils/editor-utils";
 
 export function insertNextEpisode(textEditor: TextEditor, edit: TextEditorEdit): void {
@@ -10,9 +10,13 @@ export function insertNextEpisode(textEditor: TextEditor, edit: TextEditorEdit):
 
 	let animeStorage = getContext().workspaceState.get<AnimeDataStorage>("marucs-anime:storage");
 
-	let animeContext = findContext(textEditor, textEditor.selection.start.line);
+	let animeContext = MAListContextUtils.getContext(textEditor.document, textEditor.selection.start.line);
 
-	let anime = animeStorage?.getAnime(animeContext.currAnimeName);
+	if (!animeContext.valid || !animeContext.context) {
+		return;
+	}
+
+	let anime = animeStorage?.getAnime(animeContext.context.currentShowTitle);
 
 	let lastEp = anime?.getBasicInfo().lastWatchedEpisode ?? 0;
 

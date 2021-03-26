@@ -1,10 +1,9 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import DocumentReader from './utils/document-reader';
-import AnimeContextfulParser from './list-parser/anime-contextful-parser';
+import MALineParser from './list-parser/anime-contextful-parser';
 
 import AnimeDataStorage from './cache/anime/anime-data-storage';
-import findContext from './list-parser/anime-context-finder';
 import * as vscode from 'vscode';
 import { ExtensionContext } from 'vscode';
 import { TextEditor } from 'vscode';
@@ -68,24 +67,12 @@ class MAExtension {
 	}
 
 	private parseDocumentFromStart(textDocument: TextDocument): AnimeDataStorage {
-		let diagnosticController = MADiagnosticController.register(this.context, 'vscode-anime');
-		let reader = new DocumentReader(textDocument);
-		let animeStorage = new AnimeDataStorage();
+        let diagnosticController = MADiagnosticController.register(this.context, 'vscode-anime');
+		let storage = new AnimeDataStorage();
+		let parser = new MALineParser(storage, diagnosticController);
+		parser.processAllLines(textDocument);
 
-		let contextParser = new AnimeContextfulParser(animeStorage, reader, diagnosticController);
-
-		let currentLine: TextLine | null = reader.getline();
-		while (currentLine !== null) {
-
-			if (reader.currentLineIdx % Math.floor(reader.document.lineCount / 10) === 0) {
-				console.log(`${reader.currentLineIdx}/${reader.document.lineCount} lines read (${(reader.currentLineIdx / reader.document.lineCount * 100).toFixed(2)}%)`);
-			}
-
-			contextParser.processLine(currentLine);
-			currentLine = reader.getline();
-		}
-
-		return animeStorage;
+		return storage;
 	}
 
 	private registerMembers() {

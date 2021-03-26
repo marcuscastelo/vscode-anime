@@ -1,7 +1,7 @@
 import { CancellationToken, ExtensionContext, Hover, HoverProvider, languages, MarkdownString, Position, TextDocument, window } from "vscode";
 
 import AnimeDataStorage from "../cache/anime/anime-data-storage";
-import findContext from "../list-parser/anime-context-finder";
+import MAListContextUtils from "../list-parser/maListContext";
 import { searchAnime } from "../services/mal";
 import { AnimeSearchResultItem, Tags } from "../types";
 
@@ -30,9 +30,11 @@ export default class ShowHoverProvider implements HoverProvider {
 
         if (!window.activeTextEditor) { return; }
 
-        let animeContext = findContext(window.activeTextEditor, position.line);
+        let animeContext = MAListContextUtils.getContext(window.activeTextEditor.document, position.line);
 
-        let anime = animeStorage.getAnime(animeContext.currAnimeName);
+        let showTitle = animeContext.context?.currentShowTitle ?? 'ERROR'
+
+        let anime = animeStorage.getAnime(showTitle);
         if (!anime) {
             throw new Error("Impossible state");
         }
@@ -43,7 +45,7 @@ export default class ShowHoverProvider implements HoverProvider {
 
         if (animeInfo.tags.indexOf(Tags["NOT-ANIME"]) !== -1) {
             mdString = new MarkdownString(
-                `### ${animeContext.currAnimeName}:` +
+                `### ${showTitle}:` +
                 `\n NOT-ANIME`
             );
         } else {
@@ -62,7 +64,7 @@ export default class ShowHoverProvider implements HoverProvider {
             };
 
             mdString = new MarkdownString(
-                `### ${animeContext.currAnimeName}: ` +
+                `### ${showTitle}: ` +
                 `\n ![anime image](${animeInfo.image_url})` +
                 `\n- Last episode: ${animeInfo.lastWatchedEpisode}/${animeInfo.episodes}` +
                 `\n- URL: ${animeInfo.url}`

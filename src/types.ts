@@ -9,20 +9,7 @@ export enum TagApplyInfo {
 }
 
 
-export enum LineType {
-	AnimeTitle = 1,
-	Date,
-	Watch,
-	Tag,
-	Invalid,
-	Ignored,
-}
 
-export type AnimeContext = {
-	currDate: string,
-	currAnimeName: string,
-	currTags: Tag[]
-};
 
 export type Tag = {
 	tagType: string
