@@ -8,14 +8,10 @@ type AnimeDict = {
 };
 
 export default class AnimeDataStorage {
-	animeDict: AnimeDict;
-	friendList: string[];
-	constructor() {
-		this.animeDict = {};
-		this.friendList = [];
-	}
+	private animeDict: AnimeDict = {};
+	private friendList: string[] = [];
 
-	registerAnime(animeName: string, animeTags: Tag[] = [], overwrite = true): Anime {
+	public registerAnime(animeName: string, animeTags: Tag[] = [], overwrite = true): Anime {
 		if (!overwrite && this.isAnimeRegistered(animeName)) {
 			console.warn(`Not registering already registered anime: `, animeName);
 			return this.getAnime(animeName) as Anime;
@@ -26,24 +22,24 @@ export default class AnimeDataStorage {
 		return anime;
 	}
 
-	registerFriend(friendName: string) {
+	public registerFriend(friendName: string) {
 		if (this.friendList.indexOf(friendName) === -1)
 			this.friendList.push(friendName);
 	}
 
-	getAnime(animeName: string): Anime | null {
+	public getAnime(animeName: string): Anime | undefined {
 		return this.animeDict[animeName];
 	}
 
-	getOrCreateAnime(animeName: string, animeTagsAtCreation: Tag[] = []): Anime {
+	public getOrCreateAnime(animeName: string, animeTagsAtCreation: Tag[] = []): Anime {
 		return this.getAnime(animeName) ?? this.registerAnime(animeName, animeTagsAtCreation);
 	}
 
-	isAnimeRegistered(animeName: string): boolean {
+	public isAnimeRegistered(animeName: string): boolean {
 		return this.getAnime(animeName) !== null;
 	}
 
-	addWatchEntry(animeName: string, entry: WatchEntry) {
+	public addWatchEntry(animeName: string, entry: WatchEntry) {
 		let anime = this.getAnime(animeName);
 		if (anime) {
 			anime.updateLastWatchedEpisode(entry.episode, entry.line);
@@ -56,11 +52,11 @@ export default class AnimeDataStorage {
 
 	}
 
-	listAnimes() {
+	public listAnimes() {
 		return Object.keys(this.animeDict);
 	}
 
-	listFriends() {
+	public listFriends() {
 		return [...this.friendList];
 	}
 }

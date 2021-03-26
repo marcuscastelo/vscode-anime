@@ -6,17 +6,7 @@ import MALineParser from './list-parser/anime-contextful-parser';
 import AnimeDataStorage from './cache/anime/anime-data-storage';
 import * as vscode from 'vscode';
 import { ExtensionContext } from 'vscode';
-import { TextEditor } from 'vscode';
-import { TextEditorEdit } from 'vscode';
-import { DocumentFilter } from 'vscode';
 import { TextDocument } from 'vscode';
-import { Position } from 'vscode';
-import { CancellationToken } from 'vscode';
-import { MarkdownString } from 'vscode';
-import { ProviderResult } from 'vscode';
-import { Hover } from 'vscode';
-import { TextLine } from 'vscode';
-import { Selection } from 'vscode';
 import { insertDate } from './commands/insert-date';
 import { insertTime } from './commands/insert-time';
 import { insertNextEpisode } from './commands/insert-next-episode';
@@ -24,17 +14,10 @@ import ShowHoverProvider from './lang/anime-hover-provider';
 import AnimeCompletionItemProvider from './lang/anime-completion-provider';
 import MADiagnosticController from './lang/maDiagnosticCollection';
 
-let extensionContext: ExtensionContext;
-
-export function getContext() {
-	return extensionContext;
-}
-
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: ExtensionContext) {
-	extensionContext = context;
 	MAExtension.activate(context);
 }
 
@@ -42,32 +25,68 @@ export function activate(context: ExtensionContext) {
 // this method is called when your extension is deactivated
 export function deactivate() { }
 
+export class MAExtension {
+	private static _INSTANCE: MAExtension;
+	static get INSTANCE() { return MAExtension._INSTANCE; }
 
-class MAExtension {
 	public static activate(context: ExtensionContext) {
-		const extension = new MAExtension(context);
-		//TODO: read again when textEditor changes
-		if (vscode.window.activeTextEditor) {
-			extension.readEntireDocument(vscode.window.activeTextEditor.document);
+		if (MAExtension._INSTANCE) {
+			console.warn("Trying to activate Marucs' Anime multiple times!");
+			return;
 		}
+
+		const extension = new MAExtension(context);
+		MAExtension._INSTANCE = extension;
+
+		vscode.window.onDidChangeActiveTextEditor(extension.updateAnimeStorage);
+		extension.updateAnimeStorage();
+
 		extension.registerMembers();
 	}
 
-	private constructor(private readonly context: ExtensionContext) { }
+	private static readonly ANIME_STORAGE_ID = 'marucs-anime:storage';
 
-	private readEntireDocument(document: TextDocument) {
+	private constructor(
+		private readonly context: ExtensionContext
+	) {
 
-		vscode.window.setStatusBarMessage(`Parsing all animes...`);
-		let animeStorage = this.parseDocumentFromStart(document);
+	}
+
+	get animeStorage(): AnimeDataStorage {
+		let animeStorage = this.context.workspaceState.get<AnimeDataStorage>(MAExtension.ANIME_STORAGE_ID);
+
+		if (!animeStorage) {
+			animeStorage = new AnimeDataStorage();
+			this.context.workspaceState.update(MAExtension.ANIME_STORAGE_ID, animeStorage);
+		}
+
+		return animeStorage;
+	}
+
+	public updateAnimeStorage() {
+		if (!vscode.window.activeTextEditor) {
+			vscode.window.showErrorMessage("Couldn't update anime storage, no text editor is currently active")
+			return;
+		}
+
+		this.animeStorage
+
+		vscode.window.setStatusBarMessage(`Parsing all lines...`);
+		let animeStorage = this.createStorageFromEntireDocument(vscode.window.activeTextEditor.document);
 
 		console.log(animeStorage);
 
-		extensionContext.workspaceState.update("marucs-anime:storage", animeStorage);
+		this.overwriteAnimeStorage(animeStorage);
 		vscode.window.setStatusBarMessage(`Parsing completed!`,);
 	}
 
-	private parseDocumentFromStart(textDocument: TextDocument): AnimeDataStorage {
-        let diagnosticController = MADiagnosticController.register(this.context, 'vscode-anime');
+	public overwriteAnimeStorage(storage: AnimeDataStorage) {
+		this.context.workspaceState.update(MAExtension.ANIME_STORAGE_ID, storage);
+	}
+
+	//TODO? move
+	private createStorageFromEntireDocument(textDocument: TextDocument): AnimeDataStorage {
+		let diagnosticController = MADiagnosticController.register(this.context, 'vscode-anime');
 		let storage = new AnimeDataStorage();
 		let parser = new MALineParser(storage, diagnosticController);
 		parser.processAllLines(textDocument);

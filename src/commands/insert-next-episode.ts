@@ -1,24 +1,34 @@
 
-import { TextEditor, TextEditorEdit } from "vscode";
+import { TextEditor, TextEditorEdit, window } from "vscode";
 import AnimeDataStorage from "../cache/anime/anime-data-storage";
-import { getContext } from "../extension";
 import MAListContextUtils from "../list-parser/maListContext";
 import { isEditingSimpleCursor } from "../utils/editor-utils";
+import {MAExtension} from '../extension'
 
 export function insertNextEpisode(textEditor: TextEditor, edit: TextEditorEdit): void {
 	if (!isEditingSimpleCursor(textEditor)) { return; }
 
-	let animeStorage = getContext().workspaceState.get<AnimeDataStorage>("marucs-anime:storage");
-
+	MAExtension.INSTANCE.animeStorage;
 	let animeContext = MAListContextUtils.getContext(textEditor.document, textEditor.selection.start.line);
 
-	if (!animeContext.valid || !animeContext.context) {
+	if (!animeContext.valid) {
+		console.error(animeContext.error);
 		return;
 	}
 
-	let anime = animeStorage?.getAnime(animeContext.context.currentShowTitle);
+	let anime = MAExtension.INSTANCE.animeStorage.getAnime(animeContext.context.currentShowTitle);
 
-	let lastEp = anime?.getBasicInfo().lastWatchedEpisode ?? 0;
+	if (!anime) {
+		console.log(`[insertNextEpisode] Anime ${animeContext.context.currentShowTitle} not found, rescaning...`);
+		MAExtension.INSTANCE.updateAnimeStorage();
+		anime = MAExtension.INSTANCE.animeStorage.getAnime(animeContext.context.currentShowTitle);
+		if (!anime) {
+			window.showErrorMessage(`[insertNextEpisode] Anime ${animeContext.context.currentShowTitle} not found! Couldn't determine next epiode. (Unexpected error) `);
+			return;
+		}
+	}
+
+	let lastEp = anime.getBasicInfo().lastWatchedEpisode;
 
 	let nextEpStr = (lastEp + 1).toString();
 	if (nextEpStr.length < 2) { nextEpStr = "0" + nextEpStr; };

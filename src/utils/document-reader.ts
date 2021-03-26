@@ -1,5 +1,13 @@
 import * as vscode from 'vscode';
 
+export interface LineMatcher<T> {
+	testLine(line: vscode.TextLine): { success: boolean, data: T };
+}
+
+type SearchResult<T> = 
+	| { success: true, data: T }
+	| { success: false, error: Error };
+
 
 class LineIterator implements IterableIterator<vscode.TextLine> {
 	constructor(private readonly reader: DocumentReader,
@@ -56,19 +64,22 @@ export default class DocumentReader {
 		return Math.max(0, Math.min(line, this.document.lineCount - 1));
 	}
 
-	searchLine(skipCount: number, lineMatchFn: (line: vscode.TextLine, document: vscode.TextDocument) => boolean) {
+	searchLine<T>(skipCount: number, matcher: LineMatcher<T>): SearchResult<T> {
 		for (let line of this.getIterator(skipCount)) {
-			if (lineMatchFn(line, this.document) === true) {
+			const {success, data } = matcher.testLine(line);
+			if (success === true) {
 				return {
-					found: true,
-					line,
+					success: true,
+					data,
 				};
 			}
 		}
 
 		return {
-			found: false,
+			success: false,
+			error: new Error('Line not found!'),
 		};
+
 	}
 
 }

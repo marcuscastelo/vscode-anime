@@ -32,7 +32,11 @@ export default class ShowHoverProvider implements HoverProvider {
 
         let animeContext = MAListContextUtils.getContext(window.activeTextEditor.document, position.line);
 
-        let showTitle = animeContext.context?.currentShowTitle ?? 'ERROR'
+        if (!animeContext.valid) {
+            return;
+        }
+
+        let showTitle = animeContext.context.currentShowTitle;
 
         let anime = animeStorage.getAnime(showTitle);
         if (!anime) {

@@ -54,9 +54,9 @@ export default class MALineParser {
     processLine(line: TextLine, reader: DocumentReader) {
         let {type, params} = MAListContextUtils.getLineInfo(line);
 
-        if (type === LineType.AnimeTitle) {
+        if (type === LineType.ShowTitle) {
             this.processAnimeTitleLine(params, line);
-        } else if (type === LineType.Watch) {
+        } else if (type === LineType.WatchEntry) {
             this.processWatchLine(params, line);
         } else if (type === LineType.Tag) {
             this.processTag(params, line);
