@@ -1,8 +1,19 @@
+const makeGlobalReg = (regex: RegExp) => new GlobalRegex(regex);
+
+
+class GlobalRegex {
+	constructor(
+		private readonly regex_pattern: RegExp
+		) { }
+		
+		public exec(string: string) { return new RegExp(this.regex_pattern).exec(string) }
+	}
+	
 export const COMMENT_TOKEN = '//';
-export const SHOW_TITLE_REG = /^\s*([a-zA-Z].*)\:\s*$/g;
-export const DATE_REG = /^(\d{2}\/\d{2}\/\d{4})\s*$/g;
-export const WATCH_REG = /^([0-9]{2}:[0-9]{2})\s*-\s*([0-9]{2}:[0-9]{2})?\s+([0-9][0-9.]{1,})?\s*(?:\{(.*)\})?\s*$/;
-export const TAG_REG = /^\s*\[(.+)\]\s*$/;
+export const SHOW_TITLE_REG = makeGlobalReg(/^\s*([a-zA-Z].*)\:\s*$/g);
+export const DATE_REG = makeGlobalReg(/^(\d{2}\/\d{2}\/\d{4})\s*$/g);
+export const WATCH_REG = makeGlobalReg(/^([0-9]{2}:[0-9]{2})\s*-\s*([0-9]{2}:[0-9]{2})?\s+([0-9][0-9.]{1,})?\s*(?:\{(.*)\})?\s*$/);
+export const TAG_REG = makeGlobalReg(/^\s*\[(.+)\]\s*$/);
 
 export enum LineType {
 	ShowTitle = 1,

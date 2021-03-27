@@ -83,6 +83,7 @@ export default class LineInfoParser {
         execArray = TAG_REG.exec(text);
         if (execArray) return this.parseTagLine(line, execArray);
 
+        //TODO: return errors in a meaningful way to show on diagnostics
         return {
             type: LineType.Invalid,
             error: new Error('Invalid line type'),
