@@ -1,7 +1,7 @@
 
 import { TextEditor, TextEditorEdit, window } from "vscode";
 import AnimeDataStorage from "../cache/anime/anime-data-storage";
-import MAListContextUtils from "../list-parser/maListContext";
+import LineContextFinder from "../list-parser/line-context-finder";
 import { isEditingSimpleCursor } from "../utils/editor-utils";
 import {MAExtension} from '../extension'
 
@@ -9,7 +9,7 @@ export function insertNextEpisode(textEditor: TextEditor, edit: TextEditorEdit):
 	if (!isEditingSimpleCursor(textEditor)) { return; }
 
 	MAExtension.INSTANCE.animeStorage;
-	let animeContext = MAListContextUtils.getContext(textEditor.document, textEditor.selection.start.line);
+	let animeContext = LineContextFinder.findContext(textEditor.document, textEditor.selection.start.line);
 
 	if (!animeContext.valid) {
 		console.error(animeContext.error);

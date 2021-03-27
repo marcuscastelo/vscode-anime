@@ -1,7 +1,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import DocumentReader from './utils/document-reader';
-import MALineParser from './list-parser/anime-contextful-parser';
+import LineProcessor from './list-parser/line-processor';
 
 import AnimeDataStorage from './cache/anime/anime-data-storage';
 import * as vscode from 'vscode';
@@ -86,7 +86,7 @@ export class MAExtension {
 	//TODO? move
 	private createStorageFromEntireDocument(textDocument: TextDocument): AnimeDataStorage {
 		let storage = new AnimeDataStorage();
-		let parser = new MALineParser(storage, this.diagnosticController);
+		let parser = new LineProcessor(storage, this.diagnosticController);
 		parser.processAllLines(textDocument);
 
 		return storage;

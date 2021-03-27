@@ -4,14 +4,11 @@
 import { TextDocument, TextLine } from "vscode";
 import AnimeDataStorage from "../cache/anime/anime-data-storage";
 import DocumentReader from "../utils/document-reader";
-import { Tag, Tags } from "../types";
 import Anime from "../cache/anime/anime";
 import MADiagnosticController from "../lang/maDiagnosticCollection";
-import AnimeContext from "./anime-context";
-import MAListContextUtils, { Params } from "./maListContext";
-import { LineType } from "./lineTypes";
-import LineInfoParser, { ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-extractor";
-
+import ListContext from "./anime-context";
+import { LineType } from "./line-type";
+import LineInfoParser, { ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
 
 
 function checkAnimeDeclHasRightTags(anime: Anime, reader: DocumentReader): boolean {
@@ -29,14 +26,14 @@ function checkAnimeDeclHasRightTags(anime: Anime, reader: DocumentReader): boole
 }
 
 
-export default class MALineParser {
+export default class LineProcessor {
 
-    private context: AnimeContext;
+    private lineContext: ListContext;
     constructor(
         private storage: AnimeDataStorage,
         private diagnosticController: MADiagnosticController
     ) {
-        this.context = new AnimeContext();
+        this.lineContext = new ListContext();
     }
 
     processAllLines(document: TextDocument) {
@@ -53,7 +50,7 @@ export default class MALineParser {
     }
 
     processLine(line: TextLine, reader: DocumentReader) {
-        let lineInfo = LineInfoParser.getLineInfo(line);
+        let lineInfo = LineInfoParser.parseLineInfo(line);
 
         if (lineInfo.type === LineType.ShowTitle) {
             this.processShowTitleLine(lineInfo);
@@ -67,16 +64,16 @@ export default class MALineParser {
     }
 
     processShowTitleLine(lineInfo: ShowTitleLineInfo) {
-        let currentShow = this.storage.getOrCreateAnime(lineInfo.params.showTitle, this.context.currTags);
+        let currentShow = this.storage.getOrCreateAnime(lineInfo.params.showTitle, this.lineContext.currTags);
         //TODO: checkAnimeDeclHasRightTags(currentAnime, this.reader);
 
         //TODO: check for empty sessions ( i.e: no watch entries between titles )
         currentShow.updateLastMentionedLine(lineInfo.line.lineNumber);
 
-        this.context.currShowName = lineInfo.params.showTitle;
+        this.lineContext.currShowName = lineInfo.params.showTitle;
 
         //TODO: distinguish tag targets
-        this.context.currTags = [];
+        this.lineContext.currTags = [];
         // for (let i = 0; i < this.currentContext.currTags.length; i++) {
         //     if (isShowTag()) {
         //         this.currentContext.currTags.splice(i, 1);
@@ -85,7 +82,7 @@ export default class MALineParser {
     }
 
     processWatchLine(lineInfo: WatchEntryLineInfo) {
-        let currAnimeName = this.context.currShowName ?? "unknown__definetelynotusednameindict";
+        let currAnimeName = this.lineContext.currShowName ?? "unknown__definetelynotusednameindict";
         let currentAnime = this.storage.getAnime(currAnimeName);
 
         if (!currAnimeName) {
@@ -117,7 +114,7 @@ export default class MALineParser {
     processTag(lineInfo: TagLineInfo) {
         
         //TODO: tag restrict context
-        this.context.currTags.push(lineInfo.params.tag);
+        this.lineContext.currTags.push(lineInfo.params.tag);
 
         // let [tagType, parameters] = tag.indexOf(`=`) === -1 ? [tag, []] : tag.split(`=`);
         // tagType = tagType.toLocaleLowerCase();

@@ -8,9 +8,6 @@ export enum TagApplyInfo {
 	SHOW, //such as [NOT-ANIME]
 }
 
-
-
-
 export type Tag = {
 	tagType: string
 	appliesTo: TagApplyInfo

@@ -1,6 +1,6 @@
 import { TextLine } from "vscode";
 import { Tag } from "../types";
-import { COMMENT_TOKEN, DATE_REG, LineType, SHOW_TITLE_REG, TAG_REG, WATCH_REG } from "./lineTypes";
+import { COMMENT_TOKEN, DATE_REG, LineType, SHOW_TITLE_REG, TAG_REG, WATCH_REG } from "./line-type";
 
 type LineInfoBase = {
     line: TextLine,
@@ -52,7 +52,7 @@ export type TagLineInfo =
     };
 
 export default class LineInfoParser {
-    public static getLineInfo(line: TextLine): LineInfo {
+    public static parseLineInfo(line: TextLine): LineInfo {
         let text = line.text;
 
         let commentTokenPosition = text.indexOf(COMMENT_TOKEN);

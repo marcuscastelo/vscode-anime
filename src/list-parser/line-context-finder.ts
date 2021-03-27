@@ -1,39 +1,30 @@
-import { assert } from "node:console";
 import { TextDocument, TextLine } from "vscode";
 import { Tag, Tags, WatchEntry } from "../types";
 import DocumentReader from "../utils/document-reader";
-import LineInfoParser, { DateLineInfo, ShowTitleLineInfo } from "./line-info-extractor";
-import { COMMENT_TOKEN, DATE_REG, LineType, SHOW_TITLE_REG, TAG_REG, WATCH_REG } from "./lineTypes";
+import LineInfoParser, { DateLineInfo, ShowTitleLineInfo } from "./line-info-parser";
+import { COMMENT_TOKEN, DATE_REG, LineType, SHOW_TITLE_REG, TAG_REG, WATCH_REG } from "./line-type";
 
-export type MAListContext = {
+export type LineContext = {
     currentShowTitle: string,
     currentDate: string,
     lastWatchEntry?: WatchEntry,
 };
 
-export type Params = {
-    [key: string]: string
-};
-
-
-
-
-
 type GetContextResult =
-    | { valid: true, context: MAListContext }
+    | { valid: true, context: LineContext }
     | { valid: false, error: Error };
 
 
-export default class MAListContextUtils {
+export default class LineContextFinder {
 
-    public static getContext(document: TextDocument, lineNumber: number): GetContextResult {
+    public static findContext(document: TextDocument, lineNumber: number): GetContextResult {
         let reader = new DocumentReader(document);
         reader.jumpTo(lineNumber);
 
         const lineMatcherFactory =
             (lineType: LineType) => ({
                 testLine: (line: TextLine) => {
-                    const lineInfo = LineInfoParser.getLineInfo(line);
+                    const lineInfo = LineInfoParser.parseLineInfo(line);
                     return {
                         success: lineInfo.type == lineType,
                         data: lineInfo
@@ -80,7 +71,7 @@ export default class MAListContextUtils {
             }
         }
 
-        let context: MAListContext = {
+        let context: LineContext = {
             currentShowTitle,
             currentDate,
             lastWatchEntry,

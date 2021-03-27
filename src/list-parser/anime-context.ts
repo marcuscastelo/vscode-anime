@@ -1,15 +1,15 @@
 import { Tag, WatchEntry } from "../types";
 
-export default class MAList {
+export default class ListContext {
     currDate: string = '';
     currShowName: string = '';
     currTags: Tag[] = [];
 
-    public onTagFound(tag: Tag) {
+    public onTag(tag: Tag) {
 
     }
 
-    public onSessionStart(showName: string) {
+    public onShowTitle(showTitle: string) {
 
     }
 

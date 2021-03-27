@@ -1,7 +1,7 @@
 import { CancellationToken, ExtensionContext, Hover, HoverProvider, languages, MarkdownString, Position, TextDocument, window } from "vscode";
 
 import AnimeDataStorage from "../cache/anime/anime-data-storage";
-import MAListContextUtils from "../list-parser/maListContext";
+import LineContextFinder from "../list-parser/line-context-finder";
 import { searchAnime } from "../services/mal";
 import { AnimeSearchResultItem, Tags } from "../types";
 
@@ -30,7 +30,7 @@ export default class ShowHoverProvider implements HoverProvider {
 
         if (!window.activeTextEditor) { return; }
 
-        let animeContext = MAListContextUtils.getContext(window.activeTextEditor.document, position.line);
+        let animeContext = LineContextFinder.findContext(window.activeTextEditor.document, position.line);
 
         if (!animeContext.valid) {
             return;

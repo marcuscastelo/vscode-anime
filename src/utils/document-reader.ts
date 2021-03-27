@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { LineType } from '../list-parser/lineTypes';
+import { LineType } from '../list-parser/line-type';
 
 export interface LineMatcher<T> {
 	testLine(line: vscode.TextLine): { success: boolean, data: T };
