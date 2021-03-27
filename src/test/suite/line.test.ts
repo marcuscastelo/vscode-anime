@@ -42,7 +42,7 @@ class LineInfoParseTest {
         this.testIndividualLineTypeOk('30/06/2099', LineType.Date);
     }
 
-    public testWatchEntryLineOk() {
+    public testWatchEntryLineTypeOk() {
         this.testIndividualLineTypeOk('20:11 - 21:06 07 {Pai, Mãe}', LineType.WatchEntry);
         this.testIndividualLineTypeOk('19:14 - 19:44 12', LineType.WatchEntry);
         this.testIndividualLineTypeOk('10:50 - 10:54 01 //Overview', LineType.WatchEntry);
@@ -50,14 +50,21 @@ class LineInfoParseTest {
         this.testIndividualLineTypeOk('01:10 - 02:45 01 {Mãe}', LineType.WatchEntry);
         this.testIndividualLineTypeOk('22:46 - 22:54 -- //@10:00', LineType.WatchEntry);
     }
+
+    public testTagLineTypeOk() {
+        this.testIndividualLineTypeOk('[Teste]', LineType.Tag);
+        this.testIndividualLineTypeOk('[Teste(3)]', LineType.Tag);
+        this.testIndividualLineTypeOk('[NOT-ANIME]', LineType.Tag);
+        this.testIndividualLineTypeOk('[SKIP-LINES(from = 30, to = 100)]', LineType.Tag);
+        this.testIndividualLineTypeOk('[SKIP-EPISODES(reason = "Filler", episodes = 40-45 )]', LineType.Tag);
+    }
 }
 
 suite("LineInfoParser Test Suite", () => {
     suite("ShowTitles", () => {
-        test('should recognize basic anime titles', () => LineInfoParseTest.test.testShowTitleTypeOk());
-        test('should recognize basic dates', () => LineInfoParseTest.test.testDateTypeOk());
-        test('should recognize basic watch entries', () => LineInfoParseTest.test.testWatchEntryLineOk());
-        test('should recognize basic tags', () => LineInfoParseTest.test.testDateTypeOk());
-
+        test('should recognize correct anime titles', () => LineInfoParseTest.test.testShowTitleTypeOk());
+        test('should recognize correct dates', () => LineInfoParseTest.test.testDateTypeOk());
+        test('should recognize correct watch entries', () => LineInfoParseTest.test.testWatchEntryLineTypeOk());
+        test('should recognize correct tags', () => LineInfoParseTest.test.testTagLineTypeOk());
     })
 });
