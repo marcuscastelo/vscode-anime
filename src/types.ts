@@ -20,6 +20,11 @@ export const Tags: { [key: string]: Tag } = {
 		appliesTo: TagApplyInfo.SHOW,
 		parameters: []
 	},
+	"SKIP-LINES": {
+		tagType: 'SKIP-LINES',
+		appliesTo: TagApplyInfo.SCRIPT_TAG,
+		parameters: [ 'count' ]
+	}
 };
 
 export type WatchEntry = {

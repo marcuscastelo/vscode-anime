@@ -47,7 +47,7 @@ export type TagLineInfo =
     LineInfoBase &
     {
         params: {
-            tag: Tag
+            tagName: string
         }
     };
 
@@ -60,74 +60,88 @@ export default class LineInfoParser {
             text = text.substring(0, commentTokenPosition);
         }
 
-        let groups: { [key: string]: any } | null;
-
-        groups = SHOW_TITLE_REG.exec(text);
-        if (groups) {
-            return {
-                type: LineType.ShowTitle,
-                params: { showTitle: groups["1"] },
-                line,
-            };
-        }
-        groups = DATE_REG.exec(text);
-        if (groups) {
-            return {
-                type: LineType.Date,
-                params: { date: groups["1"] },
-                line,
-            };
-        }
-
-        groups = WATCH_REG.exec(text);
-        if (groups) {
-            let errors = [];
-            if (groups["1"] === undefined) errors.push('Missing startTime');
-            if (groups["2"] === undefined) errors.push('Missing endTime');
-            if (groups["3"] === undefined) errors.push('Missing episode number')
-            //TODO: check if episode number is at least 2-dig
-
-            if (errors.length > 0) {
-                return {
-                    type: LineType.Invalid,
-                    line,
-                    error: new Error(errors.reduce((accum, next) => accum + next)),
-                };
-            }
-
-            return {
-                type: LineType.WatchEntry,
-                params: {
-                    startTime: groups["1"],
-                    endTime: groups["2"],
-                    episode: parseInt(groups["3"]),
-                    friends: (groups["4"]) ? (groups["4"] as string).split(',').map(name => name.trim()) : [],
-                },
-                line,
-            };
-        }
-
-        groups = TAG_REG.exec(text);
-        if (groups) {
-            return {
-                type: LineType.Tag,
-                params: { tag: groups["1"] },
-                line,
-            };
-        }
-
+        //Checks if empty line before regex for performance
         if (text === '') {
             return {
                 type: LineType.Ignored,
                 line,
             }
         }
+        
+        //Redirecting to other methods according to line type 
+        let execArray: RegExpExecArray | null;
+
+        execArray = SHOW_TITLE_REG.exec(text);
+        if (execArray) return this.parseShowTitleLine(line, execArray);
+
+        execArray = DATE_REG.exec(text);
+        if (execArray) return this.parseDateLine(line, execArray);
+
+        execArray = WATCH_REG.exec(text);
+        if (execArray) return this.parseWatchEntryLine(line, execArray);
+
+        execArray = TAG_REG.exec(text);
+        if (execArray) return this.parseTagLine(line, execArray);
 
         return {
             type: LineType.Invalid,
-            error: new Error('Invalid line'),
+            error: new Error('Invalid line type'),
             line,
         };
     }
 
-}
+    private static parseShowTitleLine(line: TextLine, groups: RegExpExecArray): LineInfo {
+        return {
+            type: LineType.ShowTitle,
+            params: { showTitle: groups[1] },
+            line,
+        };
+    }
+
+    private static parseDateLine(line: TextLine, groups: RegExpExecArray): LineInfo {
+        return {
+            type: LineType.Date,
+            params: { date: groups[1] },
+            line,
+        };
+    }
+
+    private static parseWatchEntryLine(line: TextLine, groups: RegExpExecArray): LineInfo {
+        let errors = [];
+        if (groups[1] === undefined) errors.push('Missing startTime');
+        if (groups[2] === undefined) errors.push('Missing endTime');
+        if (groups[3] === undefined) errors.push('Missing episode number')
+        //TODO: check if episode number is at least 2-dig
+
+        if (errors.length > 0) {
+            return {
+                type: LineType.Invalid,
+                line,
+                error: new Error(errors.reduce((accum, next) => accum + next)),
+            };
+        }
+
+        return {
+            type: LineType.WatchEntry,
+            params: {
+                startTime: groups[1],
+                endTime: groups[2],
+                episode: parseInt(groups[3]),
+                friends: (groups[4]) ? (groups[4] as string).split(',').map(name => name.trim()) : [],
+            },
+            line,
+        };
+    }
+
+    private static parseTagLine(line: TextLine, groups: RegExpExecArray): LineInfo {
+
+        return {
+            type: LineType.Tag,
+            params: { tagName: groups[1] },
+            line,
+
+        }
+
+
+    }
+};

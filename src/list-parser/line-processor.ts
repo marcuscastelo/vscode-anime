@@ -9,6 +9,7 @@ import MADiagnosticController from "../lang/maDiagnosticCollection";
 import ListContext from "./anime-context";
 import { LineType } from "./line-type";
 import LineInfoParser, { ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
+import { Tags } from "../types";
 
 
 function checkAnimeDeclHasRightTags(anime: Anime, reader: DocumentReader): boolean {
@@ -82,16 +83,18 @@ export default class LineProcessor {
     }
 
     processWatchLine(lineInfo: WatchEntryLineInfo) {
-        let currAnimeName = this.lineContext.currShowName ?? "unknown__definetelynotusednameindict";
-        let currentAnime = this.storage.getAnime(currAnimeName);
+        let { currShowName } = this.lineContext;
+        let currentAnime = this.storage.getAnime(currShowName);
 
-        if (!currAnimeName) {
+        //TODO: change errors to diagnostics
+
+        if (!currShowName) {
             console.error("400: Invalid state (episode with no anime) at line ", lineInfo.line.lineNumber);
             return;
         }
 
         if (!currentAnime) {
-            console.error(`500: Unexpected error: anime '${currAnimeName}' not found in list, despite being the current anime`);
+            console.error(`500: Unexpected error: anime '${currShowName}' not found in list, despite being the current anime`);
             return;
         }
 
@@ -101,7 +104,6 @@ export default class LineProcessor {
             console.error(`400: episode isn't a number`);
             return;
         }
-
 
         //TODO: create a WatchEntry and store it ( also remove .updateLastWatchedEpisode )
         currentAnime.updateLastWatchedEpisode(episode, lineInfo.line.lineNumber);
@@ -113,8 +115,15 @@ export default class LineProcessor {
 
     processTag(lineInfo: TagLineInfo) {
         
+        let {tagName} = lineInfo.params;
+
         //TODO: tag restrict context
-        this.lineContext.currTags.push(lineInfo.params.tag);
+        // this.lineContext.onTag(tag);
+
+        if (tagName === "SKIP-LINES") {
+            console.log('Skip lines!!');
+            console.log(Tags[tagName]);
+        }
 
         // let [tagType, parameters] = tag.indexOf(`=`) === -1 ? [tag, []] : tag.split(`=`);
         // tagType = tagType.toLocaleLowerCase();
