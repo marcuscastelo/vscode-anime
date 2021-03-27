@@ -1,6 +1,6 @@
 import { TextLine } from "vscode";
 import { Tag } from "../types";
-import { COMMENT_TOKEN, DATE_REG, LineType, SHOW_TITLE_REG, TAG_REG, WATCH_REG } from "./line-type";
+import { COMMENT_TOKEN, DATE_REG, LineType, SHOW_TITLE_REG, TAG_PARAM_REG, TAG_REG, WATCH_REG } from "./line-type";
 
 type LineInfoBase = {
     line: TextLine,
@@ -43,11 +43,17 @@ export type DateLineInfo =
         }
     };
 
+type TagParam = {
+    name: string,
+    value: string,
+}
+
 export type TagLineInfo =
     LineInfoBase &
     {
         params: {
-            tagName: string
+            tagName: string,
+            tagParams: TagParam[],
         }
     };
 
@@ -67,7 +73,7 @@ export default class LineInfoParser {
                 line,
             }
         }
-        
+
         //Redirecting to other methods according to line type 
         let execArray: RegExpExecArray | null;
 
@@ -136,9 +142,40 @@ export default class LineInfoParser {
 
     private static parseTagLine(line: TextLine, groups: RegExpExecArray): LineInfo {
 
+        let [_, tagName, tagParamsStr] = groups;
+
+        let tagParams: TagParam[];
+        //Assumes valid unless proven wrong below
+        let parametersValid = true;
+
+        if (!tagParamsStr || tagParamsStr.trim() === '')
+            tagParams = [];
+        else
+            tagParams = tagParamsStr.split(',').map((paramStr) => {
+                let execResult = TAG_PARAM_REG.exec(paramStr);
+                if (execResult == null) {
+                    parametersValid = false;
+                    return <TagParam>{};
+                }
+                let [_, name, value] = execResult;
+                return { name, value } as TagParam;
+            });
+
+        if (!parametersValid) {
+            return {
+                type: LineType.Invalid,
+                error: new Error('Invalid parameter/parameters'),
+                line,
+            }
+        }
+
+
         return {
             type: LineType.Tag,
-            params: { tagName: groups[1] },
+            params: {
+                tagName,
+                tagParams
+            },
             line,
 
         }
