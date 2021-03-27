@@ -10,6 +10,7 @@ import MADiagnosticController from "../lang/maDiagnosticCollection";
 import AnimeContext from "./anime-context";
 import MAListContextUtils, { Params } from "./maListContext";
 import { LineType } from "./lineTypes";
+import LineInfoParser, { ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-extractor";
 
 
 
@@ -39,44 +40,40 @@ export default class MALineParser {
     }
 
     processAllLines(document: TextDocument) {
-		let reader = new DocumentReader(document);
+        let reader = new DocumentReader(document);
 
-		for (let currentLine of reader.getIterator()) {
+        for (let currentLine of reader.getIterator()) {
 
-			if (currentLine.lineNumber % Math.floor(reader.lineCount / 10) === 0) {
-				console.log(`${currentLine.lineNumber}/${reader.lineCount} lines read (${(currentLine.lineNumber / reader.lineCount * 100).toFixed(2)}%)`);
-			}
+            if (currentLine.lineNumber % Math.floor(reader.lineCount / 10) === 0) {
+                console.log(`${currentLine.lineNumber}/${reader.lineCount} lines read (${(currentLine.lineNumber / reader.lineCount * 100).toFixed(2)}%)`);
+            }
 
-			this.processLine(currentLine, reader);
-		}
+            this.processLine(currentLine, reader);
+        }
     }
 
     processLine(line: TextLine, reader: DocumentReader) {
-        let {type, params} = MAListContextUtils.getLineInfo(line);
+        let lineInfo = LineInfoParser.getLineInfo(line);
 
-        if (type === LineType.ShowTitle) {
-            this.processAnimeTitleLine(params, line);
-        } else if (type === LineType.WatchEntry) {
-            this.processWatchLine(params, line);
-        } else if (type === LineType.Tag) {
-            this.processTag(params, line);
-        } else if (type === LineType.Invalid) {
+        if (lineInfo.type === LineType.ShowTitle) {
+            this.processShowTitleLine(lineInfo);
+        } else if (lineInfo.type === LineType.WatchEntry) {
+            this.processWatchLine(lineInfo);
+        } else if (lineInfo.type === LineType.Tag) {
+            this.processTag(lineInfo);
+        } else if (lineInfo.type === LineType.Invalid) {
             this.diagnosticController.markUnknownLineType(line);
         }
     }
 
-    processAnimeTitleLine(params: Params, line: TextLine) {
-        if (params["1"] === undefined) return;
-
-        let animeName: string = params["1"];
-
-        let currentAnime = this.storage.getOrCreateAnime(animeName, this.context.currTags);
+    processShowTitleLine(lineInfo: ShowTitleLineInfo) {
+        let currentShow = this.storage.getOrCreateAnime(lineInfo.params.showTitle, this.context.currTags);
         //TODO: checkAnimeDeclHasRightTags(currentAnime, this.reader);
 
         //TODO: check for empty sessions ( i.e: no watch entries between titles )
-        currentAnime.updateLastMentionedLine(line.lineNumber);
+        currentShow.updateLastMentionedLine(lineInfo.line.lineNumber);
 
-        this.context.currShowName = animeName;
+        this.context.currShowName = lineInfo.params.showTitle;
 
         //TODO: distinguish tag targets
         this.context.currTags = [];
@@ -87,12 +84,12 @@ export default class MALineParser {
         // }
     }
 
-    processWatchLine(params: Params, line: TextLine) {
+    processWatchLine(lineInfo: WatchEntryLineInfo) {
         let currAnimeName = this.context.currShowName ?? "unknown__definetelynotusednameindict";
         let currentAnime = this.storage.getAnime(currAnimeName);
 
         if (!currAnimeName) {
-            console.error("400: Invalid state (episode with no anime) at line ", line.lineNumber);
+            console.error("400: Invalid state (episode with no anime) at line ", lineInfo.line.lineNumber);
             return;
         }
 
@@ -101,12 +98,7 @@ export default class MALineParser {
             return;
         }
 
-        let startTime = params["1"];
-        let endTime = params["2"];
-        let episode = parseInt(params["3"]);
-
-        let friends = params["4"]?.split(',').map(name => name.trim()) ?? [];
-
+        let { startTime, endTime, episode, friends } = lineInfo.params;
 
         if (episode === NaN) {
             console.error(`400: episode isn't a number`);
@@ -115,19 +107,17 @@ export default class MALineParser {
 
 
         //TODO: create a WatchEntry and store it ( also remove .updateLastWatchedEpisode )
-        currentAnime.updateLastWatchedEpisode(episode, line.lineNumber);
+        currentAnime.updateLastWatchedEpisode(episode, lineInfo.line.lineNumber);
 
         for (let friend of friends)
             this.storage.registerFriend(friend);
         //
     }
 
-    processTag(params: Params, line: TextLine) {
-        let tagType = params["1"];
-        let tag = Tags[tagType];
-
+    processTag(lineInfo: TagLineInfo) {
+        
         //TODO: tag restrict context
-        this.context.currTags.push(tag);
+        this.context.currTags.push(lineInfo.params.tag);
 
         // let [tagType, parameters] = tag.indexOf(`=`) === -1 ? [tag, []] : tag.split(`=`);
         // tagType = tagType.toLocaleLowerCase();

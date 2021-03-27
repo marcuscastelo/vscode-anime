@@ -1,6 +1,8 @@
+import { assert } from "node:console";
 import { TextDocument, TextLine } from "vscode";
-import { WatchEntry } from "../types";
+import { Tag, Tags, WatchEntry } from "../types";
 import DocumentReader from "../utils/document-reader";
+import LineInfoParser, { DateLineInfo, ShowTitleLineInfo } from "./line-info-extractor";
 import { COMMENT_TOKEN, DATE_REG, LineType, SHOW_TITLE_REG, TAG_REG, WATCH_REG } from "./lineTypes";
 
 export type MAListContext = {
@@ -13,11 +15,9 @@ export type Params = {
     [key: string]: string
 };
 
-export interface LineInfo {
-    type: LineType,
-    params: Params,
-    line: TextLine,
-};
+
+
+
 
 type GetContextResult =
     | { valid: true, context: MAListContext }
@@ -33,7 +33,7 @@ export default class MAListContextUtils {
         const lineMatcherFactory =
             (lineType: LineType) => ({
                 testLine: (line: TextLine) => {
-                    const lineInfo = this.getLineInfo(line);
+                    const lineInfo = LineInfoParser.getLineInfo(line);
                     return {
                         success: lineInfo.type == lineType,
                         data: lineInfo
@@ -64,10 +64,26 @@ export default class MAListContextUtils {
             };
         }
 
+        let currentShowTitle = (showTitleRes.data as ShowTitleLineInfo).params.showTitle;
+        let currentDate = (dateRes.data as DateLineInfo).params.date;
+
+        let lastWatchEntry: WatchEntry | undefined;
+
+        if (watchEntryRes.success && watchEntryRes.data.type === LineType.WatchEntry) {
+            lastWatchEntry = {
+                animeName: currentShowTitle,
+                startTime: watchEntryRes.data.params.startTime,
+                endTime: watchEntryRes.data.params.endTime,
+                episode: watchEntryRes.data.params.episode,
+                line: watchEntryRes.data.line.lineNumber,
+                company: watchEntryRes.data.params.friends,
+            }
+        }
+
         let context: MAListContext = {
-            currentShowTitle: showTitleRes.data.params["1"],
-            currentDate: dateRes.data.params["1"],
-            // lastWatchEntry: new WatchEntry lastWatchEntry.line?.text
+            currentShowTitle,
+            currentDate,
+            lastWatchEntry,
         }
 
         return {
@@ -76,64 +92,6 @@ export default class MAListContextUtils {
         };
     }
 
-    public static getLineInfo(line: TextLine): LineInfo {
-        let text = line.text;
-
-        let commentTokenPosition = text.indexOf(COMMENT_TOKEN);
-        if (commentTokenPosition !== -1) {
-            text = text.substring(0, commentTokenPosition);
-        }
-
-        let groups: { [key: string]: any } | null;
-
-        groups = SHOW_TITLE_REG.exec(text);
-        if (groups) {
-            return {
-                type: LineType.ShowTitle,
-                params: groups,
-                line,
-            };
-        }
-        groups = DATE_REG.exec(text);
-        if (groups) {
-            return {
-                type: LineType.Date,
-                params: groups,
-                line,
-            };
-        }
-
-        groups = WATCH_REG.exec(text);
-        if (groups) {
-            return {
-                type: LineType.WatchEntry,
-                params: groups,
-                line,
-            };
-        }
-
-        groups = TAG_REG.exec(text);
-        if (groups) {
-            return {
-                type: LineType.Tag,
-                params: groups,
-                line,
-            };
-        }
-
-        if (text === '') {
-            return {
-                type: LineType.Ignored,
-                params: {},
-                line,
-            }
-        }
-
-        return {
-            type: LineType.Invalid,
-            params: {},
-            line,
-        };
-    }
+    
 
 }

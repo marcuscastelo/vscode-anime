@@ -20,7 +20,7 @@ export function insertNextEpisode(textEditor: TextEditor, edit: TextEditorEdit):
 
 	if (!anime) {
 		console.log(`[insertNextEpisode] Anime ${animeContext.context.currentShowTitle} not found, rescaning...`);
-		MAExtension.INSTANCE.updateAnimeStorage();
+		MAExtension.INSTANCE.rescanDocument();
 		anime = MAExtension.INSTANCE.animeStorage.getAnime(animeContext.context.currentShowTitle);
 		if (!anime) {
 			window.showErrorMessage(`[insertNextEpisode] Anime ${animeContext.context.currentShowTitle} not found! Couldn't determine next epiode. (Unexpected error) `);

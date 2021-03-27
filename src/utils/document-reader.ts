@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { LineType } from '../list-parser/lineTypes';
 
 export interface LineMatcher<T> {
 	testLine(line: vscode.TextLine): { success: boolean, data: T };
@@ -66,7 +67,7 @@ export default class DocumentReader {
 
 	searchLine<T>(skipCount: number, matcher: LineMatcher<T>): SearchResult<T> {
 		for (let line of this.getIterator(skipCount)) {
-			const {success, data } = matcher.testLine(line);
+			const { success, data } = matcher.testLine(line);
 			if (success === true) {
 				return {
 					success: true,
