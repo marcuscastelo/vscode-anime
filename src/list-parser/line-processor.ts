@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable curly */
-
 import { TextDocument, TextLine } from "vscode";
 import AnimeDataStorage from "../cache/anime/anime-data-storage";
 import DocumentReader from "../utils/document-reader";
