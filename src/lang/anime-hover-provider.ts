@@ -1,6 +1,6 @@
 import { CancellationToken, ExtensionContext, Hover, HoverProvider, languages, MarkdownString, Position, TextDocument, window } from "vscode";
 
-import ShowStorage from "../cache/anime/anime-data-storage";
+import ShowStorage from "../cache/anime/showStorage";
 import { Anime } from "../cache/anime/shows";
 import { MAExtension } from "../extension";
 import LineContextFinder from "../list-parser/line-context-finder";

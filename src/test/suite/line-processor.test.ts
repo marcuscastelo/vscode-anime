@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import ShowStorage from '../../cache/anime/anime-data-storage';
+import ShowStorage from '../../cache/anime/showStorage';
 import MADiagnosticController from '../../lang/maDiagnosticCollection';
 import LineProcessor from '../../list-parser/line-processor';
 import ListContext from '../../list-parser/anime-context';

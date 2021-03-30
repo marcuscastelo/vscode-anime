@@ -1,12 +1,13 @@
 
 import { TextEditor, TextEditorEdit, window } from "vscode";
-import ShowStorage from "../cache/anime/anime-data-storage";
+import ShowStorage from "../cache/anime/showStorage";
 import LineContextFinder from "../list-parser/line-context-finder";
 import { isEditingSimpleCursor } from "../utils/editor-utils";
 import { MAExtension } from '../extension'
 import { Show } from "../cache/anime/shows";
+import { TextEditorCommand } from "./types";
 
-export function insertNextEpisode(textEditor: TextEditor, edit: TextEditorEdit): void {
+export const insertNextEpisode: TextEditorCommand<void> = (textEditor: TextEditor, edit: TextEditorEdit) => {
 	if (!isEditingSimpleCursor(textEditor)) { return; }
 
 	const extension = MAExtension.INSTANCE;
@@ -18,7 +19,6 @@ export function insertNextEpisode(textEditor: TextEditor, edit: TextEditorEdit):
 	}
 
 	let show: Show | undefined;
-	let showTry = 1;
 
 	show = extension.showStorage.getShow(animeContext.context.currentShowTitle);
 	if (!show) {
@@ -35,6 +35,6 @@ export function insertNextEpisode(textEditor: TextEditor, edit: TextEditorEdit):
 
 	let nextEpStr = (lastEp + 1).toString();
 	if (nextEpStr.length < 2) { nextEpStr = "0" + nextEpStr; };
-	
+
 	edit.insert(textEditor.selection.start, nextEpStr);
 }

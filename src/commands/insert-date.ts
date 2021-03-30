@@ -1,7 +1,8 @@
 import { TextEditor, TextEditorEdit } from "vscode";
 import { isEditingSimpleCursor } from "../utils/editor-utils";
+import { TextEditorCommand } from "./types";
 
-export function insertDate(textEditor: TextEditor, edit: TextEditorEdit): void {
+export const insertDate: TextEditorCommand<void> = (textEditor: TextEditor, edit: TextEditorEdit) => {
 	if (!isEditingSimpleCursor(textEditor)) return;
 
 	let currDate = (new Date(Date.now())).toLocaleDateString();

@@ -1,5 +1,5 @@
 import { CancellationToken, CompletionContext, CompletionItem, CompletionItemKind, CompletionItemProvider, CompletionTriggerKind, DebugConsoleMode, DocumentFilter, ExtensionContext, languages, Position, ProviderResult, TextDocument, TextEdit, window } from "vscode";
-import ShowStorage from "../cache/anime/anime-data-storage";
+import ShowStorage from "../cache/anime/showStorage";
 import { MAExtension } from "../extension";
 import { LineType } from "../list-parser/line-type";
 
