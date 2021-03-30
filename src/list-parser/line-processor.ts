@@ -41,8 +41,10 @@ export default class LineProcessor {
             this.processWatchLine(lineInfo);
         } else if (lineInfo.type === LineType.Tag) {
             this.processTag(lineInfo);
-        } else if (lineInfo.type === LineType.Invalid) {
-            this.diagnosticController.addLineDiagnostic(line, "Invalid line (unknown LineType)")
+        }
+        else if (lineInfo.type === LineType.Invalid) {
+            for (let error of lineInfo.errors)
+                this.diagnosticController.addLineDiagnostic(line, error);
         }
     }
 
@@ -154,7 +156,7 @@ export default class LineProcessor {
 
         let tag = Tags[tagName];
         if (!tag) {
-            this.diagnosticController.addLineDiagnostic(lineInfo.line, "Unknown tag, ignoring!", DiagnosticSeverity.Warning);
+            this.diagnosticController.addLineDiagnostic(lineInfo.line, "Unknown tag, ignoring!", { severity: DiagnosticSeverity.Warning });
             return;
         }
 

@@ -30,17 +30,21 @@ export default class MADiagnosticController {
         this.document = document;
     }
 
-    public addLineDiagnostic(line: TextLine, message: string, severity: DiagnosticSeverity = DiagnosticSeverity.Error) {
+    public addLineDiagnostic(line: TextLine, message: string, extra?: Partial<Diagnostic>) {
         this.addDiagnostic({
-            message,
             range: line.range,
-            severity
-        });
+            message,
+            ...extra
+        })
     }
 
-    public addDiagnostic(diagnostic: Diagnostic) {
+    public addDiagnostic(diagnostic: Partial<Diagnostic> & { message: string, range: Range }) {
         if (!this.document) { return; }
-        this.currentDiagnostics.push(diagnostic);
+        const defaultSeverity = DiagnosticSeverity.Error;
+        this.currentDiagnostics.push({
+            severity: defaultSeverity,
+            ...diagnostic,
+        });
 
         //TODO: do it from time to time instead of every addition
         this.collection.set(this.document.uri, this.currentDiagnostics);

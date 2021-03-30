@@ -13,7 +13,7 @@ export type LineInfo =
         | { type: LineType.WatchEntry } & WatchEntryLineInfo
         | { type: LineType.Tag } & TagLineInfo
         | { type: LineType.Ignored }
-        | { type: LineType.Invalid, error: Error }
+        | { type: LineType.Invalid, errors: string[] }
     );
 
 export type ShowTitleLineInfo =
@@ -92,7 +92,7 @@ export default class LineInfoParser {
         //TODO: return errors in a meaningful way to show on diagnostics
         return {
             type: LineType.Invalid,
-            error: new Error('Invalid line type'),
+            errors: ['LineType: Unkown line type'],
             line,
         };
     }
@@ -115,16 +115,16 @@ export default class LineInfoParser {
 
     private static parseWatchEntryLine(line: TextLine, groups: RegExpExecArray): LineInfo {
         let errors = [];
-        if (groups[1] === undefined) errors.push('Missing startTime');
-        if (groups[2] === undefined) errors.push('Missing endTime');
-        if (groups[3] === undefined) errors.push('Missing episode number')
+        if (groups[1] === undefined) errors.push('WatchEntry: Missing startTime');
+        if (groups[2] === undefined) errors.push('WatchEntry: Missing endTime');
+        if (groups[3] === undefined) errors.push('WatchEntry: Missing episode number')
         //TODO: check if episode number is at least 2-dig
 
         if (errors.length > 0) {
             return {
                 type: LineType.Invalid,
                 line,
-                error: new Error(errors.reduce((accum, next) => accum + next)),
+                errors,
             };
         }
 
@@ -164,7 +164,7 @@ export default class LineInfoParser {
         if (!parametersValid) {
             return {
                 type: LineType.Invalid,
-                error: new Error('Invalid parameter/parameters'),
+                errors: ['Tag: Invalid parameter/parameters'],
                 line,
             }
         }
