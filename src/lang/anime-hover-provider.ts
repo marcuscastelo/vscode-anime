@@ -6,6 +6,8 @@ import { MAExtension } from "../extension";
 import LineContextFinder from "../list-parser/line-context-finder";
 import { MAL } from "../services/mal";
 import { AnimeSearchResultItem, Tags } from "../types";
+import LineInfoParser from "../list-parser/line-info-parser";
+import { LineType } from "../list-parser/line-type";
 
 async function searchMAL(animeTitle: string) {
     let foundAnimes = await MAL.searchAnime(animeTitle);
@@ -30,6 +32,10 @@ export default class ShowHoverProvider implements HoverProvider {
         const extension = MAExtension.INSTANCE;
         
         if (!window.activeTextEditor) { return; }
+        let { type: lineType } = LineInfoParser.parseLineInfo(window.activeTextEditor.document.lineAt(position.line));
+        if (lineType !== LineType.ShowTitle) {
+            return;
+        }
 
         let lineContext = LineContextFinder.findContext(window.activeTextEditor.document, position.line);
 

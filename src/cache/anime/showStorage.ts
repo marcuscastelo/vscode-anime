@@ -11,13 +11,13 @@ export default class ShowStorage {
 	private showDict: ShowDict = {};
 	private friendList: string[] = [];
 
-	public registerAnime(title: string, tags: Tag[] = [], overwrite = true): Show {
+	public registerShow(declarationLine: number, title: string, tags: Tag[] = [], overwrite = true): Show {
 		if (!overwrite && this.isShowRegistered(title)) {
 			console.warn(`Not registering already registered anime: `, title);
 			return this.getShow(title) as Show;
 		}
 
-		let anime = new Show({title, tags});
+		let anime = new Show(declarationLine, {title, tags});
 		this.showDict[title] = anime;
 		return anime;
 	}
@@ -32,8 +32,8 @@ export default class ShowStorage {
 		return show;
 	}
 
-	public getOrCreateShow(animeName: string, animeTagsAtCreation: Tag[] = []): Show {
-		return this.getShow(animeName) ?? this.registerAnime(animeName, animeTagsAtCreation);
+	public getOrCreateShow(showTitle: string, currentLine: number, animeTagsAtCreation: Tag[] = []): Show {
+		return this.getShow(showTitle) ?? this.registerShow(currentLine, showTitle, animeTagsAtCreation);
 	}
 
 	public isShowRegistered(animeName: string): boolean {

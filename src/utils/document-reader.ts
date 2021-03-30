@@ -42,7 +42,7 @@ class LineIterator implements IterableIterator<vscode.TextLine> {
 
 export default class DocumentReader {
 	private _currentLineIndex: number = 0;
-	constructor(private document: vscode.TextDocument) { }
+	constructor(public readonly document: vscode.TextDocument) { }
 
 	get currentLineIndex() { return this._currentLineIndex; }
 	get lineCount() { return this.document.lineCount; }

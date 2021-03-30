@@ -30,19 +30,19 @@ export default class MADiagnosticController {
         this.document = document;
     }
 
-    private addDiagnostic(diagnostic: Diagnostic) {
-        if (!this.document) { return; }
-        this.currentDiagnostics.push(diagnostic);
-        this.collection.set(this.document.uri, this.currentDiagnostics);
+    public addLineDiagnostic(line: TextLine, message: string, severity: DiagnosticSeverity = DiagnosticSeverity.Error) {
+        this.addDiagnostic({
+            message,
+            range: line.range,
+            severity
+        });
     }
 
-    public markUnknownLineType(line: TextLine) {
-        let diag: Diagnostic = {
-            message: 'Unknown syntax (line type not recognized)',
-            range: line.range,
-            severity: DiagnosticSeverity.Error
-        };
+    public addDiagnostic(diagnostic: Diagnostic) {
+        if (!this.document) { return; }
+        this.currentDiagnostics.push(diagnostic);
 
-        this.addDiagnostic(diag);
+        //TODO: do it from time to time instead of every addition
+        this.collection.set(this.document.uri, this.currentDiagnostics);
     }
 }

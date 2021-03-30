@@ -1,12 +1,12 @@
-import { TextDocument, TextLine } from "vscode";
-import ShowStorage from "../cache/anime/anime-data-storage";
+import { DiagnosticRelatedInformation, DiagnosticSeverity, Location, Range, TextDocument, TextLine } from "vscode";
+import ShowStorage from "../cache/anime/showStorage";
 import DocumentReader from "../utils/document-reader";
 import { Show } from "../cache/anime/shows";
 import MADiagnosticController from "../lang/maDiagnosticCollection";
 import ListContext from "./anime-context";
 import { LineType } from "./line-type";
 import LineInfoParser, { ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
-import { Tags, WatchEntry } from "../types";
+import { Tag, TagApplyInfo, Tags, WatchEntry } from "../types";
 
 
 export default class LineProcessor {
@@ -36,54 +36,89 @@ export default class LineProcessor {
         let lineInfo = LineInfoParser.parseLineInfo(line);
 
         if (lineInfo.type === LineType.ShowTitle) {
-            this.processShowTitleLine(lineInfo);
+            this.processShowTitleLine(lineInfo, reader.document);
         } else if (lineInfo.type === LineType.WatchEntry) {
             this.processWatchLine(lineInfo);
         } else if (lineInfo.type === LineType.Tag) {
             this.processTag(lineInfo);
         } else if (lineInfo.type === LineType.Invalid) {
-            this.diagnosticController.markUnknownLineType(line);
+            this.diagnosticController.addLineDiagnostic(line, "Invalid line (unknown LineType)")
         }
     }
 
-    processShowTitleLine(lineInfo: ShowTitleLineInfo) {
-        let currentShow = this.storage.getOrCreateShow(lineInfo.params.showTitle, this.lineContext.currTags);
+    processShowTitleLine(lineInfo: ShowTitleLineInfo, document: TextDocument) {
+        const showTitle = lineInfo.params.showTitle;
+
+        if (showTitle === this.lineContext.currShowName) {
+            this.diagnosticController.addLineDiagnostic(lineInfo.line, 'Redundant show title');
+            return;
+        }
+
+        this.lineContext.currShowName = showTitle;
+        const currentShow = this.storage.getOrCreateShow(showTitle, lineInfo.line.lineNumber, this.lineContext.currTags);
+
         //TODO: checkAnimeDeclHasRightTags(currentAnime, this.reader);
 
         //TODO: check for empty sessions ( i.e: no watch entries between titles )
         currentShow.updateLastMentionedLine(lineInfo.line.lineNumber);
 
-        this.lineContext.currShowName = lineInfo.params.showTitle;
 
-        //TODO: distinguish tag targets
-        this.lineContext.currTags = [];
-        // for (let i = 0; i < this.currentContext.currTags.length; i++) {
-        //     if (isShowTag()) {
-        //         this.currentContext.currTags.splice(i, 1);
-        //     }
-        // }
+        let missingTags: Tag[] = []
+        let extraTags: Tag[] = []
+        for (let tag of currentShow.info.tags) {
+            if (tag.appliesTo === TagApplyInfo.SHOW) {
+                if (this.lineContext.currTags.indexOf(tag) === -1) {
+                    missingTags.push(tag);
+                }
+            }
+        }
+
+        for (let tag of this.lineContext.currTags) {
+            if (tag.appliesTo === TagApplyInfo.SHOW) {
+                if (currentShow.info.tags.indexOf(tag) === -1) {
+                    extraTags.push(tag);
+                }
+            }
+        }
+
+        const names = (tag: Tag) => tag.tagType;
+        const toList = (accum: string, token: string) => accum + ',' + token;
+        const listTags = (tags: Tag[]) => tags.map(names).reduce(toList);
+
+
+        let relatedErrorMessage = ''
+        let messageBitmask = ((missingTags.length > 0) ? 1 : 0) | ((extraTags.length > 0) ? 2 : 0);
+        if (messageBitmask & 1) relatedErrorMessage += `missing those tags [${listTags(missingTags)}]`;
+        if (messageBitmask & 3) relatedErrorMessage += `\nand `;
+        if (messageBitmask & 2) relatedErrorMessage += `missing those tags [${listTags(missingTags)}]`;
+
+
+        if (messageBitmask !== 0) {
+            this.diagnosticController.addDiagnostic({
+                message: "Incorrect tagging (does not align with previous definition)",
+                range: lineInfo.line.range,
+                severity: DiagnosticSeverity.Error,
+                relatedInformation: [{ location: new Location(document.uri, document.lineAt(currentShow.info.firstMentionedLine).range), message: "Fist show declaration is here" }]
+            });
+        }
+
     }
 
     processWatchLine(lineInfo: WatchEntryLineInfo) {
         let { currShowName: currShowTitle } = this.lineContext;
-        let currentAnime = this.storage.getShow(currShowTitle);
-
-        //TODO: change errors to diagnostics
+        let currentShow = this.storage.getShow(currShowTitle);
 
         if (!currShowTitle) {
-            console.error("400: Invalid state (episode with no anime) at line ", lineInfo.line.lineNumber);
+            this.diagnosticController.addLineDiagnostic(lineInfo.line, "Watch Entry provided, but not inside a show")
             return;
         }
 
-        if (!currentAnime) {
-            console.error(`500: Unexpected error: anime '${currShowTitle}' not found in list, despite being the current anime`);
-            return;
-        }
+        if (!currentShow)
+            throw new Error(`Unexpected error: anime '${currShowTitle}' not found in list, despite being the current show`);
 
         let { startTime, endTime, episode, friends } = lineInfo.params;
-
         if (episode === NaN) {
-            console.error(`400: episode isn't a number`);
+            this.diagnosticController.addLineDiagnostic(lineInfo.line, "Episode is not a number");
             return;
         }
 
@@ -96,7 +131,13 @@ export default class LineProcessor {
             company: friends
         };
 
-        //TODO: create a WatchEntry and store it ( also remove .updateLastWatchedEpisode )
+        const lastWatchedEpisode = currentShow.info.lastWatchEntry.episode;
+        if (lastWatchedEpisode >= episode) {
+            //TODO: related info last ep's line
+            //TODO: check for skipped as well
+            this.diagnosticController.addLineDiagnostic(lineInfo.line, "Watch entry violates ascending episodes rule")
+        }
+
         this.storage.registerWatchEntry(currShowTitle, watchEntry);
 
         for (let friend of friends)
@@ -105,16 +146,22 @@ export default class LineProcessor {
     }
 
     processTag(lineInfo: TagLineInfo) {
-        
-        let {tagName} = lineInfo.params;
+
+        let { tagName } = lineInfo.params;
 
         //TODO: tag restrict context
         // this.lineContext.onTag(tag);
 
-        if (tagName === "SKIP-LINES") {
-            console.log('Skip lines!!');
-            console.log(Tags[tagName]);
+        let tag = Tags[tagName];
+        if (!tag) {
+            this.diagnosticController.addLineDiagnostic(lineInfo.line, "Unknown tag, ignoring!", DiagnosticSeverity.Warning);
+            return;
         }
+
+        if (tag.appliesTo === TagApplyInfo.SHOW) {
+            this.lineContext.currShowName = '';
+        }
+
 
         // let [tagType, parameters] = tag.indexOf(`=`) === -1 ? [tag, []] : tag.split(`=`);
         // tagType = tagType.toLocaleLowerCase();

@@ -6,6 +6,7 @@ type ShowInfo = {
     title: string,
     lastWatchEntry: WatchEntry,
     lastMentionedLine: number,
+    firstMentionedLine: number,
     tags: Tag[]
 };
 
@@ -20,7 +21,7 @@ type MALAnimeInfo = {
 
 export class Show {
     public info: ShowInfo
-    constructor(initializer: ShowInfo | { title: string, tags?: Tag[] }) {
+    constructor(declarationLine: number, initializer: ShowInfo | { title: string, tags?: Tag[] }) {
         const {
             title,
             lastMentionedLine,
@@ -32,6 +33,7 @@ export class Show {
             title,
             lastMentionedLine: lastMentionedLine ?? -1,
             lastWatchEntry: lastWatchedEpisode ?? 0,
+            firstMentionedLine: declarationLine,
             tags: tags ?? []
         };
     }
