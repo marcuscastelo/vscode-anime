@@ -1,5 +1,5 @@
 import { CancellationToken, CompletionContext, CompletionItem, CompletionItemKind, CompletionItemProvider, CompletionTriggerKind, DebugConsoleMode, DocumentFilter, ExtensionContext, languages, Position, ProviderResult, TextDocument, TextEdit, window } from "vscode";
-import AnimeDataStorage from "../cache/anime/anime-data-storage";
+import ShowStorage from "../cache/anime/anime-data-storage";
 import { MAExtension } from "../extension";
 import { LineType } from "../list-parser/line-type";
 
@@ -62,10 +62,10 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
         };
     }
 
-    private getCompletionOptionsFromStorage(storage: AnimeDataStorage, completionType: CompletionType): string[] {
+    private getCompletionOptionsFromStorage(storage: ShowStorage, completionType: CompletionType): string[] {
         switch (completionType) {
             case CompletionType.Friend: return storage.listFriends();
-            case CompletionType.ShowTitle: return storage.listAnimes();
+            case CompletionType.ShowTitle: return storage.listShows();
             default:
                 console.error('Not Implemented completion: ', completionType.toString());
                 return [];
@@ -140,7 +140,7 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
         const horizPosition = position.character;
 
         const completionType = this.determineCompletionType(text, horizPosition);
-        const completionOptions = this.getCompletionOptionsFromStorage(extension.animeStorage, completionType);
+        const completionOptions = this.getCompletionOptionsFromStorage(extension.showStorage, completionType);
         const alreadyTypedText = this.getAlreadyTypedText(text, horizPosition, completionType);
         const filteredOptions = this.filterCompletionOptions(alreadyTypedText, completionOptions);
         const completions = this.convertOptions(filteredOptions, completionType);

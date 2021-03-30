@@ -1,12 +1,14 @@
 import { CancellationToken, ExtensionContext, Hover, HoverProvider, languages, MarkdownString, Position, TextDocument, window } from "vscode";
 
-import AnimeDataStorage from "../cache/anime/anime-data-storage";
+import ShowStorage from "../cache/anime/anime-data-storage";
+import { Anime } from "../cache/anime/shows";
+import { MAExtension } from "../extension";
 import LineContextFinder from "../list-parser/line-context-finder";
-import { searchAnime } from "../services/mal";
+import { MAL } from "../services/mal";
 import { AnimeSearchResultItem, Tags } from "../types";
 
 async function searchMAL(animeTitle: string) {
-    let foundAnimes = await searchAnime(animeTitle);
+    let foundAnimes = await MAL.searchAnime(animeTitle);
     return foundAnimes.length > 0 ? foundAnimes[0] : undefined;
 }
 
@@ -25,55 +27,39 @@ export default class ShowHoverProvider implements HoverProvider {
     constructor(private readonly context: ExtensionContext) { }
 
     public async provideHover(document: TextDocument, position: Position, token: CancellationToken) {
-        let animeStorage = this.context.workspaceState.get<AnimeDataStorage>("marucs-anime:storage");
-        if (!animeStorage) { return; }
-
+        const extension = MAExtension.INSTANCE;
+        
         if (!window.activeTextEditor) { return; }
 
-        let animeContext = LineContextFinder.findContext(window.activeTextEditor.document, position.line);
+        let lineContext = LineContextFinder.findContext(window.activeTextEditor.document, position.line);
 
-        if (!animeContext.valid) {
+        if (!lineContext.valid) {
             return;
         }
 
-        let showTitle = animeContext.context.currentShowTitle;
+        let showTitle = lineContext.context.currentShowTitle;
 
-        let anime = animeStorage.getAnime(showTitle);
-        if (!anime) {
-            throw new Error("Impossible state");
-        }
-
-        let animeInfo = anime.getBasicInfo();
+        let show = extension.showStorage.getShow(showTitle);
 
         let mdString: MarkdownString;
-
-        if (animeInfo.tags.indexOf(Tags["NOT-ANIME"]) !== -1) {
+        if (show instanceof Anime) {
+            let showInfo = show.info;
+            let malInfo = await show.getMALInfo();
+    
+            mdString = new MarkdownString(
+                `### ${showTitle}: ` +
+                `\n ![anime image](${malInfo.image_url})` +
+                `\n- Last episode: ${showInfo.lastWatchEntry.episode}/${malInfo.episodes}` +
+                `\n- URL: ${malInfo.url}`
+            );
+        }
+        else {
             mdString = new MarkdownString(
                 `### ${showTitle}:` +
                 `\n NOT-ANIME`
             );
-        } else {
-
-            if (!anime.hasFullInfo()) {
-                await anime.searchMAL();
-            }
-
-            let animeInfo = anime.getFullInfo() ??
-            {
-                ...anime.getBasicInfo(),
-                url: "Error",
-                episodes: NaN,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                image_url: ''
-            };
-
-            mdString = new MarkdownString(
-                `### ${showTitle}: ` +
-                `\n ![anime image](${animeInfo.image_url})` +
-                `\n- Last episode: ${animeInfo.lastWatchedEpisode}/${animeInfo.episodes}` +
-                `\n- URL: ${animeInfo.url}`
-            );
         }
+
         return new Hover(mdString);
     }
 };

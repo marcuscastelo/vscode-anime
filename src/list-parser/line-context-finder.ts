@@ -62,11 +62,11 @@ export default class LineContextFinder {
 
         if (watchEntryRes.success && watchEntryRes.data.type === LineType.WatchEntry) {
             lastWatchEntry = {
-                animeName: currentShowTitle,
+                showTitle: currentShowTitle,
                 startTime: watchEntryRes.data.params.startTime,
                 endTime: watchEntryRes.data.params.endTime,
                 episode: watchEntryRes.data.params.episode,
-                line: watchEntryRes.data.line.lineNumber,
+                lineNumber: watchEntryRes.data.line.lineNumber,
                 company: watchEntryRes.data.params.friends,
             }
         }

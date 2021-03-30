@@ -3,7 +3,7 @@
 import DocumentReader from './utils/document-reader';
 import LineProcessor from './list-parser/line-processor';
 
-import AnimeDataStorage from './cache/anime/anime-data-storage';
+import ShowStorage from './cache/anime/anime-data-storage';
 import * as vscode from 'vscode';
 import { ExtensionContext } from 'vscode';
 import { TextDocument } from 'vscode';
@@ -25,6 +25,8 @@ export class MAExtension {
 	private static _INSTANCE: MAExtension;
 	static get INSTANCE() { return MAExtension._INSTANCE; }
 
+	private static readonly ANIME_STORAGE_ID = 'marucs-anime:storage';
+
 	public static activate(context: ExtensionContext) {
 		if (MAExtension._INSTANCE) {
 			console.warn("Trying to activate Marucs' Anime multiple times!");
@@ -41,8 +43,6 @@ export class MAExtension {
 		extension.registerMembers();
 	}
 
-	private static readonly ANIME_STORAGE_ID = 'marucs-anime:storage';
-
 	private readonly diagnosticController;
 
 	private constructor(
@@ -51,11 +51,11 @@ export class MAExtension {
 		this.diagnosticController = MADiagnosticController.register(this.context, 'vscode-anime');
 	}
 
-	get animeStorage(): AnimeDataStorage {
-		let animeStorage = this.context.workspaceState.get<AnimeDataStorage>(MAExtension.ANIME_STORAGE_ID);
+	get showStorage(): ShowStorage {
+		let animeStorage = this.context.workspaceState.get<ShowStorage>(MAExtension.ANIME_STORAGE_ID);
 
 		if (!animeStorage) {
-			animeStorage = new AnimeDataStorage();
+			animeStorage = new ShowStorage();
 			this.context.workspaceState.update(MAExtension.ANIME_STORAGE_ID, animeStorage);
 		}
 
@@ -79,13 +79,13 @@ export class MAExtension {
 		vscode.window.setStatusBarMessage(`Parsing completed!`,);
 	}
 
-	public overwriteAnimeStorage(storage: AnimeDataStorage) {
+	public overwriteAnimeStorage(storage: ShowStorage) {
 		this.context.workspaceState.update(MAExtension.ANIME_STORAGE_ID, storage);
 	}
 
 	//TODO? move
-	private createStorageFromEntireDocument(textDocument: TextDocument): AnimeDataStorage {
-		let storage = new AnimeDataStorage();
+	private createStorageFromEntireDocument(textDocument: TextDocument): ShowStorage {
+		let storage = new ShowStorage();
 		let parser = new LineProcessor(storage, this.diagnosticController);
 		parser.processAllLines(textDocument);
 

@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import AnimeDataStorage from '../../cache/anime/anime-data-storage';
+import ShowStorage from '../../cache/anime/anime-data-storage';
 import MADiagnosticController from '../../lang/maDiagnosticCollection';
 import LineProcessor from '../../list-parser/line-processor';
 import ListContext from '../../list-parser/anime-context';
@@ -33,11 +33,11 @@ class DocumentMaker {
 
 class LineProcessorTest {
     private processor: LineProcessor;
-    private storage: AnimeDataStorage;
+    private storage: ShowStorage;
 
     public static get test() { return new LineProcessorTest(); }
     private constructor() {
-        this.storage = new AnimeDataStorage();
+        this.storage = new ShowStorage();
         let dummyDiagnosticController = {} as MADiagnosticController;
 
         this.processor = new LineProcessor(this.storage, dummyDiagnosticController);
@@ -60,11 +60,11 @@ class LineProcessorTest {
 
         suite("Date + Anime + 2 Episodes + Friends", () => {
             
-            let show = this.storage.getAnime(showTitle);
+            let show = this.storage.getShow(showTitle);
             let processorContext = ((this.processor as any).lineContext as ListContext);
 
             //TODO: check if context is right after reading all lines
-            test('Stored show correctly in storage', () => assert.strictEqual(show?.getBasicInfo().title, showTitle));
+            test('Stored show correctly in storage', () => assert.strictEqual(show?.info.title, showTitle));
             // test('Correct date', () => assert.strictEqual(processorContext.currDate, date));
         })
 

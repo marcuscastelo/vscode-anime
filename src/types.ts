@@ -28,12 +28,12 @@ export const Tags: { [key: string]: Tag } = {
 };
 
 export type WatchEntry = {
-	animeName: string,
+	showTitle: string,
 	startTime: string,
 	endTime: string,
 	episode: number,
-	company?: string[], //Friends
-	line: number,
+	company: string[], //Friends
+	lineNumber: number,
 };
 
 export type WatchSession = {

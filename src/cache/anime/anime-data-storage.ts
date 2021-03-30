@@ -1,24 +1,24 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable curly */
 import { WatchEntry, Tag } from "../../types";
-import Anime from "./anime";
+import { Show } from "./shows";
 
-type AnimeDict = {
-	[name: string]: Anime
+type ShowDict = {
+	[name: string]: Show | undefined
 };
 
-export default class AnimeDataStorage {
-	private animeDict: AnimeDict = {};
+export default class ShowStorage {
+	private showDict: ShowDict = {};
 	private friendList: string[] = [];
 
-	public registerAnime(animeName: string, animeTags: Tag[] = [], overwrite = true): Anime {
-		if (!overwrite && this.isAnimeRegistered(animeName)) {
-			console.warn(`Not registering already registered anime: `, animeName);
-			return this.getAnime(animeName) as Anime;
+	public registerAnime(title: string, tags: Tag[] = [], overwrite = true): Show {
+		if (!overwrite && this.isShowRegistered(title)) {
+			console.warn(`Not registering already registered anime: `, title);
+			return this.getShow(title) as Show;
 		}
 
-		let anime = new Anime(animeName, animeTags);
-		this.animeDict[animeName] = anime;
+		let anime = new Show({title, tags});
+		this.showDict[title] = anime;
 		return anime;
 	}
 
@@ -27,33 +27,34 @@ export default class AnimeDataStorage {
 			this.friendList.push(friendName);
 	}
 
-	public getAnime(animeName: string): Anime | undefined {
-		return this.animeDict[animeName];
+	public getShow(animeName: string): Show | undefined {
+		const show = this.showDict[animeName];
+		return show;
 	}
 
-	public getOrCreateAnime(animeName: string, animeTagsAtCreation: Tag[] = []): Anime {
-		return this.getAnime(animeName) ?? this.registerAnime(animeName, animeTagsAtCreation);
+	public getOrCreateShow(animeName: string, animeTagsAtCreation: Tag[] = []): Show {
+		return this.getShow(animeName) ?? this.registerAnime(animeName, animeTagsAtCreation);
 	}
 
-	public isAnimeRegistered(animeName: string): boolean {
-		return this.getAnime(animeName) !== null;
+	public isShowRegistered(animeName: string): boolean {
+		return this.getShow(animeName) !== null;
 	}
 
-	public addWatchEntry(animeName: string, entry: WatchEntry) {
-		let anime = this.getAnime(animeName);
-		if (anime) {
-			anime.updateLastWatchedEpisode(entry.episode, entry.line);
+	public registerWatchEntry(animeName: string, watchEntry: WatchEntry) {
+		let show = this.getShow(animeName);
+		if (show) {
+			show.updateLastWatchEntry(watchEntry);
 		}
 		else {
 			console.error(`Trying to add watch entry to unkown anime: \n\
 			Anime: ${animeName} \n\
-			Entry: ${entry}`);
+			Entry: ${watchEntry}`);
 		}
 
 	}
 
-	public listAnimes() {
-		return Object.keys(this.animeDict);
+	public listShows() {
+		return Object.keys(this.showDict);
 	}
 
 	public listFriends() {

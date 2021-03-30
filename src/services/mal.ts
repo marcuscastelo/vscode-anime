@@ -49,8 +49,12 @@ function request(resourcePath: string) {
     });
 }
 
-export async function searchAnime(animeTitle: string) {
-    return ((await request('/search/anime?q=' + animeTitle)) as { results: AnimeSearchResultItem[] }).results;
+export namespace MAL {
+
+    export async function searchAnime(animeTitle: string) {
+        return ((await request('/search/anime?q=' + animeTitle)) as { results: AnimeSearchResultItem[] }).results;
+    }
+
 }
 
 _processPendingRequests();
