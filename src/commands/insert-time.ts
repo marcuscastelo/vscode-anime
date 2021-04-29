@@ -6,7 +6,7 @@ import { TextEditorCommand } from "./types";
 export const insertTime: TextEditorCommand<void> = (textEditor: TextEditor, edit: TextEditorEdit) => {
 	if (!isEditingSimpleCursor(textEditor)) return;
 
-	let currTime = (new Date(Date.now())).toLocaleTimeString(undefined, {
+	let currTime = (new Date(Date.now())).toLocaleTimeString('pt-BR', {
 		hour: `2-digit`,
 		minute: `2-digit`
 	});
