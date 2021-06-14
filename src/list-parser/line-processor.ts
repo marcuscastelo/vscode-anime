@@ -5,7 +5,7 @@ import { Show } from "../cache/anime/shows";
 import MADiagnosticController from "../lang/maDiagnosticCollection";
 import ListContext from "./anime-context";
 import { LineType } from "./line-type";
-import LineInfoParser, { ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
+import LineIdentifier, { ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
 import { Tag, TagApplyInfo, Tags, WatchEntry } from "../types";
 
 
@@ -33,7 +33,7 @@ export default class LineProcessor {
     }
 
     processLine(line: TextLine, reader: DocumentReader) {
-        let lineInfo = LineInfoParser.parseLineInfo(line);
+        let lineInfo = LineIdentifier.identifyLine(line);
 
         if (lineInfo.type === LineType.ShowTitle) {
             this.processShowTitleLine(lineInfo, reader.document);

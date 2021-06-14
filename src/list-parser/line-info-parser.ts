@@ -57,8 +57,8 @@ export type TagLineInfo =
         }
     };
 
-export default class LineInfoParser {
-    public static parseLineInfo(line: TextLine): LineInfo {
+export default class LineIdentifier {
+    public static identifyLine(line: TextLine): LineInfo {
         let text = line.text;
 
         let commentTokenPosition = text.indexOf(COMMENT_TOKEN);
@@ -78,16 +78,16 @@ export default class LineInfoParser {
         let execArray: RegExpExecArray | null;
 
         execArray = SHOW_TITLE_REG.exec(text);
-        if (execArray) return this.parseShowTitleLine(line, execArray);
+        if (execArray) return this.getShowTitleParams(line, execArray);
 
         execArray = DATE_REG.exec(text);
-        if (execArray) return this.parseDateLine(line, execArray);
+        if (execArray) return this.getDateParams(line, execArray);
 
         execArray = WATCH_REG.exec(text);
-        if (execArray) return this.parseWatchEntryLine(line, execArray);
+        if (execArray) return this.getWatchEntryParams(line, execArray);
 
         execArray = TAG_REG.exec(text);
-        if (execArray) return this.parseTagLine(line, execArray);
+        if (execArray) return this.getTagParams(line, execArray);
 
         //TODO: return errors in a meaningful way to show on diagnostics
         return {
@@ -97,7 +97,7 @@ export default class LineInfoParser {
         };
     }
 
-    private static parseShowTitleLine(line: TextLine, groups: RegExpExecArray): LineInfo {
+    private static getShowTitleParams(line: TextLine, groups: RegExpExecArray): LineInfo {
         return {
             type: LineType.ShowTitle,
             params: { showTitle: groups[1] },
@@ -105,7 +105,7 @@ export default class LineInfoParser {
         };
     }
 
-    private static parseDateLine(line: TextLine, groups: RegExpExecArray): LineInfo {
+    private static getDateParams(line: TextLine, groups: RegExpExecArray): LineInfo {
         return {
             type: LineType.Date,
             params: { date: groups[1] },
@@ -113,7 +113,7 @@ export default class LineInfoParser {
         };
     }
 
-    private static parseWatchEntryLine(line: TextLine, groups: RegExpExecArray): LineInfo {
+    private static getWatchEntryParams(line: TextLine, groups: RegExpExecArray): LineInfo {
         let errors = [];
         if (groups[1] === undefined) errors.push('WatchEntry: Missing startTime');
         if (groups[2] === undefined) errors.push('WatchEntry: Missing endTime');
@@ -140,7 +140,7 @@ export default class LineInfoParser {
         };
     }
 
-    private static parseTagLine(line: TextLine, groups: RegExpExecArray): LineInfo {
+    private static getTagParams(line: TextLine, groups: RegExpExecArray): LineInfo {
 
         let [_, tagName, tagParamsStr] = groups;
 
@@ -169,7 +169,6 @@ export default class LineInfoParser {
             }
         }
 
-
         return {
             type: LineType.Tag,
             params: {
@@ -177,9 +176,6 @@ export default class LineInfoParser {
                 tagParams
             },
             line,
-
         }
-
-
     }
 };
