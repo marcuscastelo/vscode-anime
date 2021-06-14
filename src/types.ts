@@ -4,7 +4,7 @@
 export enum TagApplyInfo {
 	WATCH_LINE = 1, // such as [EPISODE-ORDER-VIOLATION]
 	WATCH_SESSION, // such as [REWATCH]
-	SCRIPT_TAG, //such as [SKIP-LINES=100]
+	SCRIPT_TAG, //such as [SCRIPT-SKIP(count=100)]
 	SHOW, //such as [NOT-ANIME]
 }
 
@@ -20,16 +20,36 @@ export const Tags: { [key: string]: Tag } = {
 		appliesTo: TagApplyInfo.SHOW,
 		parameters: []
 	},
+	"NOT-IN-MAL": {
+		tagType: 'NOT-IN-MAL',
+		appliesTo: TagApplyInfo.SHOW,
+		parameters: []
+	},
 	"勉強": {
 		tagType: '勉強',
 		appliesTo: TagApplyInfo.WATCH_SESSION,
 		parameters: [],
 	},
-	"SKIP-LINES": {
-		tagType: 'SKIP-LINES',
+	"SCRIPT-SKIP": {
+		tagType: 'SCRIPT-SKIP',
 		appliesTo: TagApplyInfo.SCRIPT_TAG,
 		parameters: [ 'count' ]
-	}
+	},
+	"REWATCH": {
+		tagType: 'REWATCH',
+		appliesTo: TagApplyInfo.SHOW,
+		parameters: []
+	},
+	"UNSAFE-ORDER": {
+		tagType: 'UNSAFE-ORDER',
+		appliesTo: TagApplyInfo.WATCH_LINE,
+		parameters: []
+	},
+	"MANGA": {
+		tagType: 'MANGA',
+		appliesTo: TagApplyInfo.SHOW,
+		parameters: []
+	},
 };
 
 export type WatchEntry = {
