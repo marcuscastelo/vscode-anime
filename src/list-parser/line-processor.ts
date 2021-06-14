@@ -5,7 +5,7 @@ import { Show } from "../cache/anime/shows";
 import MADiagnosticController from "../lang/maDiagnosticCollection";
 import ListContext from "./anime-context";
 import { LineType } from "./line-type";
-import LineIdentifier, { ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
+import LineIdentifier, { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
 import { Tag, TagApplyInfo, Tags, WatchEntry } from "../types";
 
 
@@ -35,10 +35,13 @@ export default class LineProcessor {
     processLine(line: TextLine, reader: DocumentReader) {
         let lineInfo = LineIdentifier.identifyLine(line);
 
+
         if (lineInfo.type === LineType.ShowTitle) {
             this.processShowTitleLine(lineInfo, reader.document);
         } else if (lineInfo.type === LineType.WatchEntry) {
             this.processWatchLine(lineInfo);
+        } else if (lineInfo.type === LineType.Date) {
+            this.processDateLine(lineInfo);
         } else if (lineInfo.type === LineType.Tag) {
             this.processTag(lineInfo);
         }
@@ -46,6 +49,13 @@ export default class LineProcessor {
             for (let error of lineInfo.errors)
                 this.diagnosticController.addLineDiagnostic(line, error);
         }
+    }
+
+    processDateLine(lineInfo: DateLineInfo) {
+        this.lineContext.currDate = lineInfo.params.date;
+        
+        //Resets current anime, so that it is necessary to explicitly set an anime title everytime the day changes
+        this.lineContext.currShowName = '';
     }
 
     processShowTitleLine(lineInfo: ShowTitleLineInfo, document: TextDocument) {
@@ -122,8 +132,9 @@ export default class LineProcessor {
         if (episode === NaN) {
             this.diagnosticController.addLineDiagnostic(lineInfo.line, "Episode is not a number");
             return;
-        }
-
+        }  
+        
+        //TODO: consider currDate and 23:59 - 00:00 entries
         const watchEntry: WatchEntry = {
             showTitle: currShowTitle,
             startTime,
