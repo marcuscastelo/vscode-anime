@@ -43,7 +43,7 @@ export default class LineProcessor {
         } else if (lineInfo.type === LineType.Date) {
             this.processDateLine(lineInfo);
         } else if (lineInfo.type === LineType.Tag) {
-            this.processTag(lineInfo);
+            this.processTag(lineInfo, reader);
         }
         else if (lineInfo.type === LineType.Invalid) {
             for (let error of lineInfo.errors)
@@ -53,7 +53,7 @@ export default class LineProcessor {
 
     processDateLine(lineInfo: DateLineInfo) {
         this.lineContext.currDate = lineInfo.params.date;
-        
+
         //Resets current anime, so that it is necessary to explicitly set an anime title everytime the day changes
         this.lineContext.currShowName = '';
     }
@@ -158,7 +158,7 @@ export default class LineProcessor {
         //
     }
 
-    processTag(lineInfo: TagLineInfo) {
+    processTag(lineInfo: TagLineInfo, reader: DocumentReader) {
 
         let { tagName } = lineInfo.params;
 
@@ -173,6 +173,26 @@ export default class LineProcessor {
 
         if (tag.appliesTo === TagApplyInfo.SHOW) {
             this.lineContext.currShowName = '';
+        }
+        
+        for (let param of tag.parameters) {
+            let tp = lineInfo.params.tagParams.find((tp) => tp.name == param);
+            if (!tp) {
+                this.diagnosticController.addLineDiagnostic(lineInfo.line, `Missing parameters, parameter list: [${tag.parameters.reduce((a,b)=>`${a}, ${b}`)}]`);
+                return;
+            }   
+        }
+
+        if (tag.tagType === 'SCRIPT-SKIP') {
+            let paramValue = lineInfo.params.tagParams.find(tp => tp.name === 'count')?.value;
+            let skipCount = parseInt(paramValue ?? '0');
+
+            if (isNaN(skipCount)) {
+                this.diagnosticController.addLineDiagnostic(lineInfo.line, `Invalid skip count = '${paramValue}'`)
+                return;
+            }
+
+            reader.skip(skipCount);
         }
 
 

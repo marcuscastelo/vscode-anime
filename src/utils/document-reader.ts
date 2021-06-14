@@ -30,7 +30,7 @@ class LineIterator implements IterableIterator<vscode.TextLine> {
 
 		return {
 			done: false,
-			value: this.reader.currentLine
+			value: line
 		};
 	}
 
