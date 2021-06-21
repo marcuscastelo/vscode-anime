@@ -66,10 +66,7 @@ export default class LineProcessor {
             return;
         }
 
-        this.lineContext.currShowName = showTitle;
         const currentShow = this.storage.getOrCreateShow(showTitle, lineInfo.line.lineNumber, this.lineContext.currTags);
-
-        //TODO: checkAnimeDeclHasRightTags(currentAnime, this.reader);
 
         //TODO: check for empty sessions ( i.e: no watch entries between titles )
         currentShow.updateLastMentionedLine(lineInfo.line.lineNumber);
@@ -95,30 +92,36 @@ export default class LineProcessor {
 
         const names = (tag: Tag) => tag.tagType;
         const toList = (accum: string, token: string) => accum + ',' + token;
-        const listTags = (tags: Tag[]) => tags.map(names).reduce(toList);
+        const listTags = (tags: Tag[]) => tags.map(names).reduce(toList, '');
 
 
         let relatedErrorMessage = ''
         let messageBitmask = ((missingTags.length > 0) ? 1 : 0) | ((extraTags.length > 0) ? 2 : 0);
-        if (messageBitmask & 1) relatedErrorMessage += `missing those tags [${listTags(missingTags)}]`;
+        if (messageBitmask !== 0) relatedErrorMessage = "Error: "
+        if (messageBitmask & 1) relatedErrorMessage += `those tags are missing: [${listTags(missingTags)}]`;
         if (messageBitmask & 3) relatedErrorMessage += `\nand `;
-        if (messageBitmask & 2) relatedErrorMessage += `missing those tags [${listTags(missingTags)}]`;
+        if (messageBitmask & 2) relatedErrorMessage += `too many tags: [${listTags(extraTags)}]`;
 
 
         if (messageBitmask !== 0) {
             this.diagnosticController.addDiagnostic({
-                message: "Incorrect tagging (does not align with previous definition)",
+                message: `Incorrect tagging (does not align with previous definition): ${relatedErrorMessage}`,
                 range: lineInfo.line.range,
                 severity: DiagnosticSeverity.Error,
                 relatedInformation: [{ location: new Location(document.uri, document.lineAt(currentShow.info.firstMentionedLine).range), message: "Fist show declaration is here" }]
             });
         }
 
+
+        this.lineContext.currShowName = showTitle;
+        this.lineContext.currTags = this.lineContext.currTags.filter(tag => tag.appliesTo !== TagApplyInfo.SHOW);
     }
 
     processWatchLine(lineInfo: WatchEntryLineInfo) {
         let { currShowName: currShowTitle } = this.lineContext;
         let currentShow = this.storage.getShow(currShowTitle);
+
+        this.lineContext.currTags = this.lineContext.currTags.filter(tag => tag.appliesTo !== TagApplyInfo.WATCH_LINE);
 
         if (!currShowTitle) {
             this.diagnosticController.addLineDiagnostic(lineInfo.line, "Watch Entry provided, but not inside a show")
@@ -132,8 +135,8 @@ export default class LineProcessor {
         if (episode === NaN) {
             this.diagnosticController.addLineDiagnostic(lineInfo.line, "Episode is not a number");
             return;
-        }  
-        
+        }
+
         //TODO: consider currDate and 23:59 - 00:00 entries
         const watchEntry: WatchEntry = {
             showTitle: currShowTitle,
@@ -162,10 +165,9 @@ export default class LineProcessor {
 
         let { tagName } = lineInfo.params;
 
-        //TODO: tag restrict context
-        // this.lineContext.onTag(tag);
 
         let tag = Tags[tagName];
+        
         if (!tag) {
             this.diagnosticController.addLineDiagnostic(lineInfo.line, "Unknown tag, ignoring!", { severity: DiagnosticSeverity.Warning });
             return;
@@ -174,13 +176,13 @@ export default class LineProcessor {
         if (tag.appliesTo === TagApplyInfo.SHOW) {
             this.lineContext.currShowName = '';
         }
-        
+
         for (let param of tag.parameters) {
             let tp = lineInfo.params.tagParams.find((tp) => tp.name == param);
             if (!tp) {
-                this.diagnosticController.addLineDiagnostic(lineInfo.line, `Missing parameters, parameter list: [${tag.parameters.reduce((a,b)=>`${a}, ${b}`)}]`);
+                this.diagnosticController.addLineDiagnostic(lineInfo.line, `Missing parameters, parameter list: [${tag.parameters.reduce((a, b) => `${a}, ${b}`)}]`);
                 return;
-            }   
+            }
         }
 
         if (tag.tagType === 'SCRIPT-SKIP') {
@@ -195,6 +197,11 @@ export default class LineProcessor {
             reader.skip(skipCount);
         }
 
+
+        if (tag.appliesTo !== TagApplyInfo.SCRIPT_TAG) {
+            if (this.lineContext.currTags.indexOf(tag) === -1)
+                this.lineContext.currTags.push(tag);
+        }
 
         // let [tagType, parameters] = tag.indexOf(`=`) === -1 ? [tag, []] : tag.split(`=`);
         // tagType = tagType.toLocaleLowerCase();
