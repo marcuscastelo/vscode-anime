@@ -2,7 +2,7 @@
 	"name": "marucs-anime",
 	"displayName": "Marucs' Anime",
 	"description": "Anime Syntax and Utils for VSCode",
-	"version": "0.0.1",
+	"version": "0.0.3",
 	"repository": {
 		"url": "https://github.com/marcuscastelo/vscode-anime"
 	},

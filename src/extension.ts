@@ -14,12 +14,13 @@ import ShowHoverProvider from './lang/anime-hover-provider';
 import AnimeCompletionItemProvider from './lang/anime-completion-provider';
 import MADiagnosticController from './lang/maDiagnosticCollection';
 
-
 export function activate(context: ExtensionContext) {
 	MAExtension.activate(context);
 }
 
-export function deactivate() { }
+export function deactivate() {
+	console.log("Deactivating!");
+}
 
 export class MAExtension {
 	private static _INSTANCE: MAExtension;
@@ -36,9 +37,14 @@ export class MAExtension {
 		const extension = new MAExtension(context);
 		MAExtension._INSTANCE = extension;
 
-		vscode.window.onDidChangeActiveTextEditor(() => MAExtension.INSTANCE.rescanDocument());
-		vscode.workspace.onDidSaveTextDocument(() => MAExtension.INSTANCE.rescanDocument());
-		extension.rescanDocument();
+		context.subscriptions.push(
+			vscode.window.onDidChangeActiveTextEditor(editor => editor && extension.rescanDocument(editor.document)),
+			vscode.workspace.onDidSaveTextDocument(document => document && extension.rescanDocument(document)),
+			vscode.workspace.onDidCloseTextDocument(document => document && extension.diagnosticController.clearDiagnostics()),
+		);
+
+		if (vscode.window.activeTextEditor)
+			extension.rescanDocument(vscode.window.activeTextEditor?.document)
 
 		extension.registerMembers();
 	}
@@ -62,18 +68,17 @@ export class MAExtension {
 		return animeStorage;
 	}
 
-	public rescanDocument() {
-		if (!vscode.window.activeTextEditor) {
-			vscode.window.showErrorMessage("Couldn't update anime storage, no text editor is currently active")
+	public rescanDocument(document: vscode.TextDocument) {
+		if (document.languageId !== 'anime-list') {
+			this.diagnosticController.clearDiagnostics();
 			return;
 		}
 
 		this.diagnosticController.clearDiagnostics();
+		this.diagnosticController.setCurrentDocument(document);
 
 		vscode.window.setStatusBarMessage(`Parsing all lines...`);
-		let animeStorage = this.createStorageFromEntireDocument(vscode.window.activeTextEditor.document);
-
-		console.log(animeStorage);
+		let animeStorage = this.createStorageFromEntireDocument(document);
 
 		this.overwriteAnimeStorage(animeStorage);
 		vscode.window.setStatusBarMessage(`Parsing completed!`,);

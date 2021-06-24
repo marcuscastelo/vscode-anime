@@ -23,7 +23,7 @@ export const insertNextEpisode: TextEditorCommand<void> = (textEditor: TextEdito
 	show = extension.showStorage.getShow(animeContext.context.currentShowTitle);
 	if (!show) {
 		console.log(`[insertNextEpisode] Anime ${animeContext.context.currentShowTitle} not found, rescaning...`);
-		extension.rescanDocument();
+		extension.rescanDocument(textEditor.document);
 		show = extension.showStorage.getShow(animeContext.context.currentShowTitle);
 		if (!show) {
 			window.showErrorMessage(`[insertNextEpisode] Anime ${animeContext.context.currentShowTitle} not found! Couldn't determine next epiode. (Unexpected error) `);

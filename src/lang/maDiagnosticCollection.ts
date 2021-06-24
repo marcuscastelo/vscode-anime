@@ -4,7 +4,6 @@ import { DiagnosticCollection, ExtensionContext, languages, window } from "vscod
 export default class MADiagnosticController {
     public static register(context: ExtensionContext, collectionName: string) {
         const provider = new MADiagnosticController(context, collectionName);
-        window.onDidChangeActiveTextEditor(editor => provider.setCurrentDocument(editor?.document));
         return provider;
     }
 
@@ -28,6 +27,7 @@ export default class MADiagnosticController {
     public setCurrentDocument(document?: TextDocument) {
         this.clearDiagnostics();
         this.document = document;
+        this.publish();
     }
 
     public addLineDiagnostic(line: TextLine, message: string, extra?: Partial<Diagnostic>) {
@@ -39,7 +39,6 @@ export default class MADiagnosticController {
     }
 
     public addDiagnostic(diagnostic: Partial<Diagnostic> & { message: string, range: Range }) {
-        if (!this.document) { return; }
         const defaultSeverity = DiagnosticSeverity.Error;
         this.currentDiagnostics.push({
             severity: defaultSeverity,
@@ -47,6 +46,11 @@ export default class MADiagnosticController {
         });
 
         //TODO: do it from time to time instead of every addition
+        this.publish();
+    }
+    
+    public publish(): void {
+        if (!this.document) { return; }
         this.collection.set(this.document.uri, this.currentDiagnostics);
     }
 }
