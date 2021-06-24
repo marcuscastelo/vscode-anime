@@ -1,7 +1,7 @@
 import { TextDocument, TextLine } from "vscode";
 import { Tag, Tags, WatchEntry } from "../types";
 import DocumentReader from "../utils/document-reader";
-import LineInfoParser, { DateLineInfo, ShowTitleLineInfo } from "./line-info-parser";
+import LineIdentifier, { DateLineInfo, ShowTitleLineInfo } from "./line-info-parser";
 import { COMMENT_TOKEN, DATE_REG, LineType, SHOW_TITLE_REG, TAG_REG, WATCH_REG } from "./line-type";
 
 export type LineContext = {
@@ -24,7 +24,7 @@ export default class LineContextFinder {
         const lineMatcherFactory =
             (lineType: LineType) => ({
                 testLine: (line: TextLine) => {
-                    const lineInfo = LineInfoParser.parseLineInfo(line);
+                    const lineInfo = LineIdentifier.identifyLine(line);
                     return {
                         success: lineInfo.type == lineType,
                         data: lineInfo

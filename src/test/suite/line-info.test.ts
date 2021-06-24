@@ -2,7 +2,7 @@ import * as assert from 'assert';
 
 
 import { TextLine } from "vscode";
-import LineInfoParser, { LineInfo } from "../../list-parser/line-info-parser";
+import LineIdentifier, { LineInfo } from "../../list-parser/line-info-parser";
 import { LineType } from "../../list-parser/line-type";
 
 class LineInfoParseTest {
@@ -18,7 +18,7 @@ class LineInfoParseTest {
 
     private parseLines() {
         if (!this.lineToParse) throw new Error('Please use givenLines before parseLines');
-        this.parsedLine = LineInfoParser.parseLineInfo(this.lineToParse);
+        this.parsedLine = LineIdentifier.identifyLine(this.lineToParse);
     }
 
     // --- Success tests: OK ---
