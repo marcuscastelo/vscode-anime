@@ -1,0 +1,117 @@
+{
+    "scopeName": "source.anl",
+    "patterns": [
+        {
+            "include": "#global-expressions"
+        }
+    ],
+    "repository": {
+        "global-expressions": {
+            "patterns": [
+                {
+                    "include": "#comment"
+                },
+                {
+                    "include": "#anime"
+                },
+                {
+                    "include": "#date"
+                },
+                {
+                    "include": "#watch"
+                },
+                {
+                    "include": "#tag"
+                },
+                {
+                    "include": "#literals"
+                }
+            ]
+        },
+        "literals": {
+            "patterns": [
+                {
+                    "include": "#string"
+                },
+                {
+                    "include": "#number"
+                }
+            ]
+        },
+        "number": {
+            "name": "constant.character.escape",
+            "match": "[0-9]+[0-9.]?[0-9]*"
+        },
+        "string": {
+            "begin": "('|\"|`)",
+            "end": "\\1",
+            "name": "storage string.quoted"
+        },
+        "comment": {
+            "begin": "//",
+            "end": "\n",
+            "name": "comment"
+        },
+        "date": {
+            "match": "[0-9]{2}/[0-9]{2}/[0-9]{4}",
+            "name": "markup.bold"
+        },
+        "anime": {
+            "match": "^[a-zA-Z](.)*:",
+            "begin": "^.+:",
+            "end": "",
+            "name": "string"
+        },
+        "watch": {
+            "match": "^([0-9]{2}:[0-9]{2})[ ]*(-)[ ]*([0-9]{2}:[0-9]{2})?[ ]*([0-9][0-9.]{1,}|--)?[ ]*(\\{.*\\})?",
+            "captures": {
+                "1": {
+                    "name": "entity.name.function"
+                },
+                "2": {
+                    "name": "entity.name.function"
+                },
+                "3": {
+                    "name": "entity.name.function"
+                },
+                "4": {
+                    "name": "constant.character.escape"
+                },
+                "5": {
+                    "name": "entity.name.class"
+                }
+            }
+        },
+        "tag": {
+            "match": "\\[(.+?)(?:\\((.+)\\))?\\]",
+            "name": "storage",
+            "captures": {
+                "1": {
+                    "name": "storage"
+                },
+                "2": {
+                    "patterns": [
+                        {
+                            "include": "#tag-parameter"
+                        }
+                    ]
+                }
+            }
+        },
+        "tag-parameter": {
+            "match": "(?:([^=,]+)=)?([^),]+)",
+            "captures": {
+                "1": {
+                    "name": "markup.bold"
+                },
+                "2": {
+                    "patterns": [
+                        {
+                            "include": "#literals"
+                        }
+                    ]
+                }
+            }
+        }
+    }
+}
