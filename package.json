@@ -1,26 +1,81 @@
 {
-  "name": "marucs-anime",
-	"displayName": "marucs-anime",
-	"description": "",
-	"version": "0.0.1",
+	"name": "marucs-anime",
+	"version": "0.1.0",
+	"publisher": "Marucs",
 	"engines": {
 		"vscode": "^1.65.0"
 	},
+	"license": "MIT",	
+	"displayName": "Marucs' Anime",
+	"description": "Anime Syntax and Utils for VSCode",
 	"categories": [
-		"Other"
+		"Linters", "Programming Languages", "Other"
 	],
-	"activationEvents": [
-        "onCommand:marucs-anime.helloWorld"
+	"keywords": [
+		"anime", "syntax", "linter", "utils", "history", "autocomplete", "intellisense", "highlight"
 	],
+	"repository": {
+		"url": "https://github.com/marcuscastelo/vscode-anime"
+	},
+	"preview": true,
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "marucs-anime.helloWorld",
-				"title": "Hello World"
+				"command": "marucs-anime.insertDate",
+				"title": "Insert Date",
+				"category": "Marucs' Anime"
+			},
+			{
+				"command": "marucs-anime.insertTime",
+				"title": "Insert Time",
+				"category": "Marucs' Anime"
+			},
+			{
+				"command": "marucs-anime.insertNextEpisode",
+				"title": "Insert Next Episode",
+				"category": "Marucs' Anime"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "marucs-anime.insertDate",
+				"key": "alt+d",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "marucs-anime.insertTime",
+				"key": "alt+t",
+				"when": "editorTextFocus"
+			},
+			{
+				"command": "marucs-anime.insertNextEpisode",
+				"key": "alt+n",
+				"when": "editorTextFocus"
+			}
+		],
+		"languages": [
+			{
+				"id": "anime-list",
+				"extensions": [
+					".anl"
+				],
+				"aliases": [
+					"Anime list"
+				]
+			}
+		],
+		"grammars": [
+			{
+				"language": "anime-list",
+				"scopeName": "source.anl",
+				"path": "./syntaxes/anime-list.tmLanguage.json"
 			}
 		]
 	},
+	"activationEvents": [
+		"onLanguage:anime-list"
+	],
 	"scripts": {
 		"vscode:prepublish": "yarn run compile",
 		"compile": "tsc -p ./",
@@ -30,16 +85,19 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
-		"@types/vscode": "^1.65.0",
-		"@types/glob": "^7.2.0",
-		"@types/mocha": "^9.1.0",
-		"@types/node": "14.x",
-		"@typescript-eslint/eslint-plugin": "^5.12.1",
-		"@typescript-eslint/parser": "^5.12.1",
-		"eslint": "^8.9.0",
-		"glob": "^7.2.0",
-		"mocha": "^9.2.1",
-		"typescript": "^4.5.5",
-		"@vscode/test-electron": "^2.1.2"
+		"@types/glob": "^7.1.3",
+		"@types/mocha": "^8.0.4",
+		"@types/node": "^12.11.7",
+		"@types/vscode": "^1.54.0",
+		"@typescript-eslint/eslint-plugin": "^4.14.1",
+		"@typescript-eslint/parser": "^4.14.1",
+		"eslint": "^7.19.0",
+		"glob": "^7.1.6",
+		"mocha": "^8.2.1",
+		"typescript": "^4.1.3",
+		"vscode-test": "^1.5.0"
+	},
+	"dependencies": {
+		"axios": "^0.21.1"
 	}
 }
