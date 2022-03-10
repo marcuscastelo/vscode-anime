@@ -8,8 +8,8 @@ This extension provides syntax highlighting, syntax checking, field autocompleti
 ### Syntax Highlighting
 
 Here is a simple example:
-## TODO: change image size and include friend example
-![syntax example](images/syntax-example.png)
+
+![syntax-example](https://user-images.githubusercontent.com/27441558/157576498-32df09db-e561-4672-b94f-41ebf0c4f533.png)
 
 Dates are in orange, anime titles in green, watch times in blue, episodes in cyan and friends in yellow.
 
@@ -17,9 +17,9 @@ Dates are in orange, anime titles in green, watch times in blue, episodes in cya
 
 ### Keybinds
 
-`Alt + D` - inserts current date (dd/mm/yyyy) below the cursor
-`Alt + T` - inserts current time (mm:ss) below the cursor
-`Alt + N` - inserts current anime's next episode (last episode + 1)
+- `Alt + D` - inserts current date (dd/mm/yyyy) below the cursor
+- `Alt + T` - inserts current time (mm:ss) below the cursor
+- `Alt + N` - inserts current anime's next episode (last episode + 1)
 
 ![kebinds example gif](images/keybinds-example.gif)
 
@@ -50,15 +50,7 @@ Users appreciate release notes as you update your extension.
 
 ### 1.0.0
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+Initial release of marucs-anime
 
 -----------------------------------------------------------------------------------------------------------
 ## Following extension guidelines
@@ -66,18 +58,3 @@ Added features X, Y, and Z.
 Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
 
 * [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
