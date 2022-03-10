@@ -1,29 +1,16 @@
-# Marucs' Anime VSCode Extension
+# marucs-anime README
 
-A personal project used to facilitate my daily task of registering when I watched certain anime episode in a plain-text list.
+This is the README for your extension "marucs-anime". After writing up a brief description, we recommend including the following sections.
+
 ## Features
 
-This extension provides syntax highlighting, syntax checking, field autocompletion and keybinds based on ANL rules and features. 
+Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
 
-### Syntax Highlighting
+For example if there is an image subfolder under your extension project workspace:
 
-Here is a simple example:
-## TODO: change image size and include friend example
-![syntax example](images/syntax-example.png)
+\!\[feature X\]\(images/feature-x.png\)
 
-Dates are in orange, anime titles in green, watch times in blue, episodes in cyan and friends in yellow.
-
-### WIP: autocompletion
-
-### Keybinds
-
-`Alt + D` - inserts current date (dd/mm/yyyy) below the cursor
-`Alt + T` - inserts current time (mm:ss) below the cursor
-`Alt + N` - inserts current anime's next episode (last episode + 1)
-
-![kebinds example gif](images/keybinds-example.gif)
-
-# WIP README
+> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
 
 ## Requirements
 
