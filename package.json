@@ -1,35 +1,40 @@
 {
 	"name": "marucs-anime",
+	"version": "0.1.0",
+	"publisher": "Marucs",
+	"engines": {
+		"vscode": "^1.65.0"
+	},
+	"license": "MIT",	
 	"displayName": "Marucs' Anime",
 	"description": "Anime Syntax and Utils for VSCode",
-	"version": "0.0.3",
+	"categories": [
+		"Linters", "Programming Languages", "Other"
+	],
+	"keywords": [
+		"anime", "syntax", "linter", "utils", "history", "autocomplete", "intellisense", "highlight"
+	],
 	"repository": {
 		"url": "https://github.com/marcuscastelo/vscode-anime"
 	},
-	"engines": {
-		"vscode": "^1.54.0"
-	},
-	"publisher": "Marucs",
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"onLanguage:anime-list"
-	],
+	"preview": true,
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
 				"command": "marucs-anime.insertDate",
-				"title": "Insert Date"
+				"title": "Insert Date",
+				"category": "Marucs' Anime"
 			},
 			{
 				"command": "marucs-anime.insertTime",
-				"title": "Insert Time"
+				"title": "Insert Time",
+				"category": "Marucs' Anime"
 			},
 			{
 				"command": "marucs-anime.insertNextEpisode",
-				"title": "Insert Next Episode"
+				"title": "Insert Next Episode",
+				"category": "Marucs' Anime"
 			}
 		],
 		"keybindings": [
@@ -68,6 +73,9 @@
 			}
 		]
 	},
+	"activationEvents": [
+		"onLanguage:anime-list"
+	],
 	"scripts": {
 		"vscode:prepublish": "yarn run compile",
 		"compile": "tsc -p ./",
