@@ -14,7 +14,7 @@ enum CompletionType {
 type SurroundingTokenInfo = {
     insideTokensRange: boolean,
     validState: boolean,
-}
+};
 
 export default class ShowCompletionItemProvider implements CompletionItemProvider<CompletionItem> {
     public static register(context: ExtensionContext) {
@@ -33,13 +33,15 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
                 surroundingInfo.validState ? completionType : CompletionType.NoCompletion;
 
         surroundingInfo = this.getSurroundingTokenInfo(text, cursorIndex, '{', '}');
-        if (surroundingInfo.insideTokensRange)
+        if (surroundingInfo.insideTokensRange) {
             return ifValidElseNoCompletion(CompletionType.Friend);
+        }
 
 
         surroundingInfo = this.getSurroundingTokenInfo(text, cursorIndex, '[', ']');
-        if (surroundingInfo.insideTokensRange)
+        if (surroundingInfo.insideTokensRange) {
             return ifValidElseNoCompletion(CompletionType.Tag);
+        }
 
         return CompletionType.ShowTitle;
     }
@@ -97,9 +99,9 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
                 [CompletionType.Tag]: CompletionItemKind.Property,
                 [CompletionType.Episode]: CompletionItemKind.Constant,
                 [CompletionType.NoCompletion]: CompletionItemKind.Text,
-            }
+            };
             return kinds[completionType] ?? CompletionItemKind.Text;
-        }
+        };
 
         const getInsertTextFn = () => {
             const funcs = {
@@ -108,9 +110,9 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
                 [CompletionType.Tag]: (label: string) => label + ']',
                 [CompletionType.Episode]: (label: string) => label + ' ',
                 [CompletionType.NoCompletion]: (_: string) => '',
-            }
+            };
             return funcs[completionType];
-        }
+        };
 
         const conversionFn = (option: string): CompletionItem => ({
             label: option,
@@ -129,7 +131,9 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
             attStart = match.index;
         }
 
-        if (attStart < 0 || attStart >= lineText.length) return '';
+        if (attStart < 0 || attStart >= lineText.length) {
+            return '';
+        }
         return lineText.substring(attStart + 1, charPosition);
     }
 
@@ -156,7 +160,10 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
         });
         console.log();
 
-        if (completions.length === 0) return [{} as CompletionItem];
+        if (completions.length === 0) {
+            return [{} as CompletionItem];
+        }
+        
         return completions;
     }
 }
