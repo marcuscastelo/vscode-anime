@@ -2,6 +2,7 @@ import { CancellationToken, CompletionContext, CompletionItem, CompletionItemKin
 import ShowStorage from "../cache/anime/showStorage";
 import { MAExtension } from "../extension";
 import { LineType } from "../list-parser/line-type";
+import { Tags } from "../types";
 
 enum CompletionType {
     ShowTitle = 1,
@@ -68,6 +69,7 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
         switch (completionType) {
             case CompletionType.Friend: return storage.listFriends();
             case CompletionType.ShowTitle: return storage.listShows();
+            case CompletionType.Tag: return Object.keys(Tags);
             default:
                 console.error('Not Implemented completion: ', completionType.toString());
                 return [];

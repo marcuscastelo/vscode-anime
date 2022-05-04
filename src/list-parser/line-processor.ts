@@ -151,6 +151,7 @@ export default class LineProcessor {
         if (lastWatchedEpisode >= episode) {
             //TODO: related info last ep's line
             //TODO: check for skipped as well
+            //TODO: check for [UNSAFE-ORDER]
             this.diagnosticController.addLineDiagnostic(lineInfo.line, "Watch entry violates ascending episodes rule")
         }
 
