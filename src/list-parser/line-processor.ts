@@ -6,7 +6,7 @@ import MADiagnosticController from "../lang/maDiagnosticCollection";
 import ListContext from "./anime-context";
 import { LineType } from "./line-type";
 import LineIdentifier, { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
-import { Tag, TagApplyInfo, Tags, WatchEntry } from "../types";
+import { Tag, TagTarget, Tags, WatchEntry } from "../types";
 
 
 export default class LineProcessor {
@@ -75,7 +75,7 @@ export default class LineProcessor {
         let missingTags: Tag[] = []
         let extraTags: Tag[] = []
         for (let tag of currentShow.info.tags) {
-            if (tag.appliesTo === TagApplyInfo.SHOW) {
+            if (tag.target === TagTarget.SHOW) {
                 if (this.lineContext.currTags.indexOf(tag) === -1) {
                     missingTags.push(tag);
                 }
@@ -83,14 +83,14 @@ export default class LineProcessor {
         }
 
         for (let tag of this.lineContext.currTags) {
-            if (tag.appliesTo === TagApplyInfo.SHOW) {
+            if (tag.target === TagTarget.SHOW) {
                 if (currentShow.info.tags.indexOf(tag) === -1) {
                     extraTags.push(tag);
                 }
             }
         }
 
-        const names = (tag: Tag) => tag.tagType;
+        const names = (tag: Tag) => tag.name;
         const toList = (accum: string, token: string) => accum + ',' + token;
         const listTags = (tags: Tag[]) => tags.map(names).reduce(toList, '');
 
@@ -114,14 +114,14 @@ export default class LineProcessor {
 
 
         this.lineContext.currShowName = showTitle;
-        this.lineContext.currTags = this.lineContext.currTags.filter(tag => tag.appliesTo !== TagApplyInfo.SHOW);
+        this.lineContext.currTags = this.lineContext.currTags.filter(tag => tag.target !== TagTarget.SHOW);
     }
 
     processWatchLine(lineInfo: WatchEntryLineInfo) {
         let { currShowName: currShowTitle } = this.lineContext;
         let currentShow = this.storage.getShow(currShowTitle);
 
-        this.lineContext.currTags = this.lineContext.currTags.filter(tag => tag.appliesTo !== TagApplyInfo.WATCH_LINE);
+        this.lineContext.currTags = this.lineContext.currTags.filter(tag => tag.target !== TagTarget.WATCH_LINE);
 
         if (!currShowTitle) {
             this.diagnosticController.addLineDiagnostic(lineInfo.line, "Watch Entry provided, but not inside a show")
@@ -173,7 +173,7 @@ export default class LineProcessor {
             return;
         }
 
-        if (tag.appliesTo === TagApplyInfo.SHOW) {
+        if (tag.target === TagTarget.SHOW) {
             this.lineContext.currShowName = '';
         }
 
@@ -185,7 +185,7 @@ export default class LineProcessor {
             }
         }
 
-        if (tag.tagType === 'SCRIPT-SKIP') {
+        if (tag.name === 'SCRIPT-SKIP') {
             let paramValue = lineInfo.params.tagParams.find(tp => tp.name === 'count')?.value;
             let skipCount = parseInt(paramValue ?? '0');
 
@@ -198,7 +198,7 @@ export default class LineProcessor {
         }
 
 
-        if (tag.appliesTo !== TagApplyInfo.SCRIPT_TAG) {
+        if (tag.target !== TagTarget.SCRIPT_TAG) {
             if (this.lineContext.currTags.indexOf(tag) === -1)
                 this.lineContext.currTags.push(tag);
         }

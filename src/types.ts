@@ -1,7 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-/* eslint-disable curly */
-
-export enum TagApplyInfo {
+export enum TagTarget {
 	WATCH_LINE = 1, // such as [EPISODE-ORDER-VIOLATION]
 	WATCH_SESSION, // such as [REWATCH]
 	SCRIPT_TAG, //such as [SCRIPT-SKIP(count=100)]
@@ -9,45 +6,45 @@ export enum TagApplyInfo {
 }
 
 export type Tag = {
-	tagType: string
-	appliesTo: TagApplyInfo
+	name: string
+	target: TagTarget
 	parameters: string[]
 };
 
 export const Tags: { [key: string]: Tag } = {
 	"NOT-ANIME": {
-		tagType: 'NOT-ANIME',
-		appliesTo: TagApplyInfo.SHOW,
+		name: 'NOT-ANIME',
+		target: TagTarget.SHOW,
 		parameters: []
 	},
 	"NOT-IN-MAL": {
-		tagType: 'NOT-IN-MAL',
-		appliesTo: TagApplyInfo.SHOW,
+		name: 'NOT-IN-MAL',
+		target: TagTarget.SHOW,
 		parameters: []
 	},
 	"勉強": {
-		tagType: '勉強',
-		appliesTo: TagApplyInfo.WATCH_SESSION,
+		name: '勉強',
+		target: TagTarget.WATCH_SESSION,
 		parameters: [],
 	},
 	"SCRIPT-SKIP": {
-		tagType: 'SCRIPT-SKIP',
-		appliesTo: TagApplyInfo.SCRIPT_TAG,
+		name: 'SCRIPT-SKIP',
+		target: TagTarget.SCRIPT_TAG,
 		parameters: [ 'count' ]
 	},
 	"REWATCH": {
-		tagType: 'REWATCH',
-		appliesTo: TagApplyInfo.SHOW,
+		name: 'REWATCH',
+		target: TagTarget.SHOW,
 		parameters: []
 	},
 	"UNSAFE-ORDER": {
-		tagType: 'UNSAFE-ORDER',
-		appliesTo: TagApplyInfo.WATCH_LINE,
+		name: 'UNSAFE-ORDER',
+		target: TagTarget.WATCH_LINE,
 		parameters: []
 	},
 	"MANGA": {
-		tagType: 'MANGA',
-		appliesTo: TagApplyInfo.SHOW,
+		name: 'MANGA',
+		target: TagTarget.SHOW,
 		parameters: []
 	},
 };

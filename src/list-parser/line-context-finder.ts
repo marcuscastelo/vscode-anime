@@ -26,11 +26,11 @@ export default class LineContextFinder {
                 testLine: (line: TextLine) => {
                     const lineInfo = LineIdentifier.identifyLine(line);
                     return {
-                        success: lineInfo.type == lineType,
+                        success: lineInfo.type === lineType,
                         data: lineInfo
                     };
                 }
-            })
+            });
 
         //Finds nearest date declaration
         let dateRes = reader.searchLine(-1, lineMatcherFactory(LineType.Date));
@@ -68,14 +68,14 @@ export default class LineContextFinder {
                 episode: watchEntryRes.data.params.episode,
                 lineNumber: watchEntryRes.data.line.lineNumber,
                 company: watchEntryRes.data.params.friends,
-            }
+            };
         }
 
         let context: LineContext = {
             currentShowTitle,
             currentDate,
             lastWatchEntry,
-        }
+        };
 
         return {
             valid: true,

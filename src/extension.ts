@@ -43,8 +43,9 @@ export class MAExtension {
 			vscode.workspace.onDidCloseTextDocument(document => document && extension.diagnosticController.clearDiagnostics()),
 		);
 
-		if (vscode.window.activeTextEditor)
-			extension.rescanDocument(vscode.window.activeTextEditor?.document)
+		if (vscode.window.activeTextEditor) { // If there is an active editor, we start scanning it already (events are not fired)
+			extension.rescanDocument(vscode.window.activeTextEditor.document);
+		}
 
 		extension.registerMembers();
 	}
@@ -62,7 +63,7 @@ export class MAExtension {
 
 		if (!animeStorage) {
 			animeStorage = new ShowStorage();
-			this.context.workspaceState.update(MAExtension.ANIME_STORAGE_ID, animeStorage);
+			this.overwriteAnimeStorage(animeStorage);
 		}
 
 		return animeStorage;

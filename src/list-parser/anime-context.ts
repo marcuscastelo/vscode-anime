@@ -1,5 +1,5 @@
 import ShowStorage from "../cache/anime/showStorage";
-import { Tag, TagApplyInfo, WatchEntry } from "../types";
+import { Tag, TagTarget, WatchEntry } from "../types";
 
 export default class ListContext {
     currDate: string = '';
