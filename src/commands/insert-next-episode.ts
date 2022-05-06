@@ -22,13 +22,13 @@ export const insertNextEpisode: TextEditorCommand<void> = (textEditor: TextEdito
 
 	let show: Show | undefined;
 
-	show = extension.showStorage.getShow(animeContext.context.currentShowTitle);
+	show = extension.showStorage.getShow(animeContext.context.currShowTitle);
 	if (!show) {
-		console.log(`[insertNextEpisode] Anime ${animeContext.context.currentShowTitle} not found, rescaning...`);
+		console.log(`[insertNextEpisode] Anime ${animeContext.context.currShowTitle} not found, rescaning...`);
 		extension.rescanDocument(textEditor.document);
-		show = extension.showStorage.getShow(animeContext.context.currentShowTitle);
+		show = extension.showStorage.getShow(animeContext.context.currShowTitle);
 		if (!show) {
-			window.showErrorMessage(`[insertNextEpisode] Anime ${animeContext.context.currentShowTitle} not found! Couldn't determine next epiode. (Unexpected error) `);
+			window.showErrorMessage(`[insertNextEpisode] Anime ${animeContext.context.currShowTitle} not found! Couldn't determine next epiode. (Unexpected error) `);
 			return;
 		}
 	}

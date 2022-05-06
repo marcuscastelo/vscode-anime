@@ -1,14 +1,15 @@
 import { TextDocument, TextLine } from "vscode";
 import { Tag, Tags, WatchEntry } from "../types";
 import DocumentReader from "../utils/document-reader";
+import LineContext from "./line-context";
 import LineIdentifier, { DateLineInfo, ShowTitleLineInfo } from "./line-info-parser";
 import { COMMENT_TOKEN, DATE_REG, LineType, SHOW_TITLE_REG, TAG_REG, WATCH_REG } from "./line-type";
 
-export type LineContext = {
-    currentShowTitle: string,
-    currentDate: string,
-    lastWatchEntry?: WatchEntry,
-};
+// export type LineContext = {
+//     currentShowTitle: string,
+//     currentDate: string,
+//     lastWatchEntry?: WatchEntry,
+// };
 
 type GetContextResult =
     | { valid: true, context: LineContext }
@@ -33,15 +34,15 @@ export default class LineContextFinder {
             });
 
         //Finds nearest date declaration
-        reader.jumpTo(lineNumber-1);
+        reader.jumpTo(lineNumber);
         let dateRes = reader.searchLine(-1, lineMatcherFactory(LineType.Date));
 
         //Finds nearest show title declaration
-        reader.jumpTo(lineNumber-1);
+        reader.jumpTo(lineNumber);
         let showTitleRes = reader.searchLine(-1, lineMatcherFactory(LineType.ShowTitle));
 
         //Finds nearest watch entry declaration
-        reader.jumpTo(lineNumber-1);
+        reader.jumpTo(lineNumber);
         let watchEntryRes = reader.searchLine(-1, lineMatcherFactory(LineType.WatchEntry));
         
         reader.jumpTo(lineNumber);
@@ -57,14 +58,14 @@ export default class LineContextFinder {
             };
         }
 
-        let currentShowTitle = (showTitleRes.data as ShowTitleLineInfo).params.showTitle;
-        let currentDate = (dateRes.data as DateLineInfo).params.date;
+        let currShowTitle = (showTitleRes.data as ShowTitleLineInfo).params.showTitle;
+        let currDate = (dateRes.data as DateLineInfo).params.date;
 
         let lastWatchEntry: WatchEntry | undefined;
 
         if (watchEntryRes.success && watchEntryRes.data.type === LineType.WatchEntry) {
             lastWatchEntry = {
-                showTitle: currentShowTitle,
+                showTitle: currShowTitle,
                 startTime: watchEntryRes.data.params.startTime,
                 endTime: watchEntryRes.data.params.endTime,
                 episode: watchEntryRes.data.params.episode,
@@ -74,9 +75,10 @@ export default class LineContextFinder {
         }
 
         let context: LineContext = {
-            currentShowTitle,
-            currentDate,
-            lastWatchEntry,
+            currShowTitle,
+            currDate,
+            currTags: [],
+            // lastWatchEntry,
         };
 
         return {

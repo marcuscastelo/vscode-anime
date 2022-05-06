@@ -32,40 +32,50 @@ export default class ShowHoverProvider implements HoverProvider {
         const extension = MAExtension.INSTANCE;
         
         if (!window.activeTextEditor) { return; }
-        let { type: lineType } = LineIdentifier.identifyLine(window.activeTextEditor.document.lineAt(position.line));
-        if (lineType !== LineType.ShowTitle) {
-            return;
-        }
 
-        let lineContext = LineContextFinder.findContext(window.activeTextEditor.document, position.line);
+        const lineContext = LineContextFinder.findContext(document, position.line);
 
         if (!lineContext.valid) {
             return;
         }
+        return new Hover(new MarkdownString(
+            `Valid: ${lineContext.valid ? 'Valid' : 'Invalid'} line` +
+            `\n\nCurrent Date: ${lineContext.context.currDate}` +
+            `\n\nCurrent Show: ${lineContext.context.currShowTitle}` +
+            // `\n\nLast WatchEntry:`+
+            // `\n\n\t${JSON.stringify(lineContext.context.lastWatchEntry, null, '\t\t')}`
+            ""
+        ));
 
-        let showTitle = lineContext.context.currentShowTitle;
+        // let { type: lineType } = LineIdentifier.identifyLine(window.activeTextEditor.document.lineAt(position.line));
+        // if (lineType !== LineType.ShowTitle) {
+        //     return;
+        // }
 
-        let show = extension.showStorage.getShow(showTitle);
 
-        let mdString: MarkdownString;
-        if (show instanceof Anime) {
-            let showInfo = show.info;
-            let malInfo = await show.getMALInfo();
+        // let showTitle = lineContext.context.currentShowTitle;
+
+        // let show = extension.showStorage.getShow(showTitle);
+
+        // let mdString: MarkdownString;
+        // if (show instanceof Anime) {
+        //     let showInfo = show.info;
+        //     let malInfo = await show.getMALInfo();
     
-            mdString = new MarkdownString(
-                `### ${showTitle}: ` +
-                `\n ![anime image](${malInfo.image_url})` +
-                `\n- Last episode: ${showInfo.lastWatchEntry.episode}/${malInfo.episodes}` +
-                `\n- URL: ${malInfo.url}`
-            );
-        }
-        else {
-            mdString = new MarkdownString(
-                `### ${showTitle}:` +
-                `\n NOT-ANIME`
-            );
-        }
+        //     mdString = new MarkdownString(
+        //         `### ${showTitle}: ` +
+        //         `\n ![anime image](${malInfo.image_url})` +
+        //         `\n- Last episode: ${showInfo.lastWatchEntry.episode}/${malInfo.episodes}` +
+        //         `\n- URL: ${malInfo.url}`
+        //     );
+        // }
+        // else {
+        //     mdString = new MarkdownString(
+        //         `### ${showTitle}:` +
+        //         `\n NOT-ANIME`
+        //     );
+        // }
 
-        return new Hover(mdString);
+        // return new Hover(mdString);
     }
 };

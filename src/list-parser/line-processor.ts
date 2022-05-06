@@ -3,7 +3,7 @@ import ShowStorage from "../cache/anime/showStorage";
 import DocumentReader from "../utils/document-reader";
 import { Show } from "../cache/anime/shows";
 import MADiagnosticController from "../lang/maDiagnosticCollection";
-import ListContext from "./anime-context";
+import LineContext from "./line-context";
 import { LineType } from "./line-type";
 import LineIdentifier, { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
 import { Tag, TagTarget, Tags, WatchEntry } from "../types";
@@ -11,12 +11,12 @@ import { Tag, TagTarget, Tags, WatchEntry } from "../types";
 
 export default class LineProcessor {
 
-    private lineContext: ListContext;
+    private lineContext: LineContext;
     constructor(
         private storage: ShowStorage,
         private diagnosticController: MADiagnosticController
     ) {
-        this.lineContext = new ListContext();
+        this.lineContext = new LineContext();
     }
 
     processAllLines(document: TextDocument) {
@@ -56,13 +56,13 @@ export default class LineProcessor {
         this.lineContext.currDate = lineInfo.params.date;
 
         //Resets current anime, so that it is necessary to explicitly set an anime title everytime the day changes
-        this.lineContext.currShowName = '';
+        this.lineContext.currShowTitle = '';
     }
 
     processShowTitleLine(lineInfo: ShowTitleLineInfo, document: TextDocument) {
         const showTitle = lineInfo.params.showTitle;
 
-        if (showTitle === this.lineContext.currShowName) {
+        if (showTitle === this.lineContext.currShowTitle) {
             this.diagnosticController.addLineDiagnostic(lineInfo.line, 'Redundant show title');
             return;
         }
@@ -115,12 +115,12 @@ export default class LineProcessor {
         }
 
 
-        this.lineContext.currShowName = showTitle;
+        this.lineContext.currShowTitle = showTitle;
         this.lineContext.currTags = this.lineContext.currTags.filter(tag => tag.target !== TagTarget.SHOW);
     }
 
     processWatchLine(lineInfo: WatchEntryLineInfo) {
-        let { currShowName: currShowTitle } = this.lineContext;
+        let { currShowTitle: currShowTitle } = this.lineContext;
         let currentShow = this.storage.getShow(currShowTitle);
 
         this.lineContext.currTags = this.lineContext.currTags.filter(tag => tag.target !== TagTarget.WATCH_LINE);
@@ -191,7 +191,7 @@ export default class LineProcessor {
         }
 
         if (tag.target === TagTarget.SHOW) {
-            this.lineContext.currShowName = '';
+            this.lineContext.currShowTitle = '';
         }
 
         for (let param of tag.parameters) {

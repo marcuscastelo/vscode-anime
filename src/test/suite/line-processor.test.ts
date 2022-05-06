@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import ShowStorage from '../../cache/anime/showStorage';
 import MADiagnosticController from '../../lang/maDiagnosticCollection';
 import LineProcessor from '../../list-parser/line-processor';
-import ListContext from '../../list-parser/anime-context';
+import LineContext from '../../list-parser/line-context';
 import { Position, Range, TextDocument, TextLine } from 'vscode';
 import DocumentReader from '../../utils/document-reader';
 
@@ -44,7 +44,7 @@ class LineProcessorTest {
     }
 
     public simpleTest() {
-        const date = '27/03/2021'
+        const date = '27/03/2021';
         const showTitle = 'Anime1';
 
         let documentMaker = new DocumentMaker();
@@ -61,7 +61,7 @@ class LineProcessorTest {
         suite("Date + Anime + 2 Episodes + Friends", () => {
             
             let show = this.storage.getShow(showTitle);
-            let processorContext = ((this.processor as any).lineContext as ListContext);
+            let processorContext = ((this.processor as any).lineContext as LineContext);
 
             //TODO: check if context is right after reading all lines
             test('Stored show correctly in storage', () => assert.strictEqual(show?.info.title, showTitle));

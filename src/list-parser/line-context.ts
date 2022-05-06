@@ -1,8 +1,8 @@
 import ShowStorage from "../cache/anime/showStorage";
 import { Tag, TagTarget, WatchEntry } from "../types";
 
-export default class ListContext {
+export default class LineContext {
     currDate: string = '';
-    currShowName: string = '';
+    currShowTitle: string = '';
     currTags: Tag[] = [];
 }
