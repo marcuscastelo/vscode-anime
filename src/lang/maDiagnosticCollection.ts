@@ -35,7 +35,7 @@ export default class MADiagnosticController {
             range: line.range,
             message,
             ...extra
-        })
+        });
     }
 
     public addDiagnostic(diagnostic: Partial<Diagnostic> & { message: string, range: Range }) {

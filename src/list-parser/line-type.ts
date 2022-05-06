@@ -6,7 +6,7 @@ class GlobalRegex {
 		private readonly regex_pattern: RegExp
 		) { }
 		
-		public exec(string: string) { return new RegExp(this.regex_pattern).exec(string) }
+		public exec(string: string) { return new RegExp(this.regex_pattern).exec(string); }
 	}
 	
 export const COMMENT_TOKEN = '//';

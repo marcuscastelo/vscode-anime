@@ -46,8 +46,9 @@ export default class LineProcessor {
             this.processTag(lineInfo, reader);
         }
         else if (lineInfo.type === LineType.Invalid) {
-            for (let error of lineInfo.errors)
+            for (let error of lineInfo.errors) {
                 this.diagnosticController.addLineDiagnostic(line, error);
+            }
         }
     }
 
@@ -72,8 +73,8 @@ export default class LineProcessor {
         currentShow.updateLastMentionedLine(lineInfo.line.lineNumber);
 
 
-        let missingTags: Tag[] = []
-        let extraTags: Tag[] = []
+        let missingTags: Tag[] = [];
+        let extraTags: Tag[] = [];
         for (let tag of currentShow.info.tags) {
             if (tag.target === TagTarget.SHOW) {
                 if (this.lineContext.currTags.indexOf(tag) === -1) {
@@ -95,13 +96,12 @@ export default class LineProcessor {
         const listTags = (tags: Tag[]) => tags.map(names).reduce(toList, '');
 
 
-        let relatedErrorMessage = ''
+        let relatedErrorMessage = '';
         let messageBitmask = ((missingTags.length > 0) ? 1 : 0) | ((extraTags.length > 0) ? 2 : 0);
-        if (messageBitmask !== 0) relatedErrorMessage = "Error: "
-        if (messageBitmask & 1) relatedErrorMessage += `those tags are missing: [${listTags(missingTags)}]`;
-        if (messageBitmask & 3) relatedErrorMessage += `\nand `;
-        if (messageBitmask & 2) relatedErrorMessage += `too many tags: [${listTags(extraTags)}]`;
-
+        if (messageBitmask !== 0) { relatedErrorMessage = "Error: " ; }
+        if (messageBitmask & 1  ) { relatedErrorMessage += `those tags are missing: [${listTags(missingTags)}]` ; }
+        if (messageBitmask & 3  ) { relatedErrorMessage += `\nand ` ; }
+        if (messageBitmask & 2  ) { relatedErrorMessage += `too many tags: [${listTags(extraTags)}]` ; }
 
         if (messageBitmask !== 0) {
             this.diagnosticController.addDiagnostic({
@@ -124,12 +124,13 @@ export default class LineProcessor {
         this.lineContext.currTags = this.lineContext.currTags.filter(tag => tag.target !== TagTarget.WATCH_LINE);
 
         if (!currShowTitle) {
-            this.diagnosticController.addLineDiagnostic(lineInfo.line, "Watch Entry provided, but not inside a show")
+            this.diagnosticController.addLineDiagnostic(lineInfo.line, "Watch Entry provided, but not inside a show");
             return;
         }
 
-        if (!currentShow)
+        if (!currentShow) {
             throw new Error(`Unexpected error: anime '${currShowTitle}' not found in list, despite being the current show`);
+        }
 
         let { startTime, endTime, episode, friends } = lineInfo.params;
         if (episode === NaN) {
@@ -152,14 +153,14 @@ export default class LineProcessor {
             //TODO: related info last ep's line
             //TODO: check for skipped as well
             //TODO: check for [UNSAFE-ORDER]
-            this.diagnosticController.addLineDiagnostic(lineInfo.line, "Watch entry violates ascending episodes rule")
+            this.diagnosticController.addLineDiagnostic(lineInfo.line, "Watch entry violates ascending episodes rule");
         }
 
         this.storage.registerWatchEntry(currShowTitle, watchEntry);
 
-        for (let friend of friends)
+        for (let friend of friends) {
             this.storage.registerFriend(friend);
-        //
+        }
     }
 
     processTag(lineInfo: TagLineInfo, reader: DocumentReader) {
@@ -179,7 +180,7 @@ export default class LineProcessor {
         }
 
         for (let param of tag.parameters) {
-            let tp = lineInfo.params.tagParams.find((tp) => tp.name == param);
+            let tp = lineInfo.params.tagParams.find((tp) => tp.name === param);
             if (!tp) {
                 this.diagnosticController.addLineDiagnostic(lineInfo.line, `Missing parameters, parameter list: [${tag.parameters.reduce((a, b) => `${a}, ${b}`)}]`);
                 return;
@@ -191,7 +192,7 @@ export default class LineProcessor {
             let skipCount = parseInt(paramValue ?? '0');
 
             if (isNaN(skipCount)) {
-                this.diagnosticController.addLineDiagnostic(lineInfo.line, `Invalid skip count = '${paramValue}'`)
+                this.diagnosticController.addLineDiagnostic(lineInfo.line, `Invalid skip count = '${paramValue}'`);
                 return;
             }
 
@@ -200,8 +201,9 @@ export default class LineProcessor {
 
 
         if (tag.target !== TagTarget.SCRIPT_TAG) {
-            if (this.lineContext.currTags.indexOf(tag) === -1)
+            if (this.lineContext.currTags.indexOf(tag) === -1) {
                 this.lineContext.currTags.push(tag);
+            }
         }
 
         // let [tagType, parameters] = tag.indexOf(`=`) === -1 ? [tag, []] : tag.split(`=`);

@@ -4,7 +4,9 @@ import { isEditingSimpleCursor } from "../utils/editor-utils";
 import { TextEditorCommand } from "./types";
 
 export const insertTime: TextEditorCommand<void> = (textEditor: TextEditor, edit: TextEditorEdit) => {
-	if (!isEditingSimpleCursor(textEditor)) return;
+	if (!isEditingSimpleCursor(textEditor)) {
+		return;
+	}
 
 	let currTime = (new Date(Date.now())).toLocaleTimeString('pt-BR', {
 		hour: `2-digit`,
@@ -18,12 +20,18 @@ export const insertTime: TextEditorCommand<void> = (textEditor: TextEditor, edit
 	let halfWay = currentLineText.match(/^\s*(\d{2}:\d{2})\s*\-?\s*$/g) !== null;
 	let hasDash = currentLineText.indexOf('-');
 
-	if (!emptyLine && !halfWay) return;
+	if (!emptyLine && !halfWay) {
+		return;
+	}
 
 	if (halfWay) {
-		if (!hasDash) currTime = ' - ' + currTime.trim();
+		if (!hasDash) {
+			currTime = ' - ' + currTime.trim();
+		} 
 		currTime += ' ';
 	}
-	else if (emptyLine) currTime += currentLineText.endsWith(' ') ? '- ' : ' - ';
+	else if (emptyLine) { 
+		currTime += currentLineText.endsWith(' ') ? '- ' : ' - ';
+	}
 	edit.insert(textEditor.selection.active, currTime);
-}
+};

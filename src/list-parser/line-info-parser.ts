@@ -4,7 +4,7 @@ import { COMMENT_TOKEN, DATE_REG, LineType, SHOW_TITLE_REG, TAG_PARAM_REG, TAG_R
 
 type LineInfoBase = {
     line: TextLine,
-}
+};
 
 export type LineInfo =
     LineInfoBase & (
@@ -46,7 +46,7 @@ export type DateLineInfo =
 type TagParam = {
     name: string,
     value: string,
-}
+};
 
 export type TagLineInfo =
     LineInfoBase &
@@ -71,23 +71,23 @@ export default class LineIdentifier {
             return {
                 type: LineType.Ignored,
                 line,
-            }
+            };
         }
 
         //Redirecting to other methods according to line type 
         let execArray: RegExpExecArray | null;
 
         execArray = SHOW_TITLE_REG.exec(text);
-        if (execArray) return this.getShowTitleParams(line, execArray);
+        if (execArray) { return this.getShowTitleParams(line, execArray); }
 
         execArray = DATE_REG.exec(text);
-        if (execArray) return this.getDateParams(line, execArray);
+        if (execArray) { return this.getDateParams(line, execArray); }
 
         execArray = WATCH_REG.exec(text);
-        if (execArray) return this.getWatchEntryParams(line, execArray);
+        if (execArray) { return this.getWatchEntryParams(line, execArray); }
 
         execArray = TAG_REG.exec(text);
-        if (execArray) return this.getTagParams(line, execArray);
+        if (execArray) { return this.getTagParams(line, execArray); }
 
         //TODO: return errors in a meaningful way to show on diagnostics
         return {
@@ -115,9 +115,9 @@ export default class LineIdentifier {
 
     private static getWatchEntryParams(line: TextLine, groups: RegExpExecArray): LineInfo {
         let errors = [];
-        if (groups[1] === undefined) errors.push('WatchEntry: Missing startTime');
-        if (groups[2] === undefined) errors.push('WatchEntry: Missing endTime');
-        if (groups[3] === undefined) errors.push('WatchEntry: Missing episode number')
+        if (groups[1] === undefined) { errors.push('WatchEntry: Missing startTime'); } 
+        if (groups[2] === undefined) { errors.push('WatchEntry: Missing endTime'); } 
+        if (groups[3] === undefined) { errors.push('WatchEntry: Missing episode number'); }
         //TODO: check if episode number is at least 2-dig
 
         if (errors.length > 0) {
@@ -148,25 +148,27 @@ export default class LineIdentifier {
         //Assumes valid unless proven wrong below
         let parametersValid = true;
 
-        if (!tagParamsStr || tagParamsStr.trim() === '')
+        if (!tagParamsStr || tagParamsStr.trim() === '') {
             tagParams = [];
-        else
+        }
+        else {
             tagParams = tagParamsStr.split(',').map((paramStr) => {
                 let execResult = TAG_PARAM_REG.exec(paramStr);
-                if (execResult == null) {
+                if (execResult == null) { //TODO: strict check (===)
                     parametersValid = false;
                     return <TagParam>{};
                 }
                 let [_, name, value] = execResult;
                 return { name, value } as TagParam;
             });
+        }
 
         if (!parametersValid) {
             return {
                 type: LineType.Invalid,
                 errors: ['Tag: Invalid parameter/parameters'],
                 line,
-            }
+            };
         }
 
         return {
@@ -176,6 +178,6 @@ export default class LineIdentifier {
                 tagParams
             },
             line,
-        }
+        };
     }
 };

@@ -3,12 +3,14 @@ import { TextEditor, TextEditorEdit, window } from "vscode";
 import ShowStorage from "../cache/anime/showStorage";
 import LineContextFinder from "../list-parser/line-context-finder";
 import { isEditingSimpleCursor } from "../utils/editor-utils";
-import { MAExtension } from '../extension'
+import { MAExtension } from '../extension';
 import { Show } from "../cache/anime/shows";
 import { TextEditorCommand } from "./types";
 
 export const insertNextEpisode: TextEditorCommand<void> = (textEditor: TextEditor, edit: TextEditorEdit) => {
-	if (!isEditingSimpleCursor(textEditor)) { return; }
+	if (!isEditingSimpleCursor(textEditor)) { 
+		return; 
+	}
 
 	const extension = MAExtension.INSTANCE;
 	let animeContext = LineContextFinder.findContext(textEditor.document, textEditor.selection.start.line);
@@ -37,4 +39,4 @@ export const insertNextEpisode: TextEditorCommand<void> = (textEditor: TextEdito
 	if (nextEpStr.length < 2) { nextEpStr = "0" + nextEpStr; };
 
 	edit.insert(textEditor.selection.start, nextEpStr);
-}
+};

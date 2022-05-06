@@ -9,7 +9,7 @@ namespace Util {
     type Constructor<T> = { new (...args: any[] ): T };
     type PrimitiveOrConstructor = 
         | Constructor<any>
-        | keyof PrimitivesMap
+        | keyof PrimitivesMap;
 
     type GuardedType<T extends PrimitiveOrConstructor> =
         T extends Constructor<infer U> ? U :
