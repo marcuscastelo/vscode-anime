@@ -67,6 +67,8 @@ export default class LineProcessor {
             return;
         }
 
+        this.lineContext.currTags = this.lineContext.currTags.filter(tag => tag.target !== TagTarget.SHOW && tag.target !== TagTarget.WATCH_SESSION);
+
         const currentShow = this.storage.getOrCreateShow(showTitle, lineInfo.line.lineNumber, this.lineContext.currTags);
 
         //TODO: check for empty sessions ( i.e: no watch entries between titles )
@@ -153,7 +155,20 @@ export default class LineProcessor {
             //TODO: related info last ep's line
             //TODO: check for skipped as well
             //TODO: check for [UNSAFE-ORDER]
-            this.diagnosticController.addLineDiagnostic(lineInfo.line, "Watch entry violates ascending episodes rule");
+            //TODO: check for REWATCH (major rewrite of the code to support this)
+            const isUnsafeOrder = this.lineContext.currTags.indexOf(Tags['UNSAFE-ORDER']) !== -1;
+            const isSkip = false;
+            const checkOrder = !isUnsafeOrder && !isSkip;
+            if (checkOrder) {
+                this.diagnosticController.addLineDiagnostic(lineInfo.line, "Watch entry violates ascending episodes rule");
+            } else {
+                this.diagnosticController.addDiagnostic({
+                    message: `Unsafe = ${isUnsafeOrder}, skip = ${isSkip}`,
+                    range: lineInfo.line.range,
+                    severity: DiagnosticSeverity.Warning,
+                    // relatedInformation: [{ location: new Location(lineInfo.line.uri, lineInfo.line.range), message: "Last watched episode is here" }]
+                });
+            }
         }
 
         this.storage.registerWatchEntry(currShowTitle, watchEntry);
@@ -199,9 +214,9 @@ export default class LineProcessor {
             reader.skip(skipCount);
         }
 
-
         if (tag.target !== TagTarget.SCRIPT_TAG) {
             if (this.lineContext.currTags.indexOf(tag) === -1) {
+                console.log(`Adding tag ${tag.name}`);
                 this.lineContext.currTags.push(tag);
             }
         }
