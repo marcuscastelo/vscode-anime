@@ -33,17 +33,19 @@ export default class LineContextFinder {
             });
 
         //Finds nearest date declaration
+        reader.jumpTo(lineNumber-1);
         let dateRes = reader.searchLine(-1, lineMatcherFactory(LineType.Date));
-        reader.jumpTo(lineNumber);
 
         //Finds nearest show title declaration
+        reader.jumpTo(lineNumber-1);
         let showTitleRes = reader.searchLine(-1, lineMatcherFactory(LineType.ShowTitle));
-        reader.jumpTo(lineNumber);
 
         //Finds nearest watch entry declaration
+        reader.jumpTo(lineNumber-1);
         let watchEntryRes = reader.searchLine(-1, lineMatcherFactory(LineType.WatchEntry));
+        
         reader.jumpTo(lineNumber);
-
+        
         if (!showTitleRes.success || !dateRes.success) {
             return {
                 valid: false,
