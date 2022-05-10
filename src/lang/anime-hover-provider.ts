@@ -36,11 +36,15 @@ export default class ShowHoverProvider implements HoverProvider {
 
         const lineContext = searchResult.context;
         const { currDate, currShowTitle, currTags } = lineContext;
+        
+        const tagNames = currTags.map(tag => tag.name);
+        const tagNamesString = tagNames.join(', ');
 
+        console.dir(lineContext);
         return new Hover(new MarkdownString(
             `\n\nCurrent Date: ${currDate}` +
             `\n\nCurrent Show: ${currShowTitle}` +
-            `\n\nCurrent Tags: [${currTags.join(', ')}]`
+            `\n\nCurrent Tags: [${tagNamesString}]`
         ));
     }
 

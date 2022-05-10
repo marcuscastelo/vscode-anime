@@ -3,11 +3,11 @@ import * as vscode from 'vscode';
 import { LineType } from '../list-parser/line-type';
 
 export interface LineMatcher<T> {
-	testLine(line: vscode.TextLine): { success: boolean, data: T };
+	testLine(line: vscode.TextLine): { success: true, data: T, stop: boolean } | { success: false, stop: boolean };
 }
 
 type SearchResult<T> =
-	| { success: true, data: T }
+	| { success: true, results: T[] }
 	| { success: false, error: Error };
 
 
@@ -32,20 +32,29 @@ export default class DocumentReader implements IterableIterator<vscode.TextLine>
 	}
 
 	searchLine<T>(step: number, matcher: LineMatcher<T>): SearchResult<T> {
+		let results = [];
 		for (let lineIdx = this._currentLineIndex; lineIdx >= 0; lineIdx += step) {
 			const line = this.document.lineAt(lineIdx);
-			const { success, data } = matcher.testLine(line);
-			if (success === true) {
-				return {
-					success: true,
-					data,
-				};
+
+			const testResult = matcher.testLine(line);
+			if (testResult.success) {
+				results.push(testResult.data);
 			}
+			if (testResult.stop) {
+				break;
+			}
+		}
+
+		if (results.length > 0) {
+			return {
+				success: true,
+				results: results.reverse(),
+			};
 		}
 
 		return {
 			success: false,
-			error: new Error('Line not found!'),
+			error: new Error('No line found!'),
 		};
 
 	}
