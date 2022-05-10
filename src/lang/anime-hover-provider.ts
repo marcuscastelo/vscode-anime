@@ -1,6 +1,7 @@
 import { CancellationToken, ExtensionContext, Hover, HoverProvider, languages, MarkdownString, Position, TextDocument, window } from "vscode";
 
 import { MAExtension } from "../extension";
+import LineContext from "../list-parser/line-context";
 import LineContextFinder from "../list-parser/line-context-finder";
 import { MAL } from "../services/mal";
 
@@ -23,27 +24,35 @@ export default class ShowHoverProvider implements HoverProvider {
 
     constructor(private readonly context: ExtensionContext) { }
 
+    private generateLineContextHover(document: TextDocument, line: number) {
+        const searchResult = LineContextFinder.findContext(document, line);
+        
+        if (!searchResult.valid) {
+            const md = new MarkdownString();
+            md.appendMarkdown(`### ERROR: `);
+            md.appendText(`${searchResult.error.message}`);
+            return new Hover(md);
+        }
+
+        const lineContext = searchResult.context;
+        const { currDate, currShowTitle, currTags } = lineContext;
+
+        return new Hover(new MarkdownString(
+            `\n\nCurrent Date: ${currDate}` +
+            `\n\nCurrent Show: ${currShowTitle}` +
+            `\n\nCurrent Tags: [${currTags.join(', ')}]`
+        ));
+    }
+
+
     public async provideHover(document: TextDocument, position: Position, token: CancellationToken) {
         const extension = MAExtension.INSTANCE;
         
         if (!window.activeTextEditor) { return; }
 
-        const lineContext = LineContextFinder.findContext(document, position.line);
+        const lineContextHoverText = this.generateLineContextHover(document, position.line);
+        return lineContextHoverText;
 
-        if (!lineContext.valid) {
-            const md = new MarkdownString();
-            md.appendMarkdown(`### ERROR: `);
-            md.appendText(`${lineContext.error.message}`);
-            return new Hover(md);
-        }
-        return new Hover(new MarkdownString(
-            `Valid: ${lineContext.valid ? 'Valid' : 'Invalid'} line` +
-            `\n\nCurrent Date: ${lineContext.context.currDate}` +
-            `\n\nCurrent Show: ${lineContext.context.currShowTitle}` +
-            // `\n\nLast WatchEntry:`+
-            // `\n\n\t${JSON.stringify(lineContext.context.lastWatchEntry, null, '\t\t')}`
-            ""
-        ));
 
         // let { type: lineType } = LineIdentifier.identifyLine(window.activeTextEditor.document.lineAt(position.line));
         // if (lineType !== LineType.ShowTitle) {
