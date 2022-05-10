@@ -5,22 +5,15 @@ import LineContext from "./line-context";
 import LineIdentifier, { DateLineInfo, ShowTitleLineInfo } from "./line-info-parser";
 import { COMMENT_TOKEN, DATE_REG, LineType, SHOW_TITLE_REG, TAG_REG, WATCH_REG } from "./line-type";
 
-// export type LineContext = {
-//     currentShowTitle: string,
-//     currentDate: string,
-//     lastWatchEntry?: WatchEntry,
-// };
-
 type GetContextResult =
     | { valid: true, context: LineContext }
     | { valid: false, error: Error };
-
 
 export default class LineContextFinder {
 
     public static findContext(document: TextDocument, lineNumber: number): GetContextResult {
         let reader = new DocumentReader(document);
-        reader.jumpTo(lineNumber);
+        reader.goToLine(lineNumber);
 
         const lineMatcherFactory =
             (lineType: LineType) => ({
@@ -34,28 +27,25 @@ export default class LineContextFinder {
             });
 
         //Finds nearest date declaration
-        reader.jumpTo(lineNumber);
+        reader.goToLine(lineNumber);
         let dateRes = reader.searchLine(-1, lineMatcherFactory(LineType.Date));
 
         //Finds nearest show title declaration
-        reader.jumpTo(lineNumber);
+        reader.goToLine(lineNumber);
         let showTitleRes = reader.searchLine(-1, lineMatcherFactory(LineType.ShowTitle));
 
         //Finds nearest watch entry declaration
-        reader.jumpTo(lineNumber);
+        reader.goToLine(lineNumber);
         let watchEntryRes = reader.searchLine(-1, lineMatcherFactory(LineType.WatchEntry));
         
-        reader.jumpTo(lineNumber);
+        reader.goToLine(lineNumber);
         
-        if (!showTitleRes.success || !dateRes.success) {
-            return {
-                valid: false,
-                error: new Error(
-                    `Undefined context:` +
-                    `\n\tLast ShowTitle: ${showTitleRes.success ? showTitleRes.data.line.lineNumber : 'Not Found'},` +
-                    `\n\tLast Date: ${dateRes.success ? dateRes.data.line.lineNumber : 'Not Found'}`
-                ),
-            };
+        if (!dateRes.success) {
+            return { valid: false, error: new Error(`No date found`) };
+        }
+
+        if (!showTitleRes.success) {
+            return { valid: false, error: new Error(`No show title found`) };
         }
 
         let currShowTitle = (showTitleRes.data as ShowTitleLineInfo).params.showTitle;

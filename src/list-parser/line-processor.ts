@@ -22,13 +22,13 @@ export default class LineProcessor {
     processAllLines(document: TextDocument) {
         let reader = new DocumentReader(document);
 
-        for (let currentLine of reader.getIterator()) {
-
-            if (currentLine.lineNumber % Math.floor(reader.lineCount / 10) === 0) {
-                console.log(`${currentLine.lineNumber}/${reader.lineCount} lines read (${(currentLine.lineNumber / reader.lineCount * 100).toFixed(2)}%)`);
-            }
-
+        console.log(`Processing ${document.uri}...`);
+        for (let currentLine of reader) {
             this.processLine(currentLine, reader);
+
+            if (reader.lineCount < 10 || currentLine.lineNumber % Math.floor(reader.lineCount / 10) === 0) {
+                console.log(`${currentLine.lineNumber+1}/${reader.lineCount} lines read (${((currentLine.lineNumber+1) / reader.lineCount * 100).toFixed(2)}%)`);
+            }
         }
     }
 
@@ -211,7 +211,7 @@ export default class LineProcessor {
                 return;
             }
 
-            reader.skip(skipCount);
+            reader.skipLines(skipCount);
         }
 
         if (tag.target !== TagTarget.SCRIPT_TAG) {

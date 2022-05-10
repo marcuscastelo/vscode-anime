@@ -1,3 +1,4 @@
+import { deprecate } from 'util';
 import * as vscode from 'vscode';
 import { LineType } from '../list-parser/line-type';
 
@@ -5,42 +6,12 @@ export interface LineMatcher<T> {
 	testLine(line: vscode.TextLine): { success: boolean, data: T };
 }
 
-type SearchResult<T> = 
+type SearchResult<T> =
 	| { success: true, data: T }
 	| { success: false, error: Error };
 
 
-class LineIterator implements IterableIterator<vscode.TextLine> {
-	constructor(private readonly reader: DocumentReader,
-		private readonly skipCount: number) { }
-
-	public next() {
-		let indexBeforeAdvance = this.reader.currentLineIndex;
-		let line = this.reader.currentLine;
-
-		this.reader.skip(this.skipCount);
-
-		//Checks if end of file (skip didn't increment)
-		if (indexBeforeAdvance === this.reader.currentLineIndex) {
-			return {
-				done: true,
-				value: this.reader.currentLine
-			};
-		}
-
-		return {
-			done: false,
-			value: line
-		};
-	}
-
-	[Symbol.iterator]() {
-		return this;
-	}
-
-}
-
-export default class DocumentReader {
+export default class DocumentReader implements IterableIterator<vscode.TextLine> {
 	private _currentLineIndex: number = 0;
 	constructor(public readonly document: vscode.TextDocument) { }
 
@@ -48,25 +19,21 @@ export default class DocumentReader {
 	get lineCount() { return this.document.lineCount; }
 
 	get currentLine(): vscode.TextLine {
-		return this.document.lineAt(this._currentLineIndex);;
+		return this.document.lineAt(this._currentLineIndex);
 	}
 
-	getIterator(skipCount = 1) { return new LineIterator(this, skipCount); }
-
-	public skip(count: number) {
-		this.jumpTo(this._currentLineIndex + count);
+	public skipLines(count: number) {
+		this.goToLine(this._currentLineIndex + count);
 	}
 
-	public jumpTo(line: number) {
-		this._currentLineIndex = this.clampLineNumber(line);
+	public goToLine(lineNumber: number) {
+		const clampedLine = Math.max(0, Math.min(lineNumber, this.document.lineCount));
+		this._currentLineIndex = clampedLine;
 	}
 
-	private clampLineNumber(line: number): number {
-		return Math.max(0, Math.min(line, this.document.lineCount - 1));
-	}
-
-	searchLine<T>(skipCount: number, matcher: LineMatcher<T>): SearchResult<T> {
-		for (let line of this.getIterator(skipCount)) {
+	searchLine<T>(step: number, matcher: LineMatcher<T>): SearchResult<T> {
+		for (let lineIdx = this._currentLineIndex; lineIdx >= 0; lineIdx += step) {
+			const line = this.document.lineAt(lineIdx);
 			const { success, data } = matcher.testLine(line);
 			if (success === true) {
 				return {
@@ -81,6 +48,25 @@ export default class DocumentReader {
 			error: new Error('Line not found!'),
 		};
 
+	}
+
+	public next(): { done: boolean, value: vscode.TextLine } {
+		let done = this._currentLineIndex >= this.document.lineCount;
+		if (done) {
+			return { done, value: <vscode.TextLine><unknown>undefined };
+		}
+		else {
+			let result = {
+				done,
+				value: this.currentLine,
+			};
+			this.skipLines(1);
+			return result;
+		}
+	}
+
+	[Symbol.iterator]() {
+		return this;
 	}
 
 }

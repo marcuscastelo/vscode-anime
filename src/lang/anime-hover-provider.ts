@@ -1,13 +1,8 @@
 import { CancellationToken, ExtensionContext, Hover, HoverProvider, languages, MarkdownString, Position, TextDocument, window } from "vscode";
 
-import ShowStorage from "../cache/anime/showStorage";
-import { Anime } from "../cache/anime/shows";
 import { MAExtension } from "../extension";
 import LineContextFinder from "../list-parser/line-context-finder";
 import { MAL } from "../services/mal";
-import { AnimeSearchResultItem, Tags } from "../types";
-import LineIdentifier from "../list-parser/line-info-parser";
-import { LineType } from "../list-parser/line-type";
 
 async function searchMAL(animeTitle: string) {
     let foundAnimes = await MAL.searchAnime(animeTitle);
@@ -36,7 +31,10 @@ export default class ShowHoverProvider implements HoverProvider {
         const lineContext = LineContextFinder.findContext(document, position.line);
 
         if (!lineContext.valid) {
-            return;
+            const md = new MarkdownString();
+            md.appendMarkdown(`### ERROR: `);
+            md.appendText(`${lineContext.error.message}`);
+            return new Hover(md);
         }
         return new Hover(new MarkdownString(
             `Valid: ${lineContext.valid ? 'Valid' : 'Invalid'} line` +
