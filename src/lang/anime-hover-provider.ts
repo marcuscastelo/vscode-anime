@@ -1,6 +1,6 @@
 import { CancellationToken, ExtensionContext, Hover, HoverProvider, languages, MarkdownString, Position, TextDocument, window } from "vscode";
 
-import { MAExtension } from "../extension";
+import { MarucsAnime } from "../extension";
 import LineContext from "../list-parser/line-context";
 import LineContextFinder from "../list-parser/line-context-finder";
 import { MAL } from "../services/mal";
@@ -50,7 +50,7 @@ export default class ShowHoverProvider implements HoverProvider {
 
 
     public async provideHover(document: TextDocument, position: Position, token: CancellationToken) {
-        const extension = MAExtension.INSTANCE;
+        const extension = MarucsAnime.INSTANCE;
         
         if (!window.activeTextEditor) { return; }
 

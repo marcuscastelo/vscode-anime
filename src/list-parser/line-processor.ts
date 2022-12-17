@@ -19,7 +19,7 @@ export default class LineProcessor {
         this.lineContext = new LineContext();
     }
 
-    processAllLines(document: TextDocument) {
+    processDocument(document: TextDocument) {
         let reader = new DocumentReader(document);
 
         console.log(`Processing ${document.uri}...`);

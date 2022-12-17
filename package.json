@@ -1,24 +1,33 @@
 {
 	"name": "marucs-anime",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"publisher": "Marucs",
 	"engines": {
 		"vscode": "^1.65.0"
 	},
-	"license": "MIT",	
+	"license": "MIT",
 	"displayName": "Marucs' Anime",
 	"description": "Anime Syntax and Utils for VSCode",
 	"categories": [
-		"Linters", "Programming Languages", "Other"
+		"Linters",
+		"Programming Languages",
+		"Other"
 	],
 	"keywords": [
-		"anime", "syntax", "linter", "utils", "history", "autocomplete", "intellisense", "highlight"
+		"anime",
+		"syntax",
+		"linter",
+		"utils",
+		"history",
+		"autocomplete",
+		"intellisense",
+		"highlight"
 	],
 	"repository": {
 		"url": "https://github.com/marcuscastelo/vscode-anime"
 	},
 	"preview": true,
-	"main": "./out/extension.js",
+	"main": "./out/vscode-extension.js",
 	"contributes": {
 		"commands": [
 			{
@@ -87,7 +96,7 @@
 	"devDependencies": {
 		"@types/glob": "^7.1.3",
 		"@types/mocha": "^8.0.4",
-		"@types/node": "^12.11.7",
+		"@types/node": "^18.11.17",
 		"@types/vscode": "^1.54.0",
 		"@typescript-eslint/eslint-plugin": "^4.14.1",
 		"@typescript-eslint/parser": "^4.14.1",

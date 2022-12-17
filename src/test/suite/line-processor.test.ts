@@ -54,7 +54,7 @@ class LineProcessorTest {
         documentMaker.addLine('22:32 - 22:33 02 {Fulano}');
         let document = documentMaker.makeDocument();
 
-        this.processor.processAllLines(document);
+        this.processor.processDocument(document);
 
         console.log('finished!');
 

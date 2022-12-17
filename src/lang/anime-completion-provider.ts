@@ -1,6 +1,6 @@
 import { CancellationToken, CompletionContext, CompletionItem, CompletionItemKind, CompletionItemProvider, CompletionTriggerKind, DebugConsoleMode, DocumentFilter, ExtensionContext, languages, Position, ProviderResult, TextDocument, TextEdit, window } from "vscode";
 import ShowStorage from "../cache/anime/showStorage";
-import { MAExtension } from "../extension";
+import { MarucsAnime } from "../extension";
 import { LineType } from "../list-parser/line-type";
 import { Tags } from "../types";
 
@@ -140,7 +140,7 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
     }
 
     public provideCompletionItems(document: TextDocument, position: Position, token: CancellationToken, completionContext: CompletionContext): ProviderResult<CompletionItem[]> {
-        const extension = MAExtension.INSTANCE;
+        const extension = MarucsAnime.INSTANCE;
 
         const text = document.lineAt(position.line).text;
         const horizPosition = position.character;
