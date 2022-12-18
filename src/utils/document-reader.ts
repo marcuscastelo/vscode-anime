@@ -1,16 +1,13 @@
-import { deprecate } from 'util';
 import * as vscode from 'vscode';
 import { LineType } from '../list-parser/line-type';
+import { Result } from './typescript-utils';
 
 type GetLineFunc = (line: number) => vscode.TextLine;
 export interface LineMatcher<T> {
 	testLine(line: vscode.TextLine, getLine: GetLineFunc): { hasData: true, data: T, stop: boolean } | { hasData: false, stop: boolean };
 }
 
-type SearchResult<T> =
-	| { success: true, results: T[] }
-	| { success: false, error: Error };
-
+type SearchResult<T> = Result<T[], Error>;
 
 export default class DocumentReader implements IterableIterator<vscode.TextLine> {
 	private _currentLineIndex: number = 0;
@@ -51,13 +48,13 @@ export default class DocumentReader implements IterableIterator<vscode.TextLine>
 
 		if (results.length > 0) {
 			return {
-				success: true,
-				results: results.reverse(),
+				ok: true,
+				result: results.reverse(),
 			};
 		}
 
 		return {
-			success: false,
+			ok: false,
 			error: new Error('No line found!'),
 		};
 

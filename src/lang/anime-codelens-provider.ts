@@ -31,21 +31,21 @@ export default class ShowLensProvider implements CodeLensProvider {
         const lineContext = LineContextFinder.findContext(document, currLine);
 
         let lineMessages: string[] = [];
-        let targetLine = lineContext.valid ? lineContext.context.currentShowLine.line.lineNumber : currLine;
+        let targetLine = lineContext.ok ? lineContext.result.currentShowLine.line.lineNumber : currLine;
 
-        if (!lineContext.valid) {
+        if (!lineContext.ok) {
             lineMessages.push(`${lineContext.error}`);
         } else {
-            const currShowTitle = lineContext.context.currentShowLine.params.showTitle;
+            const currShowTitle = lineContext.result.currentShowLine.params.showTitle;
             const show = MarucsAnime.INSTANCE.showStorage.getShow(currShowTitle);
             if (!show) {
                 lineMessages.push(`Show '${currShowTitle}' not found in database`);
             } else {
                 const originalShowContext = LineContextFinder.findContext(document, show.info.firstMentionedLine);
-                if (!originalShowContext.valid) {
+                if (!originalShowContext.ok) {
                     lineMessages.push(`Original '${currShowTitle}' context is invalid...`);
                 } else {
-                    lineMessages.push(`Show original Tags: [${originalShowContext.context.currentTagsLines.map(lineInfo => lineInfo.params.tag.name).join(', ')}]`);
+                    lineMessages.push(`Show original Tags: [${originalShowContext.result.currentTagsLines.map(lineInfo => lineInfo.params.tag.name).join(', ')}]`);
                 }
             }
         }

@@ -8,6 +8,7 @@ import { LineType } from "./line-type";
 import LineIdentifier, { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
 import { Tag, TagTarget, Tags, WatchEntry } from "../types";
 import assert = require("assert");
+import { checkTags } from "../analysis/check-tags";
 
 
 export default class LineProcessor {
@@ -35,7 +36,6 @@ export default class LineProcessor {
 
     processLine(line: TextLine, reader: DocumentReader) {
         let lineInfo = LineIdentifier.identifyLine(line);
-
 
         if (lineInfo.type === LineType.ShowTitle) {
             this.processShowTitleLine(lineInfo, reader.document);
@@ -76,29 +76,11 @@ export default class LineProcessor {
         currentShow.updateLastMentionedLine(lineInfo.line.lineNumber);
 
         const currTags = this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag) || [];
-
-        let missingTags: Tag[] = [];
-        let extraTags: Tag[] = [];
-        for (let tag of currentShow.info.tags) {
-            if (tag.target === TagTarget.SHOW) {
-                if (currTags.indexOf(tag) === -1) {
-                    missingTags.push(tag);
-                }
-            }
-        }
-
-        for (let tag of currTags) {
-            if (tag.target === TagTarget.SHOW) {
-                if (currentShow.info.tags.indexOf(tag) === -1) {
-                    extraTags.push(tag);
-                }
-            }
-        }
-
+        const { missingTags, extraTags } = checkTags(document, currTags, currentShow);
+    
         const names = (tag: Tag) => tag.name;
         const toList = (accum: string, token: string) => accum + ',' + token;
         const listTags = (tags: Tag[]) => tags.map(names).reduce(toList, '');
-
 
         let relatedErrorMessage = '';
         let messageBitmask = ((missingTags.length > 0) ? 1 : 0) | ((extraTags.length > 0) ? 2 : 0);
@@ -115,7 +97,6 @@ export default class LineProcessor {
                 relatedInformation: [{ location: new Location(document.uri, document.lineAt(currentShow.info.firstMentionedLine).range), message: "Fist show declaration is here" }]
             });
         }
-
 
         this.lineContext.currentShowLine = lineInfo;
         this.lineContext.currentTagsLines = this.lineContext.currentTagsLines?.filter(lineInfo => lineInfo.params.tag.target !== TagTarget.SHOW);

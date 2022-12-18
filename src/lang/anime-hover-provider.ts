@@ -28,14 +28,14 @@ export default class ShowHoverProvider implements HoverProvider {
     private generateLineContextHover(document: TextDocument, line: number) {
         const searchResult = LineContextFinder.findContext(document, line);
         
-        if (!searchResult.valid) {
+        if (!searchResult.ok) {
             const md = new MarkdownString();
             md.appendMarkdown(`### ERROR: `);
             md.appendText(`${searchResult.error.message}`);
             return new Hover(md);
         }
 
-        const lineContext = searchResult.context;
+        const lineContext = searchResult.result;
         const { currentDateLine, currentShowLine, currentTagsLines } = lineContext;
 
         if (!currentDateLine || !currentShowLine) {
@@ -54,10 +54,10 @@ export default class ShowHoverProvider implements HoverProvider {
         let showLastTagNamesString = 'NOT FOUND';
         if (show) {
             const firstMentionedContext = LineContextFinder.findContext(document, show.info.firstMentionedLine+1);
-            if (firstMentionedContext.valid) {
-                showLastTitle = firstMentionedContext.context.currentShowLine?.params.showTitle || 'EMPTY';
-                showLastDate = firstMentionedContext.context.currentDateLine?.params.date || "EMPTY";
-                showLastTagNamesString = firstMentionedContext.context.currentTagsLines.map(lineInfo => lineInfo.params.tag).join(', ');
+            if (firstMentionedContext.ok) {
+                showLastTitle = firstMentionedContext.result.currentShowLine?.params.showTitle || 'EMPTY';
+                showLastDate = firstMentionedContext.result.currentDateLine?.params.date || "EMPTY";
+                showLastTagNamesString = firstMentionedContext.result.currentTagsLines.map(lineInfo => lineInfo.params.tag).join(', ');
             }
         }
 
