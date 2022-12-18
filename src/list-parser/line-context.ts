@@ -1,10 +1,9 @@
-import ShowStorage from "../cache/anime/showStorage";
 import { Tag, TagTarget, WatchEntry } from "../types";
-import { WatchEntryLineInfo } from "./line-info-parser";
+import { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
 
-export default class LineContext {
-    currDate: string = '';
-    currShowTitle: string = '';
-    currTags: Tag[] = [];
+export default interface LineContext {
+    currentDateLine: DateLineInfo;
+    currentShowLine: ShowTitleLineInfo;
+    currentTagsLines: TagLineInfo[];
     lastWatchEntryLine?: WatchEntryLineInfo;
 }
