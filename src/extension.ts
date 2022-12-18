@@ -16,6 +16,7 @@ import MADiagnosticController from './lang/maDiagnosticCollection';
 import { ANIME_STORAGE_ID, EXTENSION_ID, LANGUAGE_ID } from './constants';
 import ShowLensProvider from './lang/anime-codelens-provider';
 import { formatFriend } from './commands/format-friend';
+import ShowDefinitionProvider from './lang/anime-definition-provider';
 
 export class MarucsAnime {
     private static _INSTANCE: MarucsAnime;
@@ -106,6 +107,7 @@ export class MarucsAnime {
             ShowHoverProvider.register(this.context),
             AnimeCompletionItemProvider.register(this.context),
             ShowLensProvider.register(this.context),
+            ShowDefinitionProvider.register(this.context),
         );
     }
 }

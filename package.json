@@ -33,7 +33,8 @@
 		"completionProvider" : {
             "resolveProvider": "false",
             "triggerCharacters": ["{", "[", ","]
-        }
+        },
+		"definitionProvider": "true"
 	},
 	"preview": true,
 	"main": "./out/vscode-extension.js",
