@@ -14,98 +14,102 @@ import ShowHoverProvider from './lang/anime-hover-provider';
 import AnimeCompletionItemProvider from './lang/anime-completion-provider';
 import MADiagnosticController from './lang/maDiagnosticCollection';
 
-export function activate(context: ExtensionContext) {
-	MAExtension.activate(context);
-}
+export class MarucsAnime {
+    private static _INSTANCE: MarucsAnime;
+    static get INSTANCE() { return MarucsAnime._INSTANCE; }
 
-export function deactivate() {
-	console.log("Deactivating!");
-}
+    public static readonly ANIME_STORAGE_ID = 'marucs-anime:storage';
+    public static readonly EXTENSION_ID = 'vscode-anime';
+    public static readonly LANGUAGE_ID = 'anime-list';
 
-export class MAExtension {
-	private static _INSTANCE: MAExtension;
-	static get INSTANCE() { return MAExtension._INSTANCE; }
+    public static activate(context: ExtensionContext): MarucsAnime | null {
+        if (MarucsAnime._INSTANCE) {
+            console.error("Trying to activate Marucs' Anime multiple times!");
+            return null;
+        }
 
-	private static readonly ANIME_STORAGE_ID = 'marucs-anime:storage';
+        MarucsAnime._INSTANCE = new MarucsAnime(context);;
+        
+        return MarucsAnime._INSTANCE;
+    }
 
-	public static activate(context: ExtensionContext) {
-		if (MAExtension._INSTANCE) {
-			console.warn("Trying to activate Marucs' Anime multiple times!");
-			return;
-		}
+    private readonly diagnosticController;
 
-		const extension = new MAExtension(context);
-		MAExtension._INSTANCE = extension;
+    private constructor(
+        private readonly context: ExtensionContext
+    ) {
+        this.diagnosticController = this.createDiagnosticCollections();
+        this.registerSubscriptions();
+        this.registerMembers();
 
-		context.subscriptions.push(
-			vscode.window.onDidChangeActiveTextEditor(editor => editor && extension.rescanDocument(editor.document)),
-			vscode.workspace.onDidSaveTextDocument(document => document && extension.rescanDocument(document)),
-			vscode.workspace.onDidCloseTextDocument(document => document && extension.diagnosticController.clearDiagnostics()),
-		);
+        if (vscode.window.activeTextEditor) { // If there is an active editor, we start scanning it already (events are not fired)
+            this.reactToDocumentChange(vscode.window.activeTextEditor.document);
+        }
+    }
 
-		if (vscode.window.activeTextEditor) { // If there is an active editor, we start scanning it already (events are not fired)
-			extension.rescanDocument(vscode.window.activeTextEditor.document);
-		}
+    get showStorage(): ShowStorage {
+        let animeStorage = this.context.workspaceState.get<ShowStorage>(MarucsAnime.ANIME_STORAGE_ID);
 
-		extension.registerMembers();
-	}
+        if (!animeStorage) {
+            animeStorage = new ShowStorage();
+            this.overwriteAnimeStorage(animeStorage);
+        }
 
-	private readonly diagnosticController;
+        return animeStorage;
+    }
 
-	private constructor(
-		private readonly context: ExtensionContext
-	) {
-		this.diagnosticController = MADiagnosticController.register(this.context, 'vscode-anime');
-	}
+    public reactToDocumentChange(document: vscode.TextDocument) {
+        this.diagnosticController.clearDiagnostics();
 
-	get showStorage(): ShowStorage {
-		let animeStorage = this.context.workspaceState.get<ShowStorage>(MAExtension.ANIME_STORAGE_ID);
+        if (document.languageId !== MarucsAnime.LANGUAGE_ID) {
+            return;
+        }
 
-		if (!animeStorage) {
-			animeStorage = new ShowStorage();
-			this.overwriteAnimeStorage(animeStorage);
-		}
+        this.scanDocument(document);
+    }
+    
+    public scanDocument(document: vscode.TextDocument) {
+        this.diagnosticController.setCurrentDocument(document);
 
-		return animeStorage;
-	}
+        vscode.window.setStatusBarMessage(`Parsing all lines...`);
+        let animeStorage = this.createStorageFromEntireDocument(document);
 
-	public rescanDocument(document: vscode.TextDocument) {
-		if (document.languageId !== 'anime-list') {
-			this.diagnosticController.clearDiagnostics();
-			return;
-		}
+        this.overwriteAnimeStorage(animeStorage);
+        vscode.window.setStatusBarMessage(`Parsing completed!`,);
+    }
 
-		this.diagnosticController.clearDiagnostics();
-		this.diagnosticController.setCurrentDocument(document);
+    public overwriteAnimeStorage(storage: ShowStorage) {
+        this.context.workspaceState.update(MarucsAnime.ANIME_STORAGE_ID, storage);
+    }
 
-		vscode.window.setStatusBarMessage(`Parsing all lines...`);
-		let animeStorage = this.createStorageFromEntireDocument(document);
+    private createStorageFromEntireDocument(textDocument: TextDocument): ShowStorage {
+        let storage = new ShowStorage();
+        let parser = new LineProcessor(storage, this.diagnosticController);
+        parser.processDocument(textDocument);
 
-		this.overwriteAnimeStorage(animeStorage);
-		vscode.window.setStatusBarMessage(`Parsing completed!`,);
-	}
+        return storage;
+    }
 
-	public overwriteAnimeStorage(storage: ShowStorage) {
-		this.context.workspaceState.update(MAExtension.ANIME_STORAGE_ID, storage);
-	}
+    private createDiagnosticCollections() {
+        return MADiagnosticController.register(this.context, MarucsAnime.EXTENSION_ID);
+    }
 
-	//TODO? move
-	private createStorageFromEntireDocument(textDocument: TextDocument): ShowStorage {
-		let storage = new ShowStorage();
-		let parser = new LineProcessor(storage, this.diagnosticController);
-		parser.processAllLines(textDocument);
+    private registerSubscriptions() {
+        this.context.subscriptions.push(
+            vscode.window.onDidChangeActiveTextEditor(editor => editor && this.reactToDocumentChange(editor.document)),
+            vscode.workspace.onDidSaveTextDocument(document => document && this.reactToDocumentChange(document)),
+            vscode.workspace.onDidCloseTextDocument(document => document && this.diagnosticController.clearDiagnostics()),
+        );
+    }
 
-		return storage;
-	}
+    private registerMembers() {
+        this.context.subscriptions.push(
+            vscode.commands.registerTextEditorCommand('marucs-anime.insertDate', insertDate),
+            vscode.commands.registerTextEditorCommand('marucs-anime.insertTime', insertTime),
+            vscode.commands.registerTextEditorCommand('marucs-anime.insertNextEpisode', insertNextEpisode),
 
-	private registerMembers() {
-		this.context.subscriptions.push(
-			vscode.commands.registerTextEditorCommand('marucs-anime.insertDate', insertDate),
-			vscode.commands.registerTextEditorCommand('marucs-anime.insertTime', insertTime),
-			vscode.commands.registerTextEditorCommand('marucs-anime.insertNextEpisode', insertNextEpisode),
-
-			ShowHoverProvider.register(this.context),
-			AnimeCompletionItemProvider.register(this.context),
-		);
-	}
+            ShowHoverProvider.register(this.context),
+            AnimeCompletionItemProvider.register(this.context),
+        );
+    }
 }

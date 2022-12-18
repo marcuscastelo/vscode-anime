@@ -3,7 +3,7 @@ import ShowStorage from "../cache/anime/showStorage";
 import DocumentReader from "../utils/document-reader";
 import { Show } from "../cache/anime/shows";
 import MADiagnosticController from "../lang/maDiagnosticCollection";
-import ListContext from "./anime-context";
+import LineContext from "./line-context";
 import { LineType } from "./line-type";
 import LineIdentifier, { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
 import { Tag, TagTarget, Tags, WatchEntry } from "../types";
@@ -11,24 +11,24 @@ import { Tag, TagTarget, Tags, WatchEntry } from "../types";
 
 export default class LineProcessor {
 
-    private lineContext: ListContext;
+    private lineContext: LineContext;
     constructor(
         private storage: ShowStorage,
         private diagnosticController: MADiagnosticController
     ) {
-        this.lineContext = new ListContext();
+        this.lineContext = new LineContext();
     }
 
-    processAllLines(document: TextDocument) {
+    processDocument(document: TextDocument) {
         let reader = new DocumentReader(document);
 
-        for (let currentLine of reader.getIterator()) {
-
-            if (currentLine.lineNumber % Math.floor(reader.lineCount / 10) === 0) {
-                console.log(`${currentLine.lineNumber}/${reader.lineCount} lines read (${(currentLine.lineNumber / reader.lineCount * 100).toFixed(2)}%)`);
-            }
-
+        console.log(`Processing ${document.uri}...`);
+        for (let currentLine of reader) {
             this.processLine(currentLine, reader);
+
+            if (reader.lineCount < 10 || currentLine.lineNumber % Math.floor(reader.lineCount / 10) === 0) {
+                console.log(`${currentLine.lineNumber+1}/${reader.lineCount} lines read (${((currentLine.lineNumber+1) / reader.lineCount * 100).toFixed(2)}%)`);
+            }
         }
     }
 
@@ -56,16 +56,18 @@ export default class LineProcessor {
         this.lineContext.currDate = lineInfo.params.date;
 
         //Resets current anime, so that it is necessary to explicitly set an anime title everytime the day changes
-        this.lineContext.currShowName = '';
+        this.lineContext.currShowTitle = '';
     }
 
     processShowTitleLine(lineInfo: ShowTitleLineInfo, document: TextDocument) {
         const showTitle = lineInfo.params.showTitle;
 
-        if (showTitle === this.lineContext.currShowName) {
+        if (showTitle === this.lineContext.currShowTitle) {
             this.diagnosticController.addLineDiagnostic(lineInfo.line, 'Redundant show title');
             return;
         }
+
+        this.lineContext.currTags = this.lineContext.currTags.filter(tag => tag.target !== TagTarget.SHOW && tag.target !== TagTarget.WATCH_SESSION);
 
         const currentShow = this.storage.getOrCreateShow(showTitle, lineInfo.line.lineNumber, this.lineContext.currTags);
 
@@ -113,12 +115,12 @@ export default class LineProcessor {
         }
 
 
-        this.lineContext.currShowName = showTitle;
+        this.lineContext.currShowTitle = showTitle;
         this.lineContext.currTags = this.lineContext.currTags.filter(tag => tag.target !== TagTarget.SHOW);
     }
 
     processWatchLine(lineInfo: WatchEntryLineInfo) {
-        let { currShowName: currShowTitle } = this.lineContext;
+        let { currShowTitle: currShowTitle } = this.lineContext;
         let currentShow = this.storage.getShow(currShowTitle);
 
         this.lineContext.currTags = this.lineContext.currTags.filter(tag => tag.target !== TagTarget.WATCH_LINE);
@@ -153,7 +155,20 @@ export default class LineProcessor {
             //TODO: related info last ep's line
             //TODO: check for skipped as well
             //TODO: check for [UNSAFE-ORDER]
-            this.diagnosticController.addLineDiagnostic(lineInfo.line, "Watch entry violates ascending episodes rule");
+            //TODO: check for REWATCH (major rewrite of the code to support this)
+            const isUnsafeOrder = this.lineContext.currTags.indexOf(Tags['UNSAFE-ORDER']) !== -1;
+            const isSkip = false;
+            const checkOrder = !isUnsafeOrder && !isSkip;
+            if (checkOrder) {
+                this.diagnosticController.addLineDiagnostic(lineInfo.line, "Watch entry violates ascending episodes rule");
+            } else {
+                this.diagnosticController.addDiagnostic({
+                    message: `Unsafe = ${isUnsafeOrder}, skip = ${isSkip}`,
+                    range: lineInfo.line.range,
+                    severity: DiagnosticSeverity.Warning,
+                    // relatedInformation: [{ location: new Location(lineInfo.line.uri, lineInfo.line.range), message: "Last watched episode is here" }]
+                });
+            }
         }
 
         this.storage.registerWatchEntry(currShowTitle, watchEntry);
@@ -176,7 +191,7 @@ export default class LineProcessor {
         }
 
         if (tag.target === TagTarget.SHOW) {
-            this.lineContext.currShowName = '';
+            this.lineContext.currShowTitle = '';
         }
 
         for (let param of tag.parameters) {
@@ -196,12 +211,12 @@ export default class LineProcessor {
                 return;
             }
 
-            reader.skip(skipCount);
+            reader.skipLines(skipCount);
         }
-
 
         if (tag.target !== TagTarget.SCRIPT_TAG) {
             if (this.lineContext.currTags.indexOf(tag) === -1) {
+                console.log(`Adding tag ${tag.name}`);
                 this.lineContext.currTags.push(tag);
             }
         }

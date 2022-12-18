@@ -1,18 +1,18 @@
 
-import { TextEditor, TextEditorEdit, window } from "vscode";
-import ShowStorage from "../cache/anime/showStorage";
-import LineContextFinder from "../list-parser/line-context-finder";
-import { isEditingSimpleCursor } from "../utils/editor-utils";
-import { MAExtension } from '../extension';
-import { Show } from "../cache/anime/shows";
-import { TextEditorCommand } from "./types";
+	import { TextEditor, TextEditorEdit, window } from "vscode";
+	import ShowStorage from "../cache/anime/showStorage";
+	import LineContextFinder from "../list-parser/line-context-finder";
+	import { isEditingSimpleCursor } from "../utils/editor-utils";
+	import { MarucsAnime } from '../extension';
+	import { Show } from "../cache/anime/shows";
+	import { TextEditorCommand } from "./types";
 
 export const insertNextEpisode: TextEditorCommand<void> = (textEditor: TextEditor, edit: TextEditorEdit) => {
 	if (!isEditingSimpleCursor(textEditor)) { 
 		return; 
 	}
 
-	const extension = MAExtension.INSTANCE;
+	const extension = MarucsAnime.INSTANCE;
 	let animeContext = LineContextFinder.findContext(textEditor.document, textEditor.selection.start.line);
 
 	if (!animeContext.valid) {
@@ -22,13 +22,13 @@ export const insertNextEpisode: TextEditorCommand<void> = (textEditor: TextEdito
 
 	let show: Show | undefined;
 
-	show = extension.showStorage.getShow(animeContext.context.currentShowTitle);
+	show = extension.showStorage.getShow(animeContext.context.currShowTitle);
 	if (!show) {
-		console.log(`[insertNextEpisode] Anime ${animeContext.context.currentShowTitle} not found, rescaning...`);
-		extension.rescanDocument(textEditor.document);
-		show = extension.showStorage.getShow(animeContext.context.currentShowTitle);
+		console.log(`[insertNextEpisode] Anime ${animeContext.context.currShowTitle} not found, rescaning...`);
+		extension.reactToDocumentChange(textEditor.document);
+		show = extension.showStorage.getShow(animeContext.context.currShowTitle);
 		if (!show) {
-			window.showErrorMessage(`[insertNextEpisode] Anime ${animeContext.context.currentShowTitle} not found! Couldn't determine next epiode. (Unexpected error) `);
+			window.showErrorMessage(`[insertNextEpisode] Anime ${animeContext.context.currShowTitle} not found! Couldn't determine next epiode. (Unexpected error) `);
 			return;
 		}
 	}
