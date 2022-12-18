@@ -1,9 +1,16 @@
 import axios, { AxiosResponse } from 'axios';
+const rateLimit = require('axios-rate-limit');
 import { AnimeSearchResultItem } from '../types';
 import { sleep } from '../utils/time-utils';
 
-const API = axios.create({
-    baseURL: "https://api.jikan.moe/v3/"
+const _API = axios.create({
+    baseURL: "https://api.jikan.moe/v4/"
+});
+
+const API = rateLimit(_API, {
+    maxRequests: 1,
+    perMilliseconds: 1000,
+    maxRPS: 1
 });
 
 let _processing = false;
@@ -49,10 +56,33 @@ function request(resourcePath: string) {
     });
 }
 
-export namespace MAL {
 
-    export async function searchAnime(animeTitle: string) {
-        return ((await request('/search/anime?q=' + animeTitle)) as { results: AnimeSearchResultItem[] }).results;
+export namespace MAL {
+    type Cache = {
+        anime: {
+            [animeTitle: string]: AnimeSearchResultItem[]
+        }
+    };
+
+    const cache: Cache = {
+        anime: {}
+    };
+
+    export async function searchAnime(animeTitle: string): Promise<AnimeSearchResultItem[]> {
+        if (cache.anime[animeTitle]) {
+            return cache.anime[animeTitle];
+        }
+
+        const response = await API.get('/anime', {
+            params: {
+                q: animeTitle,
+            }
+        });
+
+        const results = response.data.data as AnimeSearchResultItem[];
+        cache.anime[animeTitle] = results;
+        
+        return results;
     }
 
 }

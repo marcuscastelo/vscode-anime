@@ -27,13 +27,17 @@
 		"url": "https://github.com/marcuscastelo/vscode-anime"
 	},
 	"capabilities": {
-		"codeLensProvider" : {
-            "resolveProvider": "false"
-        },
-		"completionProvider" : {
-            "resolveProvider": "false",
-            "triggerCharacters": ["{", "[", ","]
-        },
+		"codeLensProvider": {
+			"resolveProvider": "false"
+		},
+		"completionProvider": {
+			"resolveProvider": "false",
+			"triggerCharacters": [
+				"{",
+				"[",
+				","
+			]
+		},
 		"definitionProvider": "true"
 	},
 	"preview": true,
@@ -122,6 +126,7 @@
 		"vscode-test": "^1.5.0"
 	},
 	"dependencies": {
-		"axios": "^0.21.1"
+		"axios": "^0.21.1",
+		"axios-rate-limit": "^1.3.0"
 	}
 }

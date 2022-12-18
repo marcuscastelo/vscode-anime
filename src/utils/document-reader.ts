@@ -34,14 +34,11 @@ export default class DocumentReader implements IterableIterator<vscode.TextLine>
 		for (let lineIdx = this._currentLineIndex; lineIdx >= 0; lineIdx += step) {
 			const line = this.document.lineAt(lineIdx);
 
-			console.debug(`Testing line '${line.text}...'`);
 			const testResult = matcher.testLine(line, lineNum => this.document.lineAt(lineNum));
 			if (testResult.hasData) {
-				console.debug(`Line has data! '${JSON.stringify(testResult.data)}'...`);
 				results.push(testResult.data);
 			}
 			if (testResult.stop) {
-				console.debug(`Stopping at '${line.text}...'`);
 				break;
 			}
 		}

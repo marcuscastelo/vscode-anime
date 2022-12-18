@@ -85,7 +85,16 @@ export class Anime extends MALShow<MALAnimeInfo> {
     cachedMALInfo?: { lastUpdateMs: number; data: MALAnimeInfo; } | undefined;
     async searchMALInfo(): Promise<MALAnimeInfo> {
         const result = await MAL.searchAnime(this.info.title);
-        if (result.length > 0) return result[0] as MALAnimeInfo;
+        if (result.length > 0) {
+            return {
+                mal_id: result[0].mal_id,
+                title: result[0].title,
+                url: result[0].url,
+                image_url: result[0].images.jpg.image_url,
+                type: result[0].type,
+                episodes: result[0].episodes
+            };
+        }
 
         throw new Error('Anime Not found');
     }

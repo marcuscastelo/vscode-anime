@@ -8,11 +8,16 @@ import { MAL } from "../services/mal";
 
 async function searchMAL(animeTitle: string) {
     let foundAnimes = await MAL.searchAnime(animeTitle);
-    return foundAnimes.length > 0 ? foundAnimes[0] : undefined;
-}
 
-function getAnimeID(animeTitle: string) {
+    if (foundAnimes.length === 0) {
+        return undefined;
+    }
 
+    if (foundAnimes[0].titles.filter(title => title.title.toLowerCase() === animeTitle.toLowerCase()).length === 0) {
+        return undefined;
+    }
+
+    return foundAnimes[0];
 }
 
 export default class ShowHoverProvider implements HoverProvider {
@@ -25,14 +30,14 @@ export default class ShowHoverProvider implements HoverProvider {
 
     constructor(private readonly context: ExtensionContext) { }
 
-    private generateLineContextHover(document: TextDocument, line: number) {
+    private generateLineContextMD(document: TextDocument, line: number) {
         const searchResult = LineContextFinder.findContext(document, line);
         
         if (!searchResult.ok) {
             const md = new MarkdownString();
             md.appendMarkdown(`### ERROR: `);
             md.appendText(`${searchResult.error.message}`);
-            return new Hover(md);
+            return md;
         }
 
         const lineContext = searchResult.result;
@@ -42,7 +47,7 @@ export default class ShowHoverProvider implements HoverProvider {
             const md = new MarkdownString();
             md.appendMarkdown(`### ERROR: `);
             md.appendText(`${"currentDateLine or currentShowLine are undefined"}`);
-            return new Hover(md);
+            return md;
         }
         
         const tagNames = currentTagsLines.map(lineInfo => lineInfo.params.tag.name);
@@ -61,8 +66,7 @@ export default class ShowHoverProvider implements HoverProvider {
             }
         }
 
-        console.dir(lineContext);
-        return new Hover(new MarkdownString(
+        return new MarkdownString(
             `\n\nCurrent Line Context:` +
             `\n\n  - Current Date: ${currentDateLine.params.date}` +
             `\n\n  - Current Show: ${currentShowLine.params.showTitle}` +
@@ -71,48 +75,30 @@ export default class ShowHoverProvider implements HoverProvider {
             `\n\n  - First Mention Date: ${showLastDate}` +
             `\n\n  - First Mention Show: ${showLastTitle}` +
             `\n\n  - First Mention Tags: [${showLastTagNamesString}]`
-        ));
+        );
     }
-
 
     public async provideHover(document: TextDocument, position: Position, token: CancellationToken) {
         const extension = MarucsAnime.INSTANCE;
         
         if (!window.activeTextEditor) { return; }
 
-        const lineContextHoverText = this.generateLineContextHover(document, position.line);
-        return lineContextHoverText;
+        const lineContext = LineContextFinder.findContext(document, position.line);
+        if (!lineContext.ok) {
+            return;
+        }
 
+        const malData = await searchMAL(lineContext.result.currentShowLine.params.showTitle);
+        const lineContextMD = new MarkdownString(
+            `<img align="left" width="200" src="https://www.rd.com/wp-content/uploads/2018/02/25_Hilarious-Photos-that-Will-Get-You-Through-the-Week_280228817_Doty911.jpg" />
 
-        // let { type: lineType } = LineIdentifier.identifyLine(window.activeTextEditor.document.lineAt(position.line));
-        // if (lineType !== LineType.ShowTitle) {
-        //     return;
-        // }
+            # Headline 
+            
+            Some text`
+        );
 
-
-        // let showTitle = lineContext.context.currentShowTitle;
-
-        // let show = extension.showStorage.getShow(showTitle);
-
-        // let mdString: MarkdownString;
-        // if (show instanceof Anime) {
-        //     let showInfo = show.info;
-        //     let malInfo = await show.getMALInfo();
-    
-        //     mdString = new MarkdownString(
-        //         `### ${showTitle}: ` +
-        //         `\n ![anime image](${malInfo.image_url})` +
-        //         `\n- Last episode: ${showInfo.lastWatchEntry.episode}/${malInfo.episodes}` +
-        //         `\n- URL: ${malInfo.url}`
-        //     );
-        // }
-        // else {
-        //     mdString = new MarkdownString(
-        //         `### ${showTitle}:` +
-        //         `\n NOT-ANIME`
-        //     );
-        // }
-
-        // return new Hover(mdString);
+        const newMD = this.generateLineContextMD(document, position.line);
+        
+        return new Hover([lineContextMD, newMD]);
     }
 };

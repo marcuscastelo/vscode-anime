@@ -145,7 +145,6 @@ export default class LineContextFinder {
             }
         };  
 
-        console.debug('Searching for Tags...');
         let tagRes = reader.searchLine(-1, tagMatcher);
         if (tagRes.ok) {
             return { found: true, info: tagRes.result };
