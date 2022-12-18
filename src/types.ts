@@ -47,6 +47,22 @@ export const Tags: { [key: string]: Tag } = {
 		target: TagTarget.SHOW,
 		parameters: []
 	},
+	"WEBTOON": {
+		name: 'WEBTOON',
+		target: TagTarget.SHOW,
+		parameters: []
+	},
+	"DORAMA": {
+		name: 'DORAMA',
+		target: TagTarget.SHOW,
+		parameters: []
+	},
+	"COURSE": {
+		name: 'COURSE',
+		target: TagTarget.SHOW,
+		parameters: []
+	},
+	
 };
 
 export type WatchEntry = {

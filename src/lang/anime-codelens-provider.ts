@@ -16,11 +16,21 @@ export default class ShowLensProvider implements CodeLensProvider {
 
     constructor(private readonly context: ExtensionContext) { }
 
-    private generateTagLens(document: TextDocument, line: number) {
+    private generateTagLens(document: TextDocument, line: number, lazy = false) {
         const lineContext = LineContextFinder.findContext(document, line);
 
         let lineMessages: string[] = [];
         let targetLine = lineContext.ok ? lineContext.result.currentShowLine.line.lineNumber : line;
+        const range = new Range(targetLine, 0, targetLine+1, 10);
+        if (lazy) {
+            return [new CodeLens(
+                range,
+                {
+                    title: 'Loading...',
+                    command: ''
+                }
+            )];
+        }
 
         if (!lineContext.ok) {
             lineMessages.push(`${lineContext.error}`);
@@ -48,7 +58,7 @@ export default class ShowLensProvider implements CodeLensProvider {
         
         return lineMessages.map(title =>
             new CodeLens(
-                new Range(targetLine, 0, targetLine+1, 10),
+                range,
                 {
                     title,
                     command: ''
@@ -57,9 +67,19 @@ export default class ShowLensProvider implements CodeLensProvider {
         );
     }
 
-    private async generateEpisodesLens(document: TextDocument, line: number) {
+    private async generateEpisodesLens(document: TextDocument, line: number, lazy = false) {
         const lineContext = LineContextFinder.findContext(document, line);
         const range = new Range(line, 0, line+1, 10);
+
+        if (lazy) {
+            return [new CodeLens(
+                range,
+                {
+                    title: 'Loading...',
+                    command: ''
+                }
+            )];
+        }
 
         if (!lineContext.ok) {
             console.warn('generateEpisodesLens had invalid context');
@@ -100,7 +120,7 @@ export default class ShowLensProvider implements CodeLensProvider {
         ];
     }
 
-    private async generateCodeLens(document: TextDocument, line: number) {
+    private async generateCodeLens(document: TextDocument, line: number, lazy = false) {
         const context = LineContextFinder.findContext(document, line);
         if (!context.ok) {
             return [];
@@ -108,12 +128,12 @@ export default class ShowLensProvider implements CodeLensProvider {
 
         const currShowLine = context.result.currentShowLine;
         
-        const tagLens = this.generateTagLens(document, line);
-        const episodeLens = await this.generateEpisodesLens(document, currShowLine.line.lineNumber);
+        const tagLens = this.generateTagLens(document, line, lazy);
+        const episodeLens = await this.generateEpisodesLens(document, currShowLine.line.lineNumber, lazy);
 
         return [
+            ...episodeLens,
             ...tagLens,
-            ...episodeLens
         ];
     }
 
@@ -134,9 +154,9 @@ export default class ShowLensProvider implements CodeLensProvider {
             }
             
             console.log(`Processing lenses for line '${line.text}'...`);
-            lenses.push(...await this.generateCodeLens(document, i));
+            lenses.push(...await this.generateCodeLens(document, i, true));
 
-            if (lenses.length > 10) {
+            if (lenses.length > 3501) {
                 break; // Only check the last 10 lines (for now) //TODO: use resolveCodeLens
             }
         }
