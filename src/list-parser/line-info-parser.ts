@@ -1,8 +1,8 @@
 import { TextLine } from "vscode";
-import { Tag } from "../types";
+import { Tag, Tags } from "../types";
 import { COMMENT_TOKEN, DATE_REG, LineType, SHOW_TITLE_REG, TAG_PARAM_REG, TAG_REG, WATCH_REG } from "./line-type";
 
-type LineInfoBase = {
+export type LineInfoBase = {
     line: TextLine,
 };
 
@@ -52,6 +52,7 @@ export type TagLineInfo =
     LineInfoBase &
     {
         params: {
+            tag: Tag,
             tagName: string,
             tagParams: TagParam[],
         }
@@ -171,9 +172,12 @@ export default class LineIdentifier {
             };
         }
 
+        const tag = Tags[tagName];
+
         return {
             type: LineType.Tag,
             params: {
+                tag,
                 tagName,
                 tagParams
             },

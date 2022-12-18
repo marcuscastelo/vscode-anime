@@ -26,6 +26,11 @@
 	"repository": {
 		"url": "https://github.com/marcuscastelo/vscode-anime"
 	},
+	"capabilities": {
+		"codeLensProvider" : {
+            "resolveProvider": "false"
+        }
+	},
 	"preview": true,
 	"main": "./out/vscode-extension.js",
 	"contributes": {

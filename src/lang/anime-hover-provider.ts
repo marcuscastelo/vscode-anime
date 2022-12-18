@@ -1,4 +1,5 @@
 import { CancellationToken, ExtensionContext, Hover, HoverProvider, languages, MarkdownString, Position, TextDocument, window } from "vscode";
+import { LANGUAGE_ID } from "../constants";
 
 import { MarucsAnime } from "../extension";
 import LineContext from "../list-parser/line-context";
@@ -20,44 +21,51 @@ export default class ShowHoverProvider implements HoverProvider {
         return languages.registerHoverProvider(this.viewType, provider);
     }
 
-    private static readonly viewType = 'anime-list';
+    private static readonly viewType = LANGUAGE_ID;
 
     constructor(private readonly context: ExtensionContext) { }
 
     private generateLineContextHover(document: TextDocument, line: number) {
         const searchResult = LineContextFinder.findContext(document, line);
         
-        if (!searchResult.valid) {
+        if (!searchResult.ok) {
             const md = new MarkdownString();
             md.appendMarkdown(`### ERROR: `);
             md.appendText(`${searchResult.error.message}`);
             return new Hover(md);
         }
 
-        const lineContext = searchResult.context;
-        const { currDate, currShowTitle, currTags } = lineContext;
+        const lineContext = searchResult.result;
+        const { currentDateLine, currentShowLine, currentTagsLines } = lineContext;
+
+        if (!currentDateLine || !currentShowLine) {
+            const md = new MarkdownString();
+            md.appendMarkdown(`### ERROR: `);
+            md.appendText(`${"currentDateLine or currentShowLine are undefined"}`);
+            return new Hover(md);
+        }
         
-        const tagNames = currTags.map(tag => tag.name);
+        const tagNames = currentTagsLines.map(lineInfo => lineInfo.params.tag.name);
         const tagNamesString = tagNames.join(', ');
 
-        const show = MarucsAnime.INSTANCE.showStorage.getShow(currShowTitle);
+        const show = MarucsAnime.INSTANCE.showStorage.getShow(currentShowLine.params.showTitle);
         let showLastTitle = 'NOT FOUND';
         let showLastDate = 'NOT FOUND';
         let showLastTagNamesString = 'NOT FOUND';
         if (show) {
             const firstMentionedContext = LineContextFinder.findContext(document, show.info.firstMentionedLine+1);
-            if (firstMentionedContext.valid) {
-                showLastTitle = firstMentionedContext.context.currShowTitle;
-                showLastDate = firstMentionedContext.context.currDate;
-                showLastTagNamesString = firstMentionedContext.context.currTags.map(tag => tag.name).join(', ');
+            if (firstMentionedContext.ok) {
+                showLastTitle = firstMentionedContext.result.currentShowLine?.params.showTitle || 'EMPTY';
+                showLastDate = firstMentionedContext.result.currentDateLine?.params.date || "EMPTY";
+                showLastTagNamesString = firstMentionedContext.result.currentTagsLines.map(lineInfo => lineInfo.params.tag).join(', ');
             }
         }
 
         console.dir(lineContext);
         return new Hover(new MarkdownString(
             `\n\nCurrent Line Context:` +
-            `\n\n  - Current Date: ${currDate}` +
-            `\n\n  - Current Show: ${currShowTitle}` +
+            `\n\n  - Current Date: ${currentDateLine.params.date}` +
+            `\n\n  - Current Show: ${currentShowLine.params.showTitle}` +
             `\n\n  - Current Tags: [${tagNamesString}]` +
             `\n\nFirst Mention Show Context:` +
             `\n\n  - First Mention Date: ${showLastDate}` +

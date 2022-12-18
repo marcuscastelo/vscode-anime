@@ -7,16 +7,18 @@ import LineContext from "./line-context";
 import { LineType } from "./line-type";
 import LineIdentifier, { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
 import { Tag, TagTarget, Tags, WatchEntry } from "../types";
+import assert = require("assert");
+import { checkTags } from "../analysis/check-tags";
 
 
 export default class LineProcessor {
 
-    private lineContext: LineContext;
+    private lineContext: Partial<LineContext>;
     constructor(
         private storage: ShowStorage,
         private diagnosticController: MADiagnosticController
     ) {
-        this.lineContext = new LineContext();
+        this.lineContext = {};
     }
 
     processDocument(document: TextDocument) {
@@ -35,7 +37,6 @@ export default class LineProcessor {
     processLine(line: TextLine, reader: DocumentReader) {
         let lineInfo = LineIdentifier.identifyLine(line);
 
-
         if (lineInfo.type === LineType.ShowTitle) {
             this.processShowTitleLine(lineInfo, reader.document);
         } else if (lineInfo.type === LineType.WatchEntry) {
@@ -53,50 +54,33 @@ export default class LineProcessor {
     }
 
     processDateLine(lineInfo: DateLineInfo) {
-        this.lineContext.currDate = lineInfo.params.date;
+        this.lineContext.currentDateLine = lineInfo;
 
         //Resets current anime, so that it is necessary to explicitly set an anime title everytime the day changes
-        this.lineContext.currShowTitle = '';
+        this.lineContext.currentShowLine = undefined;
     }
 
     processShowTitleLine(lineInfo: ShowTitleLineInfo, document: TextDocument) {
         const showTitle = lineInfo.params.showTitle;
 
-        if (showTitle === this.lineContext.currShowTitle) {
+        if (showTitle === this.lineContext.currentShowLine?.params.showTitle) {
             this.diagnosticController.addLineDiagnostic(lineInfo.line, 'Redundant show title');
             return;
         }
 
-        this.lineContext.currTags = this.lineContext.currTags.filter(tag => tag.target !== TagTarget.SHOW && tag.target !== TagTarget.WATCH_SESSION);
+        this.lineContext.currentTagsLines = this.lineContext.currentTagsLines?.filter(lineInfo => lineInfo.params.tag.target !== TagTarget.SHOW && lineInfo.params.tag.target !== TagTarget.WATCH_SESSION);
 
-        const currentShow = this.storage.getOrCreateShow(showTitle, lineInfo.line.lineNumber, this.lineContext.currTags);
+        const currentShow = this.storage.getOrCreateShow(showTitle, lineInfo.line.lineNumber, this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag));
 
         //TODO: check for empty sessions ( i.e: no watch entries between titles )
         currentShow.updateLastMentionedLine(lineInfo.line.lineNumber);
 
-
-        let missingTags: Tag[] = [];
-        let extraTags: Tag[] = [];
-        for (let tag of currentShow.info.tags) {
-            if (tag.target === TagTarget.SHOW) {
-                if (this.lineContext.currTags.indexOf(tag) === -1) {
-                    missingTags.push(tag);
-                }
-            }
-        }
-
-        for (let tag of this.lineContext.currTags) {
-            if (tag.target === TagTarget.SHOW) {
-                if (currentShow.info.tags.indexOf(tag) === -1) {
-                    extraTags.push(tag);
-                }
-            }
-        }
-
+        const currTags = this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag) || [];
+        const { missingTags, extraTags } = checkTags(document, currTags, currentShow);
+    
         const names = (tag: Tag) => tag.name;
         const toList = (accum: string, token: string) => accum + ',' + token;
         const listTags = (tags: Tag[]) => tags.map(names).reduce(toList, '');
-
 
         let relatedErrorMessage = '';
         let messageBitmask = ((missingTags.length > 0) ? 1 : 0) | ((extraTags.length > 0) ? 2 : 0);
@@ -114,24 +98,30 @@ export default class LineProcessor {
             });
         }
 
-
-        this.lineContext.currShowTitle = showTitle;
-        this.lineContext.currTags = this.lineContext.currTags.filter(tag => tag.target !== TagTarget.SHOW);
+        this.lineContext.currentShowLine = lineInfo;
+        this.lineContext.currentTagsLines = this.lineContext.currentTagsLines?.filter(lineInfo => lineInfo.params.tag.target !== TagTarget.SHOW);
     }
 
     processWatchLine(lineInfo: WatchEntryLineInfo) {
-        let { currShowTitle: currShowTitle } = this.lineContext;
-        let currentShow = this.storage.getShow(currShowTitle);
+        let { currentShowLine } = this.lineContext;
 
-        this.lineContext.currTags = this.lineContext.currTags.filter(tag => tag.target !== TagTarget.WATCH_LINE);
+        if (!currentShowLine) {
+            this.diagnosticController.addLineDiagnostic(lineInfo.line, "Anime title not defined (or ill-defined)");
+            return;
+        }
 
-        if (!currShowTitle) {
+        const currentShowTitle = currentShowLine.params.showTitle;
+        let currentShow = this.storage.getShow(currentShowLine.params.showTitle);
+
+        this.lineContext.currentTagsLines = this.lineContext.currentTagsLines?.filter(lineInfo => lineInfo.params.tag.target !== TagTarget.WATCH_LINE);
+
+        if (!currentShowTitle) {
             this.diagnosticController.addLineDiagnostic(lineInfo.line, "Watch Entry provided, but not inside a show");
             return;
         }
 
         if (!currentShow) {
-            throw new Error(`Unexpected error: anime '${currShowTitle}' not found in list, despite being the current show`);
+            throw new Error(`Unexpected error: anime '${currentShowTitle}' not found in list, despite being the current show`);
         }
 
         let { startTime, endTime, episode, friends } = lineInfo.params;
@@ -142,7 +132,7 @@ export default class LineProcessor {
 
         //TODO: consider currDate and 23:59 - 00:00 entries
         const watchEntry: WatchEntry = {
-            showTitle: currShowTitle,
+            showTitle: currentShowTitle,
             startTime,
             endTime,
             episode,
@@ -156,7 +146,7 @@ export default class LineProcessor {
             //TODO: check for skipped as well
             //TODO: check for [UNSAFE-ORDER]
             //TODO: check for REWATCH (major rewrite of the code to support this)
-            const isUnsafeOrder = this.lineContext.currTags.indexOf(Tags['UNSAFE-ORDER']) !== -1;
+            const isUnsafeOrder = this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag).indexOf(Tags['UNSAFE-ORDER']) !== -1;
             const isSkip = false;
             const checkOrder = !isUnsafeOrder && !isSkip;
             if (checkOrder) {
@@ -171,7 +161,7 @@ export default class LineProcessor {
             }
         }
 
-        this.storage.registerWatchEntry(currShowTitle, watchEntry);
+        this.storage.registerWatchEntry(currentShowTitle, watchEntry);
 
         for (let friend of friends) {
             this.storage.registerFriend(friend);
@@ -191,7 +181,7 @@ export default class LineProcessor {
         }
 
         if (tag.target === TagTarget.SHOW) {
-            this.lineContext.currShowTitle = '';
+            this.lineContext.currentShowLine = undefined;
         }
 
         for (let param of tag.parameters) {
@@ -215,9 +205,9 @@ export default class LineProcessor {
         }
 
         if (tag.target !== TagTarget.SCRIPT_TAG) {
-            if (this.lineContext.currTags.indexOf(tag) === -1) {
+            if (this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag).indexOf(tag) === -1) {
                 console.log(`Adding tag ${tag.name}`);
-                this.lineContext.currTags.push(tag);
+                this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag).push(tag);
             }
         }
 

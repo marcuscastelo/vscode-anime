@@ -2,21 +2,21 @@ import { TextDocument, TextLine } from "vscode";
 import { Tag, Tags, TagTarget, WatchEntry } from "../types";
 import DocumentReader, { LineMatcher } from "../utils/document-reader";
 import LineContext from "./line-context";
-import LineIdentifier, { DateLineInfo, LineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
-import { COMMENT_TOKEN, DATE_REG, LineType, SHOW_TITLE_REG, TAG_REG, WATCH_REG } from "./line-type";
-import { FixedLengthArray, PredefinedArray } from '../utils/typescript-utils';
+import LineIdentifier, { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
+import { LineType } from "./line-type";
+import { PredefinedArray, Result } from '../utils/typescript-utils';
 
-type GetContextResult =
-    | { valid: true, context: LineContext }
-    | { valid: false, error: Error };
+type FindContextResult = Result<LineContext, Error>;
 
-type ShowTitleSearchResult = { found: true, showTitle: string } | { found: false };
-type DateSearchResult = { found: true, date: string } | { found: false };
-type WatchEntrySearchResult = { found: true, watchEntryLineInfo: WatchEntryLineInfo } | { found: false };
-type TagSearchResult = { found: true, tags: Tag[] } | { found: false, tags: PredefinedArray<never[]> };
+type SearchResult<T> = { found: true, info: T } | { found: false };
+type SearchResults<T> = { found: true, info: T[] } | { found: false, info: PredefinedArray<never[]> };
+
+type ShowTitleSearchResult = SearchResult<ShowTitleLineInfo>;
+type DateSearchResult = SearchResult<DateLineInfo>;
+type WatchEntrySearchResult = SearchResult<WatchEntryLineInfo>;
+type TagSearchResult = SearchResults<TagLineInfo>;
 
 export default class LineContextFinder {
-
     private static findLastShowTitle(reader: DocumentReader): ShowTitleSearchResult {
         const showTitleMatcher: LineMatcher<ShowTitleLineInfo> = {
             testLine: (line: TextLine) => {
@@ -30,10 +30,8 @@ export default class LineContextFinder {
         };
 
         let showTitleRes = reader.searchLine(-1, showTitleMatcher);
-        if (showTitleRes.success) {
-            const showTitleLine = showTitleRes.results[0].line.text;
-            const showTitle = showTitleLine.trim().replace(/:$/g, ""); //Removes trailing colon
-            return { found: true, showTitle };
+        if (showTitleRes.ok) {
+            return { found: true, info: showTitleRes.result[0] };
         } else {
             return { found: false };
         }
@@ -52,9 +50,8 @@ export default class LineContextFinder {
         };
 
         let dateRes = reader.searchLine(-1, dateMatcher);
-        if (dateRes.success) {
-
-            return { found: true, date: dateRes.results[0].params.date };
+        if (dateRes.ok) {
+            return { found: true, info: dateRes.result[0] };
         } else {
             return { found: false };
         }
@@ -69,7 +66,7 @@ export default class LineContextFinder {
                     copyReader.goToLine(line.lineNumber);
                     const showTitleSearchRes = this.findLastShowTitle(copyReader);
 
-                    if (showTitleSearchRes.found && showTitleSearchRes.showTitle === ofShowTitle) {
+                    if (showTitleSearchRes.found && showTitleSearchRes.info.params.showTitle === ofShowTitle) {
                         return { hasData: true, data: lineInfo, stop: true };
                     } else {
                         return { hasData: false, stop: true }; // If no show title found, this watch entry is invalid, or if not desired show title, don't include it
@@ -82,8 +79,8 @@ export default class LineContextFinder {
         };
 
         let watchEntryRes = reader.searchLine(-1, watchEntryMatcher);
-        if (watchEntryRes.success) {
-            return { found: true, watchEntryLineInfo: watchEntryRes.results[0] };
+        if (watchEntryRes.ok) {
+            return { found: true, info: watchEntryRes.result[0] };
         } else {
             return { found: false };
         }
@@ -150,15 +147,15 @@ export default class LineContextFinder {
 
         console.debug('Searching for Tags...');
         let tagRes = reader.searchLine(-1, tagMatcher);
-        if (tagRes.success) {
-            return { found: true, tags: tagRes.results.map(lineInfo => Tags[lineInfo.params.tagName]) };
+        if (tagRes.ok) {
+            return { found: true, info: tagRes.result };
         } else {
-            return { found: false, tags: [] };
+            return { found: false, info: [] };
         }
     }
 
 
-    public static findContext(document: TextDocument, lineNumber: number): GetContextResult {
+    public static findContext(document: TextDocument, lineNumber: number): FindContextResult {
         let reader = new DocumentReader(document);
         reader.goToLine(lineNumber);
 
@@ -166,38 +163,34 @@ export default class LineContextFinder {
         reader.goToLine(lineNumber);
         const lastDateRes = this.findLastDate(reader);
         if (!lastDateRes.found) {
-            return { valid: false, error: new Error('No date found') };
+            return { ok: false, error: new Error('No date found') };
         }
 
         //Finds nearest show title declaration
         reader.goToLine(lineNumber);
         const lastShowTitleRes = this.findLastShowTitle(reader);
         if (!lastShowTitleRes.found) {
-            return { valid: false, error: new Error('No show title found') };
+            return { ok: false, error: new Error('No show title found') };
         }
 
         //Finds nearest watch entry declaration
         reader.goToLine(lineNumber);
-        const lastWatchEntryRes = this.findLastWatchEntry(reader, lastShowTitleRes.showTitle);
+        const lastWatchEntryRes = this.findLastWatchEntry(reader, lastShowTitleRes.info.params.showTitle);
         
         //Gets last used tags for last show
         reader.goToLine(lineNumber);
-        const appliedTags = this.findTags(reader, lastShowTitleRes.showTitle);
-
-        let lastShowTitle = lastShowTitleRes.showTitle;
-        let lastDate = lastDateRes.date;
-        let lastTags = appliedTags.tags;
+        const tagsRes = this.findTags(reader, lastShowTitleRes.info.params.showTitle);
 
         let context: LineContext = {
-            currShowTitle: lastShowTitle,
-            currDate: lastDate,
-            currTags: lastTags,
-            lastWatchEntryLine: lastWatchEntryRes.found ? lastWatchEntryRes.watchEntryLineInfo : undefined,
+            currentShowLine: lastShowTitleRes.info,
+            currentDateLine: lastDateRes.info,
+            currentTagsLines: tagsRes.info,
+            lastWatchEntryLine: lastWatchEntryRes.found ? lastWatchEntryRes.info : undefined,
         };
 
         return {
-            valid: true,
-            context
+            ok: true,
+            result: context
         };
     }
 }

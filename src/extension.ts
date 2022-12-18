@@ -13,14 +13,12 @@ import { insertNextEpisode } from './commands/insert-next-episode';
 import ShowHoverProvider from './lang/anime-hover-provider';
 import AnimeCompletionItemProvider from './lang/anime-completion-provider';
 import MADiagnosticController from './lang/maDiagnosticCollection';
+import { ANIME_STORAGE_ID, EXTENSION_ID, LANGUAGE_ID } from './constants';
+import ShowLensProvider from './lang/anime-codelens-provider';
 
 export class MarucsAnime {
     private static _INSTANCE: MarucsAnime;
     static get INSTANCE() { return MarucsAnime._INSTANCE; }
-
-    public static readonly ANIME_STORAGE_ID = 'marucs-anime:storage';
-    public static readonly EXTENSION_ID = 'vscode-anime';
-    public static readonly LANGUAGE_ID = 'anime-list';
 
     public static activate(context: ExtensionContext): MarucsAnime | null {
         if (MarucsAnime._INSTANCE) {
@@ -40,7 +38,6 @@ export class MarucsAnime {
     ) {
         this.diagnosticController = this.createDiagnosticCollections();
         this.registerSubscriptions();
-        this.registerMembers();
 
         if (vscode.window.activeTextEditor) { // If there is an active editor, we start scanning it already (events are not fired)
             this.reactToDocumentChange(vscode.window.activeTextEditor.document);
@@ -48,7 +45,7 @@ export class MarucsAnime {
     }
 
     get showStorage(): ShowStorage {
-        let animeStorage = this.context.workspaceState.get<ShowStorage>(MarucsAnime.ANIME_STORAGE_ID);
+        let animeStorage = this.context.workspaceState.get<ShowStorage>(ANIME_STORAGE_ID);
 
         if (!animeStorage) {
             animeStorage = new ShowStorage();
@@ -61,7 +58,7 @@ export class MarucsAnime {
     public reactToDocumentChange(document: vscode.TextDocument) {
         this.diagnosticController.clearDiagnostics();
 
-        if (document.languageId !== MarucsAnime.LANGUAGE_ID) {
+        if (document.languageId !== LANGUAGE_ID) {
             return;
         }
 
@@ -79,7 +76,7 @@ export class MarucsAnime {
     }
 
     public overwriteAnimeStorage(storage: ShowStorage) {
-        this.context.workspaceState.update(MarucsAnime.ANIME_STORAGE_ID, storage);
+        this.context.workspaceState.update(ANIME_STORAGE_ID, storage);
     }
 
     private createStorageFromEntireDocument(textDocument: TextDocument): ShowStorage {
@@ -91,7 +88,7 @@ export class MarucsAnime {
     }
 
     private createDiagnosticCollections() {
-        return MADiagnosticController.register(this.context, MarucsAnime.EXTENSION_ID);
+        return MADiagnosticController.register(this.context, EXTENSION_ID);
     }
 
     private registerSubscriptions() {
@@ -99,17 +96,14 @@ export class MarucsAnime {
             vscode.window.onDidChangeActiveTextEditor(editor => editor && this.reactToDocumentChange(editor.document)),
             vscode.workspace.onDidSaveTextDocument(document => document && this.reactToDocumentChange(document)),
             vscode.workspace.onDidCloseTextDocument(document => document && this.diagnosticController.clearDiagnostics()),
-        );
-    }
 
-    private registerMembers() {
-        this.context.subscriptions.push(
             vscode.commands.registerTextEditorCommand('marucs-anime.insertDate', insertDate),
             vscode.commands.registerTextEditorCommand('marucs-anime.insertTime', insertTime),
             vscode.commands.registerTextEditorCommand('marucs-anime.insertNextEpisode', insertNextEpisode),
-
+        
             ShowHoverProvider.register(this.context),
             AnimeCompletionItemProvider.register(this.context),
+            ShowLensProvider.register(this.context),
         );
     }
 }

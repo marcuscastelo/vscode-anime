@@ -1,13 +1,9 @@
 const makeGlobalReg = (regex: RegExp) => new GlobalRegex(regex);
 
-
 class GlobalRegex {
-	constructor(
-		private readonly regex_pattern: RegExp
-		) { }
-		
-		public exec(string: string) { return new RegExp(this.regex_pattern).exec(string); }
-	}
+	constructor(private readonly regex_pattern: RegExp) { }
+	public exec(string: string) { return new RegExp(this.regex_pattern).exec(string); }
+}
 	
 export const COMMENT_TOKEN = '//';
 export const SHOW_TITLE_REG = makeGlobalReg(/^\s*([a-zA-Z0-9][^{[}\]]*)\:\s*$/g);

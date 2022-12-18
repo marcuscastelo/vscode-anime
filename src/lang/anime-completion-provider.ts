@@ -1,5 +1,6 @@
 import { CancellationToken, CompletionContext, CompletionItem, CompletionItemKind, CompletionItemProvider, CompletionTriggerKind, DebugConsoleMode, DocumentFilter, ExtensionContext, languages, Position, ProviderResult, TextDocument, TextEdit, window } from "vscode";
 import ShowStorage from "../cache/anime/showStorage";
+import { LANGUAGE_ID } from "../constants";
 import { MarucsAnime } from "../extension";
 import { LineType } from "../list-parser/line-type";
 import { Tags } from "../types";
@@ -23,7 +24,7 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
         return languages.registerCompletionItemProvider(this.viewType, provider);
     }
 
-    private static viewType = "anime-list";
+    private static readonly viewType = LANGUAGE_ID;
 
     constructor(private readonly context: ExtensionContext) { }
 

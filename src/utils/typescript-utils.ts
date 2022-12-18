@@ -1,3 +1,5 @@
+import LineContext from "../list-parser/line-context";
+
 interface PrimitivesMap {
     string: string,
     boolean: boolean,
@@ -34,3 +36,10 @@ export type FixedLengthArray<T extends any[]> =
 export type PredefinedArray<T extends any[]> =
     T
     & { [Symbol.iterator]: () => IterableIterator< ArrayItems<T> > };
+
+
+/// Types
+
+export type Ok<T> = { ok: true, result: T };
+export type Err<E> = { ok: false, error: E };
+export type Result<T, E> = Ok<T> | Err<E>;

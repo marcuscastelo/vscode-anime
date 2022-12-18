@@ -15,20 +15,20 @@ export const insertNextEpisode: TextEditorCommand<void> = (textEditor: TextEdito
 	const extension = MarucsAnime.INSTANCE;
 	let animeContext = LineContextFinder.findContext(textEditor.document, textEditor.selection.start.line);
 
-	if (!animeContext.valid) {
+	if (!animeContext.ok) {
 		console.error(animeContext.error);
 		return;
 	}
 
 	let show: Show | undefined;
 
-	show = extension.showStorage.getShow(animeContext.context.currShowTitle);
+	show = extension.showStorage.getShow(animeContext.result.currentShowLine.params.showTitle);
 	if (!show) {
-		console.log(`[insertNextEpisode] Anime ${animeContext.context.currShowTitle} not found, rescaning...`);
+		console.log(`[insertNextEpisode] Anime ${animeContext.result.currentShowLine.params.showTitle} not found, rescaning...`);
 		extension.reactToDocumentChange(textEditor.document);
-		show = extension.showStorage.getShow(animeContext.context.currShowTitle);
+		show = extension.showStorage.getShow(animeContext.result.currentShowLine.params.showTitle);
 		if (!show) {
-			window.showErrorMessage(`[insertNextEpisode] Anime ${animeContext.context.currShowTitle} not found! Couldn't determine next epiode. (Unexpected error) `);
+			window.showErrorMessage(`[insertNextEpisode] Anime ${animeContext.result.currentShowLine.params.showTitle} not found! Couldn't determine next epiode. (Unexpected error) `);
 			return;
 		}
 	}
