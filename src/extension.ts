@@ -15,6 +15,7 @@ import AnimeCompletionItemProvider from './lang/anime-completion-provider';
 import MADiagnosticController from './lang/maDiagnosticCollection';
 import { ANIME_STORAGE_ID, EXTENSION_ID, LANGUAGE_ID } from './constants';
 import ShowLensProvider from './lang/anime-codelens-provider';
+import { formatFriend } from './commands/format-friend';
 
 export class MarucsAnime {
     private static _INSTANCE: MarucsAnime;
@@ -100,6 +101,7 @@ export class MarucsAnime {
             vscode.commands.registerTextEditorCommand('marucs-anime.insertDate', insertDate),
             vscode.commands.registerTextEditorCommand('marucs-anime.insertTime', insertTime),
             vscode.commands.registerTextEditorCommand('marucs-anime.insertNextEpisode', insertNextEpisode),
+            vscode.commands.registerTextEditorCommand('marucs-anime.formatFriend', formatFriend),
         
             ShowHoverProvider.register(this.context),
             AnimeCompletionItemProvider.register(this.context),

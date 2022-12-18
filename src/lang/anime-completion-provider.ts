@@ -1,4 +1,5 @@
-import { CancellationToken, CompletionContext, CompletionItem, CompletionItemKind, CompletionItemProvider, CompletionTriggerKind, DebugConsoleMode, DocumentFilter, ExtensionContext, languages, Position, ProviderResult, TextDocument, TextEdit, window } from "vscode";
+import { CancellationToken, CompletionContext, CompletionItem, CompletionItemKind, CompletionItemProvider, CompletionTriggerKind, DebugConsoleMode, DocumentFilter, ExtensionContext, languages, Position, ProviderResult, Range, TextDocument, TextEdit, window } from "vscode";
+import * as vscode from "vscode";
 import ShowStorage from "../cache/anime/showStorage";
 import { LANGUAGE_ID } from "../constants";
 import { MarucsAnime } from "../extension";
@@ -14,14 +15,14 @@ enum CompletionType {
 }
 
 type SurroundingTokenInfo = {
-    insideTokensRange: boolean,
+    insideTokens: boolean,
     validState: boolean,
 };
 
 export default class ShowCompletionItemProvider implements CompletionItemProvider<CompletionItem> {
     public static register(context: ExtensionContext) {
         const provider = new ShowCompletionItemProvider(context);
-        return languages.registerCompletionItemProvider(this.viewType, provider);
+        return languages.registerCompletionItemProvider(this.viewType, provider, "{", "[", ",", " ");
     }
 
     private static readonly viewType = LANGUAGE_ID;
@@ -30,18 +31,18 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
 
     private determineCompletionType(text: string, cursorIndex: number): CompletionType {
         let surroundingInfo: SurroundingTokenInfo;
+        
         const ifValidElseNoCompletion =
             (completionType: CompletionType) =>
                 surroundingInfo.validState ? completionType : CompletionType.NoCompletion;
 
         surroundingInfo = this.getSurroundingTokenInfo(text, cursorIndex, '{', '}');
-        if (surroundingInfo.insideTokensRange) {
+        if (surroundingInfo.insideTokens) {
             return ifValidElseNoCompletion(CompletionType.Friend);
         }
 
-
         surroundingInfo = this.getSurroundingTokenInfo(text, cursorIndex, '[', ']');
-        if (surroundingInfo.insideTokensRange) {
+        if (surroundingInfo.insideTokens) {
             return ifValidElseNoCompletion(CompletionType.Tag);
         }
 
@@ -58,11 +59,11 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
         const endTokenCount = countOccurrencesOf(endToken);
 
         const validState = endTokenCount === 0 && startTokenCount === 1;
-        const insideTokensRange = startTokenCount > 0 && (cursorIndex > startTokenFirstIdx && (cursorIndex < endTokenFirstIdx || endTokenCount === 0));
+        const insideTokens = startTokenCount > 0 && (cursorIndex > startTokenFirstIdx && (cursorIndex < endTokenFirstIdx || endTokenCount === 0));
 
         return {
             validState,
-            insideTokensRange,
+            insideTokens,
         };
     }
 
@@ -94,7 +95,7 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
         return completionOptions.filter(filterFn);
     }
 
-    private convertOptions(options: string[], completionType: CompletionType): CompletionItem[] {
+    private convertToItems(alreadyTypedText: string, options: string[], completionType: CompletionType, position: Position): CompletionItem[] {
         const getCompletionKind = () => {
             const kinds = {
                 [CompletionType.Friend]: CompletionItemKind.User,
@@ -106,38 +107,72 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
             return kinds[completionType] ?? CompletionItemKind.Text;
         };
 
-        const getInsertTextFn = () => {
-            const funcs = {
-                [CompletionType.Friend]: (label: string) => label + ',',
-                [CompletionType.ShowTitle]: (label: string) => label + ':',
-                [CompletionType.Tag]: (label: string) => label + ']',
-                [CompletionType.Episode]: (label: string) => label + ' ',
-                [CompletionType.NoCompletion]: (_: string) => '',
-            };
-            return funcs[completionType];
+        const postfixesPerType = {
+            [CompletionType.Friend]: '',
+            [CompletionType.ShowTitle]: ':',
+            [CompletionType.Tag]: ']',
+            [CompletionType.Episode]: ' ',
+            [CompletionType.NoCompletion]: '',
         };
 
-        const conversionFn = (option: string): CompletionItem => ({
-            label: option,
-            kind: getCompletionKind(),
-            insertText: getInsertTextFn()(option),
-        });
+        const commitCharactersPerType = {
+            [CompletionType.Friend]: [',', '}'],
+            [CompletionType.ShowTitle]: [],
+            [CompletionType.Tag]: [],
+            [CompletionType.Episode]: [],
+            [CompletionType.NoCompletion]: [],
+        };
 
-        return options.map(conversionFn);
+        const commandPerType = {
+            [CompletionType.Friend]: { title: 'Format Friend', command: 'marucs-anime.formatFriend' } as vscode.Command,
+            [CompletionType.ShowTitle]: undefined,
+            [CompletionType.Tag]: undefined,
+            [CompletionType.Episode]: undefined,
+            [CompletionType.NoCompletion]: undefined,
+        };
+
+        const createCompletionItem = (option: string): CompletionItem => {
+            const commitCharacters = commitCharactersPerType[completionType];
+            const textToInsert = option + postfixesPerType[completionType];
+            const item = {
+                label: option,
+                kind: getCompletionKind(),
+                insertText: textToInsert,
+                keepWhitespace: true,
+                range: new Range(position.translate(0, -alreadyTypedText.length), position),
+                commitCharacters: commitCharacters,
+                command: commandPerType[completionType]
+            };
+            return item;
+        };
+
+        return options.map(createCompletionItem);
     }
 
     private getAlreadyTypedText(lineText: string, charPosition: number, completionType: CompletionType) {
         let match;
-        const re = /[{,]/g;
-        let attStart = -1;
-        while ((match = re.exec(lineText)) !== null) {
-            attStart = match.index;
+        let re;
+        switch (completionType) {
+            case CompletionType.Friend:
+                re = new RegExp(/(?<=[,{])[^,}]*$/g);
+                break;
+            case CompletionType.ShowTitle:
+                re = new RegExp(/^/g);
+                break;
+            default:
+                re = new RegExp(/NOTIMPL/g);
+                break;
         }
+
+        match = re.exec(lineText);
+        const attStart = match?.index || 0;
 
         if (attStart < 0 || attStart >= lineText.length) {
             return '';
         }
-        return lineText.substring(attStart + 1, charPosition);
+
+        const alreadyTypedText = lineText.substring(attStart, charPosition);
+        return alreadyTypedText;
     }
 
     public provideCompletionItems(document: TextDocument, position: Position, token: CancellationToken, completionContext: CompletionContext): ProviderResult<CompletionItem[]> {
@@ -150,12 +185,14 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
         const completionOptions = this.getCompletionOptionsFromStorage(extension.showStorage, completionType);
         const alreadyTypedText = this.getAlreadyTypedText(text, horizPosition, completionType);
         const filteredOptions = this.filterCompletionOptions(alreadyTypedText, completionOptions);
-        const completions = this.convertOptions(filteredOptions, completionType);
+        const completionItems = this.convertToItems(alreadyTypedText, filteredOptions, completionType, position);
+
         console.log();
         console.log({
             completionType,
             completionOptions,
-            filteredOptions
+            filteredOptions,
+            completionItems
         });
         console.log({
             text,
@@ -163,10 +200,10 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
         });
         console.log();
 
-        if (completions.length === 0) {
+        if (completionItems.length === 0) {
             return [{} as CompletionItem];
         }
         
-        return completions;
+        return completionItems;
     }
 }
