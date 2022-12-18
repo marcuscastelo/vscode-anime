@@ -29,6 +29,10 @@
 	"capabilities": {
 		"codeLensProvider" : {
             "resolveProvider": "false"
+        },
+		"completionProvider" : {
+            "resolveProvider": "false",
+            "triggerCharacters": ["{", "[", ","]
         }
 	},
 	"preview": true,
@@ -48,6 +52,11 @@
 			{
 				"command": "marucs-anime.insertNextEpisode",
 				"title": "Insert Next Episode",
+				"category": "Marucs' Anime"
+			},
+			{
+				"command": "marucs-anime.formatFriend",
+				"title": "Format Friend",
 				"category": "Marucs' Anime"
 			}
 		],

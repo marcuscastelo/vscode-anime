@@ -1,4 +1,5 @@
 import { CancellationToken, CompletionContext, CompletionItem, CompletionItemKind, CompletionItemProvider, CompletionTriggerKind, DebugConsoleMode, DocumentFilter, ExtensionContext, languages, Position, ProviderResult, Range, TextDocument, TextEdit, window } from "vscode";
+import * as vscode from "vscode";
 import ShowStorage from "../cache/anime/showStorage";
 import { LANGUAGE_ID } from "../constants";
 import { MarucsAnime } from "../extension";
@@ -21,7 +22,7 @@ type SurroundingTokenInfo = {
 export default class ShowCompletionItemProvider implements CompletionItemProvider<CompletionItem> {
     public static register(context: ExtensionContext) {
         const provider = new ShowCompletionItemProvider(context);
-        return languages.registerCompletionItemProvider(this.viewType, provider);
+        return languages.registerCompletionItemProvider(this.viewType, provider, "{", "[", ",", " ");
     }
 
     private static readonly viewType = LANGUAGE_ID;
@@ -106,26 +107,41 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
             return kinds[completionType] ?? CompletionItemKind.Text;
         };
 
-        const getInsertTextFn = () => {
-            const funcs = {
-                [CompletionType.Friend]: (newText: string) => newText + ',',
-                [CompletionType.ShowTitle]: (newText: string) => newText + ':',
-                [CompletionType.Tag]: (newText: string) => newText + ']',
-                [CompletionType.Episode]: (newText: string) => newText + ' ',
-                [CompletionType.NoCompletion]: (_: string) => '',
-            };
-            return funcs[completionType];
+        const postfixesPerType = {
+            [CompletionType.Friend]: '',
+            [CompletionType.ShowTitle]: ':',
+            [CompletionType.Tag]: ']',
+            [CompletionType.Episode]: ' ',
+            [CompletionType.NoCompletion]: '',
+        };
+
+        const commitCharactersPerType = {
+            [CompletionType.Friend]: [',', '}'],
+            [CompletionType.ShowTitle]: [],
+            [CompletionType.Tag]: [],
+            [CompletionType.Episode]: [],
+            [CompletionType.NoCompletion]: [],
+        };
+
+        const commandPerType = {
+            [CompletionType.Friend]: { title: 'Format Friend', command: 'marucs-anime.formatFriend' } as vscode.Command,
+            [CompletionType.ShowTitle]: undefined,
+            [CompletionType.Tag]: undefined,
+            [CompletionType.Episode]: undefined,
+            [CompletionType.NoCompletion]: undefined,
         };
 
         const createCompletionItem = (option: string): CompletionItem => {
-            // const textToInsert = getInsertTextFn()(option.replace(alreadyTypedText, ""));
-            const textToInsert = getInsertTextFn()(option);
+            const commitCharacters = commitCharactersPerType[completionType];
+            const textToInsert = option + postfixesPerType[completionType];
             const item = {
                 label: option,
                 kind: getCompletionKind(),
                 insertText: textToInsert,
                 keepWhitespace: true,
-                range: new Range(position.with(undefined, 0), position),
+                range: new Range(position.translate(0, -alreadyTypedText.length), position),
+                commitCharacters: commitCharacters,
+                command: commandPerType[completionType]
             };
             return item;
         };
@@ -138,13 +154,13 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
         let re;
         switch (completionType) {
             case CompletionType.Friend:
-                re = new RegExp(/[{,]/g);
+                re = new RegExp(/(?<=[,{])[^,}]*$/g);
                 break;
             case CompletionType.ShowTitle:
                 re = new RegExp(/^/g);
                 break;
             default:
-                re = new RegExp(/[{,]/g);
+                re = new RegExp(/NOTIMPL/g);
                 break;
         }
 
