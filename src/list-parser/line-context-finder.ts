@@ -4,6 +4,7 @@ import DocumentReader, { LineMatcher } from "../utils/document-reader";
 import LineContext from "./line-context";
 import LineIdentifier, { DateLineInfo, LineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
 import { COMMENT_TOKEN, DATE_REG, LineType, SHOW_TITLE_REG, TAG_REG, WATCH_REG } from "./line-type";
+import { FixedLengthArray, PredefinedArray } from '../utils/typescript-utils';
 
 type GetContextResult =
     | { valid: true, context: LineContext }
@@ -12,7 +13,7 @@ type GetContextResult =
 type ShowTitleSearchResult = { found: true, showTitle: string } | { found: false };
 type DateSearchResult = { found: true, date: string } | { found: false };
 type WatchEntrySearchResult = { found: true, watchEntry: WatchEntryLineInfo } | { found: false };
-type TagSearchResult = { found: true, tags: Tag[] } | { found: false };
+type TagSearchResult = { found: true, tags: Tag[] } | { found: false, tags: PredefinedArray<never[]> };
 
 export default class LineContextFinder {
 
@@ -30,7 +31,9 @@ export default class LineContextFinder {
 
         let showTitleRes = reader.searchLine(-1, showTitleMatcher);
         if (showTitleRes.success) {
-            return { found: true, showTitle: showTitleRes.results[0].line.text };
+            const showTitleLine = showTitleRes.results[0].line.text;
+            const showTitle = showTitleLine.trim().replace(/:$/g, ""); //Removes trailing colon
+            return { found: true, showTitle };
         } else {
             return { found: false };
         }
@@ -154,7 +157,7 @@ export default class LineContextFinder {
         if (tagRes.success) {
             return { found: true, tags: tagRes.results };
         } else {
-            return { found: false };
+            return { found: false, tags: [] };
         }
     }
 
@@ -184,12 +187,9 @@ export default class LineContextFinder {
             return { valid: false, error: new Error('No watch entry found') };
         }
         
+        //Gets last used tags for last show
         reader.goToLine(lineNumber);
         const appliedTags = this.findTags(reader, lastShowTitleRes.showTitle);
-        if (!appliedTags.found) {
-            return { valid: false, error: new Error('No tags found') };
-        }
-
 
         let lastShowTitle = lastShowTitleRes.showTitle;
         let lastDate = lastDateRes.date;
@@ -207,7 +207,4 @@ export default class LineContextFinder {
             context
         };
     }
-
-    
-
 }
