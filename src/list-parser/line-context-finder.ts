@@ -12,7 +12,7 @@ type GetContextResult =
 
 type ShowTitleSearchResult = { found: true, showTitle: string } | { found: false };
 type DateSearchResult = { found: true, date: string } | { found: false };
-type WatchEntrySearchResult = { found: true, watchEntry: WatchEntryLineInfo } | { found: false };
+type WatchEntrySearchResult = { found: true, watchEntryLineInfo: WatchEntryLineInfo } | { found: false };
 type TagSearchResult = { found: true, tags: Tag[] } | { found: false, tags: PredefinedArray<never[]> };
 
 export default class LineContextFinder {
@@ -22,9 +22,9 @@ export default class LineContextFinder {
             testLine: (line: TextLine) => {
                 const lineInfo = LineIdentifier.identifyLine(line);
                 if (lineInfo.type === LineType.ShowTitle) {
-                    return { success: true, data: lineInfo, stop: true };
+                    return { hasData: true, data: lineInfo, stop: true };
                 } else {
-                    return { success: false, stop: false };
+                    return { hasData: false, stop: false };
                 }
             }
         };
@@ -44,9 +44,9 @@ export default class LineContextFinder {
             testLine: (line: TextLine) => {
                 const lineInfo = LineIdentifier.identifyLine(line);
                 if (lineInfo.type === LineType.Date) {
-                    return { success: true, data: lineInfo, stop: true };
+                    return { hasData: true, data: lineInfo, stop: true };
                 } else {
-                    return { success: false, stop: false };
+                    return { hasData: false, stop: false };
                 }
             }
         };
@@ -70,12 +70,12 @@ export default class LineContextFinder {
                     const showTitleSearchRes = this.findLastShowTitle(copyReader);
 
                     if (showTitleSearchRes.found && showTitleSearchRes.showTitle === ofShowTitle) {
-                        return { success: true, data: lineInfo, stop: true };
+                        return { hasData: true, data: lineInfo, stop: true };
                     } else {
-                        return { success: false, stop: true }; // If no show title found, this watch entry is invalid, or if not desired show title, don't include it
+                        return { hasData: false, stop: true }; // If no show title found, this watch entry is invalid, or if not desired show title, don't include it
                     }
                 } else {
-                    return { success: false, stop: false };
+                    return { hasData: false, stop: false };
                 }
 
             }
@@ -83,79 +83,75 @@ export default class LineContextFinder {
 
         let watchEntryRes = reader.searchLine(-1, watchEntryMatcher);
         if (watchEntryRes.success) {
-            return { found: true, watchEntry: watchEntryRes.results[0] };
+            return { found: true, watchEntryLineInfo: watchEntryRes.results[0] };
         } else {
             return { found: false };
         }
     }
 
     private static findTags(reader: DocumentReader, ofShowTitle: string): TagSearchResult {
-        // TODO: REWRITE COMPLETELY (UTTER TRASH NOW)
-        let initialLineNumber = reader.currentLine.lineNumber;
+        let stage : 'first_line' | 'below_show' | 'above_show' | 'wrong_show';
+        stage = 'first_line';
 
-        let readerCopy = new DocumentReader(reader.document);
-        readerCopy.goToLine(initialLineNumber);
-        const lastWatchEntrySearchRes = this.findLastWatchEntry(readerCopy, ofShowTitle);
-
-        // All TagTarget.WATCH_LINE needs to be below the last WATCH_LINE (Watch Entry)
-        const minWatchEntryTagLineNumber = lastWatchEntrySearchRes.found ? lastWatchEntrySearchRes.watchEntry.line.lineNumber + 1 : -1; 
-        //TODO: fix error above: -1 if above last show title (should not influence tag search for now)
-
-        const tagMatcher: LineMatcher<Tag> = {
-            testLine: (line: TextLine) => {
-                // Only match tag lines
+        const tagMatcher: LineMatcher<TagLineInfo> = {
+            testLine: (line: TextLine, getLine) => {
                 const lineInfo = LineIdentifier.identifyLine(line);
-                if (lineInfo.type !== LineType.Tag) {
-                    return { success: false, stop: false };
+
+                if (lineInfo.type === LineType.Ignored || lineInfo.type === LineType.Invalid) {
+                    return { hasData: false, stop: false };
                 }
 
-               
-
-                const tagName = lineInfo.params.tagName;
-
-                // If tag is unknown, don't include it
-                if (Object.keys(Tags).indexOf(tagName) === -1) {
-                    return { success: false, stop: false }; // Ignore unknown tags (they are already pointed as an error)
+                // Since line is not ignored/invalid, we will process it, 
+                // so it will not be first line in the next iteration
+                const firstLine = stage === 'first_line';
+                if (firstLine) {
+                    stage = 'below_show';
                 }
-                let tag = Tags[lineInfo.params.tagName];
 
-                // If outside last show title (WATCH_SESSION), stop search (all tags lost validity)
-                let readerCopy = new DocumentReader(reader.document);
-                readerCopy.goToLine(line.lineNumber);
-                const searchRes = this.findLastShowTitle(readerCopy);
-                if (searchRes.found && searchRes.showTitle !== ofShowTitle) {
-
-                    if (tag.target === TagTarget.SHOW) {
-                        return { success: true, data: tag, stop: false }; // Show Tags are defined before show title (so we can't stop searching)
+                if (lineInfo.type === LineType.ShowTitle) {
+                    const showTitle = lineInfo.params.showTitle;
+                    if (showTitle === ofShowTitle) {
+                        stage = 'above_show';
+                        return { hasData: false, stop: false };
+                    } else {
+                        stage = 'wrong_show';
+                        return { hasData: false, stop: true };
                     }
-                    
-                    console.log('Stopping tag search at line ' + line.lineNumber);
-                    return { success: false, stop: true }; // If outside current show, just stop searching
+                }
+                
+                if (lineInfo.type === LineType.Tag) {
+                    const tagName = lineInfo.params.tagName; //TODO: tagParams
+                    const tag = Tags[lineInfo.params.tagName];
+                    if (tag.target === TagTarget.WATCH_LINE) {
+                        if (firstLine) {
+                            return { hasData: true, data: lineInfo, stop: false };
+                        } else {
+                            return { hasData: false, stop: false };
+                        }
+                    } else if (tag.target === TagTarget.WATCH_SESSION) {
+                        if (stage === 'below_show') {
+                            return { hasData: true, data: lineInfo, stop: false };
+                        } else {
+                            return { hasData: false, stop: false };
+                        }
+                    } else if (tag.target === TagTarget.SHOW) {
+                        if (stage !== 'wrong_show') {
+                            return { hasData: true, data: lineInfo, stop: false };
+                        } else {
+                            console.error('Invalid state!! (trying to read tags above wrong_show)');
+                            return { hasData: false, stop: true };
+                        }
+                    }
                 }
 
-                
-                // *** Specific tag requirements *** //
-                if (tag.target === TagTarget.SHOW) {
-                    // console.error('This line should not be called!!!!');
-                    // throw new Error('This line should not be called!!!!'); // Except when hovering the first anime's tags
-                    return { success: true, data: tag, stop: false }; 
-                } else if (tag.target === TagTarget.WATCH_LINE) {
-                    if (line.lineNumber < minWatchEntryTagLineNumber) {
-                        return { success: false, stop: false }; // If outside current show, ignore (we can't stop yet, because maybe there are SHOW tags)
-                    } 
-
-                }
-                // TagTarget.WATCH_SESSION is already covered by TagTarget.SHOW
-                // TagTarget.SCRIPT_TAG is not attached to any line on the list 
-                
-                return { success: true, data: tag, stop: false };
-                // return { success: true, data: lineInfo, stop: false };
+                return { hasData: false, stop: false };
             }
-        };
+        };  
 
+        console.debug('Searching for Tags...');
         let tagRes = reader.searchLine(-1, tagMatcher);
         if (tagRes.success) {
-            return { found: true, tags: tagRes.results };
+            return { found: true, tags: tagRes.results.map(lineInfo => Tags[lineInfo.params.tagName]) };
         } else {
             return { found: false, tags: [] };
         }
@@ -183,9 +179,6 @@ export default class LineContextFinder {
         //Finds nearest watch entry declaration
         reader.goToLine(lineNumber);
         const lastWatchEntryRes = this.findLastWatchEntry(reader, lastShowTitleRes.showTitle);
-        if (!lastWatchEntryRes.found) {
-            return { valid: false, error: new Error('No watch entry found') };
-        }
         
         //Gets last used tags for last show
         reader.goToLine(lineNumber);
@@ -198,8 +191,8 @@ export default class LineContextFinder {
         let context: LineContext = {
             currShowTitle: lastShowTitle,
             currDate: lastDate,
-            currTags: lastTags
-            // lastWatchEntry,
+            currTags: lastTags,
+            lastWatchEntryLine: lastWatchEntryRes.found ? lastWatchEntryRes.watchEntryLineInfo : undefined,
         };
 
         return {

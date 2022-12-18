@@ -40,11 +40,29 @@ export default class ShowHoverProvider implements HoverProvider {
         const tagNames = currTags.map(tag => tag.name);
         const tagNamesString = tagNames.join(', ');
 
+        const show = MarucsAnime.INSTANCE.showStorage.getShow(currShowTitle);
+        let showLastTitle = 'NOT FOUND';
+        let showLastDate = 'NOT FOUND';
+        let showLastTagNamesString = 'NOT FOUND';
+        if (show) {
+            const firstMentionedContext = LineContextFinder.findContext(document, show.info.firstMentionedLine+1);
+            if (firstMentionedContext.valid) {
+                showLastTitle = firstMentionedContext.context.currShowTitle;
+                showLastDate = firstMentionedContext.context.currDate;
+                showLastTagNamesString = firstMentionedContext.context.currTags.map(tag => tag.name).join(', ');
+            }
+        }
+
         console.dir(lineContext);
         return new Hover(new MarkdownString(
-            `\n\nCurrent Date: ${currDate}` +
-            `\n\nCurrent Show: ${currShowTitle}` +
-            `\n\nCurrent Tags: [${tagNamesString}]`
+            `\n\nCurrent Line Context:` +
+            `\n\n  - Current Date: ${currDate}` +
+            `\n\n  - Current Show: ${currShowTitle}` +
+            `\n\n  - Current Tags: [${tagNamesString}]` +
+            `\n\nFirst Mention Show Context:` +
+            `\n\n  - First Mention Date: ${showLastDate}` +
+            `\n\n  - First Mention Show: ${showLastTitle}` +
+            `\n\n  - First Mention Tags: [${showLastTagNamesString}]`
         ));
     }
 

@@ -2,8 +2,9 @@ import { deprecate } from 'util';
 import * as vscode from 'vscode';
 import { LineType } from '../list-parser/line-type';
 
+type GetLineFunc = (line: number) => vscode.TextLine;
 export interface LineMatcher<T> {
-	testLine(line: vscode.TextLine): { success: true, data: T, stop: boolean } | { success: false, stop: boolean };
+	testLine(line: vscode.TextLine, getLine: GetLineFunc): { hasData: true, data: T, stop: boolean } | { hasData: false, stop: boolean };
 }
 
 type SearchResult<T> =
@@ -36,11 +37,14 @@ export default class DocumentReader implements IterableIterator<vscode.TextLine>
 		for (let lineIdx = this._currentLineIndex; lineIdx >= 0; lineIdx += step) {
 			const line = this.document.lineAt(lineIdx);
 
-			const testResult = matcher.testLine(line);
-			if (testResult.success) {
+			console.debug(`Testing line '${line.text}...'`);
+			const testResult = matcher.testLine(line, lineNum => this.document.lineAt(lineNum));
+			if (testResult.hasData) {
+				console.debug(`Line has data! '${JSON.stringify(testResult.data)}'...`);
 				results.push(testResult.data);
 			}
 			if (testResult.stop) {
+				console.debug(`Stopping at '${line.text}...'`);
 				break;
 			}
 		}
