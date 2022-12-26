@@ -43,3 +43,8 @@ export type PredefinedArray<T extends any[]> =
 export type Ok<T> = { ok: true, result: T };
 export type Err<E> = { ok: false, error: E };
 export type Result<T, E> = Ok<T> | Err<E>;
+
+
+/// Get type of a property of an object
+
+export type PropertyType<T, K extends keyof T> = T[K];
