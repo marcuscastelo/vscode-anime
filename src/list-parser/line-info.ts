@@ -7,27 +7,58 @@ export type LineInfoBase = {
     type: LineType,
 };
 
-export type LineInfo<T = unknown> = {
-    line: TextLine,
-    type: T extends never ? LineType : T,
-    params: LineParams<T>,
-};
+export type LineInfo =
+    LineInfoBase & (
+        | { type: LineType.Date } & DateLineInfo
+        | { type: LineType.ShowTitle } & ShowTitleLineInfo
+        | { type: LineType.WatchEntry } & WatchEntryLineInfo
+        | { type: LineType.Tag } & TagLineInfo
+        | { type: LineType.Ignored }
+        | { type: LineType.Invalid, errors: string[] }
+    );
 
-export type LineParams<T> =
-    T extends LineType.ShowTitle ? { showTitle: string } :
-    T extends LineType.Date ? { date: string } :
-    T extends LineType.WatchEntry ? Pick<WatchEntry, "startTime" | "endTime" | "episode" | "company"> :
-    T extends LineType.Tag ? { tag: Tag, tagName: string, tagParams: TagParam[] } :
-    T extends LineType.Ignored ? {} :
-    T extends LineType.Invalid ? { errors: string[] } :
-    never;
+export type ShowTitleLineInfo =
+    LineInfoBase &
+    {
+        type: LineType.ShowTitle,
+        params: {
+            showTitle: string
+        }
+    };
+
+export type WatchEntryLineInfo =
+    LineInfoBase &
+    {
+        type: LineType.WatchEntry,
+        params: {
+            startTime: string,
+            endTime: string,
+            episode: number,
+            company: string[],
+        }
+    };
+
+export type DateLineInfo =
+    LineInfoBase &
+    {
+        type: LineType.Date,
+        params: {
+            date: string
+        }
+    };
 
 export type TagParam = {
     name: string,
     value: string,
 };
 
-export type ShowTitleLineInfo = LineInfo<LineType.ShowTitle>;
-export type WatchEntryLineInfo = LineInfo<LineType.WatchEntry>;
-export type DateLineInfo = LineInfo<LineType.Date>;
-export type TagLineInfo = LineInfo<LineType.Tag>;
+export type TagLineInfo =
+    LineInfoBase &
+    {
+        type: LineType.Tag,
+        params: {
+            tag: Tag,
+            tagName: string,
+            tagParams: TagParam[],
+        }
+    };

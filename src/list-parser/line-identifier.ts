@@ -18,7 +18,6 @@ export default class LineIdentifier {
             return {
                 type: LineType.Ignored,
                 line,
-                params: {}
             };
         }
 
@@ -40,9 +39,7 @@ export default class LineIdentifier {
         //TODO: return errors in a meaningful way to show on diagnostics
         return {
             type: LineType.Invalid,
-            params: {
-                errors: ['LineType: Unkown line type'],
-            },
+            errors: ['LineType: Unkown line type'],
             line,
         };
     }
@@ -79,9 +76,7 @@ export default class LineIdentifier {
             return {
                 type: LineType.Invalid,
                 line,
-                params: {
-                    errors,
-                }
+                errors,
             };
         }
 

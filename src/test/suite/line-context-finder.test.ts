@@ -4,10 +4,12 @@ import * as SampleDocuments from '../mocks/sample-documents';
 import { LineType } from '../../list-parser/line-type';
 import { DateLineInfo, LineInfo, LineInfoBase } from '../../list-parser/line-info';
 
+type LineInfoOfType<T extends LineType> = LineInfoBase & {type: T};
 class LineContextFinderTest {
     public static get test() { return new LineContextFinderTest(); }
 
-    private assertLineInfoIsValid<U extends LineType>(lineInfo: LineInfo<U> | undefined, expectedType: U): lineInfo is LineInfo<U> {
+
+    private assertLineInfoIsValid<U extends LineType>(lineInfo: LineInfoBase | undefined, expectedType: U): lineInfo is LineInfoOfType<U> {
         if (!lineInfo) {
             assert.fail("Expected line to be defined");
         }
@@ -20,26 +22,25 @@ class LineContextFinderTest {
     }
 
     private isDateLineCorrect(expectations: SampleDocuments.DocumentTestExpectations, lineInfo?: LineInfo) {
-        if(this.assertLineInfoIsValid<LineType.Date>(lineInfo, LineType.Date)) {
+        if(this.assertLineInfoIsValid(lineInfo, LineType.Date)) {
             assert.strictEqual(lineInfo.params.date, expectations.currentDate);
         }
-
     }
 
     private isShowTitleLineCorrect(expectations: SampleDocuments.DocumentTestExpectations, lineInfo?: LineInfo) {
-        if(!this.assertLineInfoIsValid<LineType.ShowTitle>(lineInfo, LineType.ShowTitle)) {
+        if(!this.assertLineInfoIsValid(lineInfo, LineType.ShowTitle)) {
             return;
         }
 
-        assert.strictEqual(lineInfo.params.date, expectations.currentDate);
+        assert.strictEqual(lineInfo.params.showTitle, expectations.currentShowTitle);
     }
 
     private isLastWatchEntryLineCorrect(expectations: SampleDocuments.DocumentTestExpectations, lineInfo?: LineInfo) {
-        if(!this.assertLineInfoIsValid<LineType.WatchEntry>(lineInfo, LineType.WatchEntry)) {
+        if(!this.assertLineInfoIsValid(lineInfo, LineType.WatchEntry)) {
             return;
         }
 
-        assert.strictEqual(lineInfo.params.date, expectations.currentDate);
+        assert.strictEqual(lineInfo.params, expectations.lastWatchEntryParams);
     }
 
     public canFindContext() {

@@ -47,7 +47,7 @@ export default class LineProcessor {
             this.processTag(lineInfo, reader);
         }
         else if (lineInfo.type === LineType.Invalid) {
-            for (let error of lineInfo.params.errors) {
+            for (let error of lineInfo.errors) {
                 this.diagnosticController.addLineDiagnostic(line, error);
             }
         }
