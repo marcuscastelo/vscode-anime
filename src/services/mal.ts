@@ -61,11 +61,15 @@ export namespace MAL {
     type Cache = {
         anime: {
             [animeTitle: string]: AnimeSearchResultItem[]
+        },
+        bestAnime: {
+            [animeTitle: string]: AnimeSearchResultItem
         }
     };
 
     const cache: Cache = {
-        anime: {}
+        anime: {},
+        bestAnime: {}
     };
 
     export async function searchAnime(animeTitle: string): Promise<AnimeSearchResultItem[]> {
@@ -76,6 +80,8 @@ export namespace MAL {
         const response = await API.get('/anime', {
             params: {
                 q: animeTitle,
+                order_by: 'members',
+                sort: 'desc',
             }
         });
 
@@ -85,6 +91,31 @@ export namespace MAL {
         return results;
     }
 
+    export async function searchBestAnime(animeTitle: string): Promise<AnimeSearchResultItem | undefined> {
+        if (cache.bestAnime[animeTitle]) {
+            return cache.bestAnime[animeTitle];
+        }
+
+        const results = await searchAnime(animeTitle);
+        if (results.length === 0) {
+            return undefined;
+        }
+
+        // Order results by longest title
+        results.sort((a, b) => b.title.length - a.title.length);
+
+        // Return the first result that has the same title as the search
+        for (let i = 0; i < results.length; i++) {
+            if (results[i].title.toLowerCase() === animeTitle.toLowerCase()) {
+                cache.bestAnime[animeTitle] = results[i];
+                return results[i];
+            }
+        }
+
+        // If no result has the same title, return the first result
+        cache.bestAnime[animeTitle] = results[0];
+        return results[0];
+    }
 }
 
 _processPendingRequests();

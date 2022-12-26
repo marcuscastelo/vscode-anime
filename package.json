@@ -28,7 +28,7 @@
 	},
 	"capabilities": {
 		"codeLensProvider": {
-			"resolveProvider": "false"
+			"resolveProvider": true
 		},
 		"completionProvider": {
 			"resolveProvider": "false",
