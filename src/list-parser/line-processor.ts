@@ -5,10 +5,10 @@ import { Show } from "../cache/anime/shows";
 import MADiagnosticController from "../lang/maDiagnosticCollection";
 import LineContext from "./line-context";
 import { LineType } from "./line-type";
-import LineIdentifier, { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
 import { Tag, TagTarget, Tags, WatchEntry } from "../types";
-import assert = require("assert");
 import { checkTags } from "../analysis/check-tags";
+import LineIdentifier from "./line-identifier";
+import { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info";
 
 
 export default class LineProcessor {
@@ -47,7 +47,7 @@ export default class LineProcessor {
             this.processTag(lineInfo, reader);
         }
         else if (lineInfo.type === LineType.Invalid) {
-            for (let error of lineInfo.errors) {
+            for (let error of lineInfo.params.errors) {
                 this.diagnosticController.addLineDiagnostic(line, error);
             }
         }
@@ -124,10 +124,22 @@ export default class LineProcessor {
             throw new Error(`Unexpected error: anime '${currentShowTitle}' not found in list, despite being the current show`);
         }
 
-        let { startTime, endTime, episode, friends } = lineInfo.params;
-        if (episode === NaN) {
+        let { startTime, endTime, episode, company: friends } = lineInfo.params;
+        if (isNaN(episode)) {
             this.diagnosticController.addLineDiagnostic(lineInfo.line, "Episode is not a number");
             return;
+        }
+
+        const validTimeReg = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
+        const lineRange = lineInfo.line.range;
+        const lineStart = lineRange.start;
+
+        if (!validTimeReg.test(startTime)) { 
+            this.diagnosticController.addRangeDiagnostic(new Range(lineStart, lineStart.with({character: 4})), 'WatchEntry: Invalid startTime'); 
+        }
+
+        if (!validTimeReg.test(endTime)) { 
+            this.diagnosticController.addRangeDiagnostic(new Range(lineStart.with({character:6}), lineStart.with({character: 10})), 'WatchEntry: Invalid endTime'); 
         }
 
         //TODO: consider currDate and 23:59 - 00:00 entries
@@ -169,9 +181,7 @@ export default class LineProcessor {
     }
 
     processTag(lineInfo: TagLineInfo, reader: DocumentReader) {
-
         let { tagName } = lineInfo.params;
-
 
         let tag = Tags[tagName];
         

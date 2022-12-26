@@ -1,5 +1,5 @@
 import { Tag, TagTarget, WatchEntry } from "../types";
-import { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
+import { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info";
 
 export default interface LineContext {
     currentDateLine: DateLineInfo;

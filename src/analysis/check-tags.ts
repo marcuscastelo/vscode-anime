@@ -2,7 +2,7 @@ import { TextDocument, TextLine } from "vscode";
 import { Show } from "../cache/anime/shows";
 import LineContext from "../list-parser/line-context";
 import LineContextFinder from "../list-parser/line-context-finder";
-import { ShowTitleLineInfo } from "../list-parser/line-info-parser";
+import { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "../list-parser/line-info";
 import { Tag, TagTarget } from "../types";
 import { Result } from "../utils/typescript-utils";
 

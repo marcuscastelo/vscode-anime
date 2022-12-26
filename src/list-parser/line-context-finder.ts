@@ -2,9 +2,10 @@ import { TextDocument, TextLine } from "vscode";
 import { Tag, Tags, TagTarget, WatchEntry } from "../types";
 import DocumentReader, { LineMatcher } from "../utils/document-reader";
 import LineContext from "./line-context";
-import LineIdentifier, { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
+import { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info";
 import { LineType } from "./line-type";
 import { PredefinedArray, Result } from '../utils/typescript-utils';
+import LineIdentifier from "./line-identifier";
 
 type FindContextResult = Result<LineContext, Error>;
 

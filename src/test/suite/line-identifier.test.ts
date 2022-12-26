@@ -2,23 +2,26 @@ import * as assert from 'assert';
 
 
 import { TextLine } from "vscode";
-import LineIdentifier, { LineInfo } from "../../list-parser/line-info-parser";
+import LineIdentifier from "../../list-parser/line-identifier";
+import { LineInfo } from '../../list-parser/line-info';
 import { LineType } from "../../list-parser/line-type";
 
-class LineInfoParseTest {
-    private lineToParse?: TextLine;
+class LineIdentifierTest {
+    private line?: TextLine;
     private parsedLine?: LineInfo;
 
-    public static get test() { return new LineInfoParseTest(); }
+    public static get test() { return new LineIdentifierTest(); }
     private constructor() { }
 
-    private givenLines(lineStr: string) {
-        this.lineToParse = <TextLine>{ text: lineStr };
+    private givenLine(line: string) {
+        this.line = <TextLine>{ text: line };
     }
 
-    private parseLines() {
-        if (!this.lineToParse) throw new Error('Please use givenLines before parseLines');
-        this.parsedLine = LineIdentifier.identifyLine(this.lineToParse);
+    private identifyLine() {
+        if (!this.line) {
+            throw new Error('Please use givenLines before parseLines');
+        } 
+        this.parsedLine = LineIdentifier.identifyLine(this.line);
     }
 
     // --- Success tests: OK ---
@@ -28,8 +31,8 @@ class LineInfoParseTest {
 
     private lineTypeOK(lineText: string, lineType: LineType) {
         test(lineText, () => {
-            this.givenLines(lineText);
-            this.parseLines();
+            this.givenLine(lineText);
+            this.identifyLine();
             this.thenAssertLineTypeOk(lineType);
         });
     }
@@ -74,16 +77,16 @@ class LineInfoParseTest {
         assert.notStrictEqual(this.parsedLine?.type, type, message);
     }
 
-    private lineTypeFail(lineText: string, lineType: LineType) {
+    private lineTypeFail(lineText: string, lineType: LineType, message?: string) {
         test(lineText, () => {
-            this.givenLines(lineText);
-            this.parseLines();
-            this.thenAssertLineTypeFail(lineType);
+            this.givenLine(lineText);
+            this.identifyLine();
+            this.thenAssertLineTypeFail(lineType, message);
         });
     }
 
     public showTitleTypeFail() {
-        this.lineTypeFail("Missing semicolon", LineType.ShowTitle);
+        this.lineTypeFail("Missing colon", LineType.ShowTitle);
         this.lineTypeFail("Tags should not be here: [TAG]", LineType.ShowTitle);
         this.lineTypeFail("[TAG] Tags should not be here:", LineType.ShowTitle);
         this.lineTypeFail("Tags should [TAG] not be here:", LineType.ShowTitle);
@@ -102,7 +105,18 @@ class LineInfoParseTest {
     }
 
     public watchEntryTypeFail() {
-
+        this.lineTypeFail("20:00 - 20:01", LineType.WatchEntry, "Should fail because it is missing the episode number");
+        this.lineTypeFail('19:14 19:44 12', LineType.WatchEntry, "Should fail because it is missing the dash");
+        this.lineTypeFail('19:14 @ 19:44 12', LineType.WatchEntry, "Should fail because it has @ instead of dash");
+        this.lineTypeFail('1914 - 1944 12', LineType.WatchEntry, "Should fail because it is missing the colons");
+        this.lineTypeFail('19:14 - 1944 12', LineType.WatchEntry, "Should fail because it is missing the colons");
+        this.lineTypeFail('1914 - 19:44 12', LineType.WatchEntry, "Should fail because it is missing the colons");
+        this.lineTypeFail('1914 - 19:44 -1', LineType.WatchEntry, "Should fail because the episode number is negative");
+        this.lineTypeFail('1914 - 19:44 AAA', LineType.WatchEntry, "Should fail because the episode number is not a number");
+        this.lineTypeFail("20:00 - ", LineType.WatchEntry, "Should fail because it is missing the end time");
+        this.lineTypeFail("Totally wrong", LineType.WatchEntry);
+        this.lineTypeFail("//Just a comment", LineType.WatchEntry);
+        this.lineTypeFail("20/06/2000", LineType.WatchEntry);
     }
 
     public tagTypeFail() {
@@ -128,18 +142,18 @@ class LineInfoParseTest {
 }
 
 suite("LineInfoParser Test Suite", () => {
+    const suites = LineIdentifierTest.test;
     suite("ShowTitles", () => {
         //Expected to Success
-        suite('should recognize correct show titles', () => LineInfoParseTest.test.showTitleTypeOk());
-        suite('should recognize correct dates', () => LineInfoParseTest.test.dateTypeOK());
-        suite('should recognize correct watch entries', () => LineInfoParseTest.test.watchEntryTypeOK());
-        suite('should recognize correct tags', () => LineInfoParseTest.test.tagTypeOK());
+        suite('should recognize correct show titles', () => suites.showTitleTypeOk());
+        suite('should recognize correct dates', () => suites.dateTypeOK());
+        suite('should recognize correct watch entries', () => suites.watchEntryTypeOK());
+        suite('should recognize correct tags', () => suites.tagTypeOK());
 
         //Expected to Fail
-        suite("shouldn't read malformed show titles ", () => LineInfoParseTest.test.showTitleTypeFail());
-        suite("shouldn't read malformed dates ", () => LineInfoParseTest.test.dateTypeFail());
-        suite("shouldn't read malformed watch entries ", () => LineInfoParseTest.test.watchEntryTypeFail());
-        suite("shouldn't read malformed tags ", () => LineInfoParseTest.test.tagTypeFail());
-
-    })
+        suite("shouldn't read malformed show titles ", () => suites.showTitleTypeFail());
+        suite("shouldn't read malformed dates ", () => suites.dateTypeFail());
+        suite("shouldn't read malformed watch entries ", () => suites.watchEntryTypeFail());
+        suite("shouldn't read malformed tags ", () => suites.tagTypeFail());
+    });
 });
