@@ -40,7 +40,7 @@ class LineContextFinderTest {
             return;
         }
 
-        assert.strictEqual(lineInfo.params, expectations.lastWatchEntryParams);
+        assert.deepStrictEqual(lineInfo.params, expectations.lastWatchEntryParams);
     }
 
     public canFindContext() {
@@ -53,8 +53,8 @@ class LineContextFinderTest {
         const context = contextRes.result;
         suite("LineContextFinder", () => {
             test('Correct date', () => this.isDateLineCorrect(sample.expectations, context.currentDateLine));
-            test('Correct show title', () => assert.strictEqual(context.currentShowLine.line.text, sample.expectations.currentShowTitle));
-            test('Correct last watch entry', () => assert.deepStrictEqual(context.lastWatchEntryLine?.params, sample.expectations.lastWatchEntryParams));
+            test('Correct show title', () => this.isShowTitleLineCorrect(sample.expectations, context.currentShowLine));
+            test('Correct last watch entry', () => this.isLastWatchEntryLineCorrect(sample.expectations, context.lastWatchEntryLine));
         });
     }
 }
