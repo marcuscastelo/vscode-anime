@@ -3,33 +3,9 @@ import ShowStorage from '../../cache/anime/showStorage';
 import MADiagnosticController from '../../lang/maDiagnosticCollection';
 import LineProcessor from '../../list-parser/line-processor';
 import LineContext from '../../list-parser/line-context';
-import { Position, Range, TextDocument, TextLine } from 'vscode';
 import DocumentReader from '../../utils/document-reader';
-
-class DocumentMaker {
-    private lines: TextLine[] = [];
-    private currentLine = 0;
-
-    public makeDocument() {
-        return <TextDocument>{
-            lineAt: (index: number) => this.lines[index],
-            lineCount: this.lines.length,
-        };
-    }
-
-    public addLine(text: string) {
-        let line = <TextLine>{
-            range: new Range(new Position(this.currentLine, 0), new Position(this.currentLine, text.length-1)),
-            rangeIncludingLineBreak: new Range(new Position(this.currentLine, 0), new Position(this.currentLine, text.length)),
-            lineNumber: this.currentLine++,
-            text,
-            isEmptyOrWhitespace: text === '',
-            firstNonWhitespaceCharacterIndex: text.length - text.trimLeft().length,
-        };
-
-        this.lines.push(line);
-    }
-}
+import { DocumentMaker } from '../helpers/text-document';
+import * as SampleDocuments from '../mocks/sample-documents';
 
 class LineProcessorTest {
     private processor: LineProcessor;
@@ -44,29 +20,18 @@ class LineProcessorTest {
     }
 
     public simpleTest() {
-        const date = '27/03/2021';
-        const showTitle = 'Anime1';
-
-        let documentMaker = new DocumentMaker();
-        documentMaker.addLine(date);
-        documentMaker.addLine(`${showTitle}:`);
-        documentMaker.addLine('21:32 - 21:33 01');
-        documentMaker.addLine('22:32 - 22:33 02 {Fulano}');
-        let document = documentMaker.makeDocument();
-
-        this.processor.processDocument(document);
-
-        console.log('finished!');
+        const sample = SampleDocuments.minimalDateTitleWatchEntryWithFriends;
+        this.processor.processDocument(sample.document);
 
         suite("Date + Anime + 2 Episodes + Friends", () => {
-            
-            let show = this.storage.getShow(showTitle);
+            let show = this.storage.getShow(sample.expectations.currentShowTitle);
             let processorContext = ((this.processor as any).lineContext as LineContext);
 
             //TODO: check if context is right after reading all lines
-            test('Stored show correctly in storage', () => assert.strictEqual(show?.info.title, showTitle));
+            test('Show exists in storage', () => assert.notEqual(show, undefined));
+            test('Stored show correctly in storage', () => assert.strictEqual(show?.info.title, sample.expectations.currentShowTitle));
             // test('Correct date', () => assert.strictEqual(processorContext.currDate, date));
-        })
+        });
 
     }
 }

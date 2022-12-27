@@ -30,12 +30,16 @@ export default class MADiagnosticController {
         this.publish();
     }
 
-    public addLineDiagnostic(line: TextLine, message: string, extra?: Partial<Diagnostic>) {
+    public addRangeDiagnostic(range: Range, message: string, extra?: Partial<Diagnostic>) {
         this.addDiagnostic({
-            range: line.range,
+            range,
             message,
             ...extra
         });
+    }
+
+    public addLineDiagnostic(line: TextLine, message: string, extra?: Partial<Diagnostic>) {
+        this.addRangeDiagnostic(line.range, message, extra);
     }
 
     public addDiagnostic(diagnostic: Partial<Diagnostic> & { message: string, range: Range }) {

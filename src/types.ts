@@ -55,7 +55,7 @@ export type WatchEntry = {
 	endTime: string,
 	episode: number,
 	company: string[], //Friends
-	lineNumber: number,
+	lineNumber: number, //TODO: remover?
 };
 
 export type WatchSession = {
