@@ -76,7 +76,7 @@ export default class LineProcessor {
         currentShow.updateLastMentionedLine(lineInfo.line.lineNumber);
 
         const currTags = this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag) || [];
-        const { missingTags, extraTags } = checkTags(document, currTags, currentShow);
+        const { missingTags, extraTags } = checkTags(currTags, currentShow);
     
         const names = (tag: Tag) => tag.name;
         const toList = (accum: string, token: string) => accum + ',' + token;

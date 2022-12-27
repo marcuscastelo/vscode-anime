@@ -20,7 +20,7 @@ type MALAnimeInfo = {
 };
 
 export class Show {
-    public info: ShowInfo
+    public info: ShowInfo;
     constructor(declarationLine: number, initializer: ShowInfo | { title: string, tags?: Tag[] }) {
         const {
             title,

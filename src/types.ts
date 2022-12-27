@@ -34,7 +34,7 @@ export const Tags: { [key: string]: Tag } = {
 	},
 	"REWATCH": {
 		name: 'REWATCH',
-		target: TagTarget.SHOW,
+		target: TagTarget.WATCH_SESSION,
 		parameters: []
 	},
 	"UNSAFE-ORDER": {
