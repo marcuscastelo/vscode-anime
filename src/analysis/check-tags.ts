@@ -1,5 +1,5 @@
 import { TextDocument, TextLine } from "vscode";
-import { Show } from "../cache/anime/shows";
+import { Show } from "../cache/shows/cached-shows";
 import LineContext from "../list-parser/line-context";
 import LineContextFinder from "../list-parser/line-context-finder";
 import { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "../list-parser/line-info";

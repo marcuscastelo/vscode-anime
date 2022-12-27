@@ -4,7 +4,7 @@ import { Tag, WatchEntry } from "../../types";
 
 type ShowInfo = {
     title: string,
-    lastWatchEntry: WatchEntry,
+    lastWatchEntry: WatchEntry | null,
     lastMentionedLine: number,
     firstMentionedLine: number,
     tags: Tag[]
@@ -31,8 +31,8 @@ export class Show {
 
         this.info = {
             title,
-            lastMentionedLine: lastMentionedLine ?? -1,
-            lastWatchEntry: lastWatchedEpisode ?? 0,
+            lastMentionedLine: lastMentionedLine ?? declarationLine,
+            lastWatchEntry: lastWatchedEpisode ?? null,
             firstMentionedLine: declarationLine,
             tags: tags ?? []
         };

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable curly */
 import { WatchEntry, Tag } from "../../types";
-import { Show } from "./shows";
+import { Show } from "./cached-shows";
 
 type ShowDict = {
 	[name: string]: Show | undefined

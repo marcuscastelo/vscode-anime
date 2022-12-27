@@ -1,7 +1,7 @@
 import { DiagnosticRelatedInformation, DiagnosticSeverity, Location, Range, TextDocument, TextLine } from "vscode";
-import ShowStorage from "../cache/anime/showStorage";
+import ShowStorage from "../cache/shows/showStorage";
 import DocumentReader from "../utils/document-reader";
-import { Show } from "../cache/anime/shows";
+import { Show } from "../cache/shows/cached-shows";
 import MADiagnosticController from "../lang/maDiagnosticCollection";
 import LineContext from "./line-context";
 import { LineType } from "./line-type";
@@ -152,7 +152,7 @@ export default class LineProcessor {
             company: friends
         };
 
-        const lastWatchedEpisode = currentShow.info.lastWatchEntry.episode;
+        const lastWatchedEpisode = currentShow.info.lastWatchEntry?.episode ?? 0;
         if (lastWatchedEpisode >= episode) {
             //TODO: related info last ep's line
             //TODO: check for skipped as well

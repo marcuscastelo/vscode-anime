@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import { checkTags } from "../../../analysis/check-tags";
-import { Show } from "../../../cache/anime/shows";
+import { Show } from "../../../cache/shows/cached-shows";
 import { Tag, Tags } from "../../../types";
 
 interface ExpectOptions {
