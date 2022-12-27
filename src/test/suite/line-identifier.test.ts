@@ -63,6 +63,10 @@ class LineIdentifierTest {
 
     public tagTypeOK() {
         this.lineTypeOK('[Teste]', LineType.Tag);
+        this.lineTypeOK('[Teste] ', LineType.Tag);
+        this.lineTypeOK('[Teste] //With comment and space', LineType.Tag);
+        this.lineTypeOK('[Teste]//With comment and no space', LineType.Tag);
+        this.lineTypeOK(' [ Teste ] // With spaces all the way', LineType.Tag);
         this.lineTypeOK('[Teste(param=3)]', LineType.Tag);
         this.lineTypeOK('[Teste(param= 3)]', LineType.Tag);
         this.lineTypeOK('[Teste(param = 3)]', LineType.Tag);
