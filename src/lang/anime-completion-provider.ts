@@ -3,7 +3,6 @@ import * as vscode from "vscode";
 import ShowStorage from "../cache/anime/show-storage";
 import { LANGUAGE_ID } from "../constants";
 import { MarucsAnime } from "../extension";
-import { LineType } from "../list-parser/line-type";
 import { Tags } from "../types";
 
 enum CompletionType {
@@ -150,22 +149,23 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
     }
 
     private getAlreadyTypedText(lineText: string, charPosition: number, completionType: CompletionType) {
-        let match;
-        let re;
+        let re: RegExp;
         switch (completionType) {
             case CompletionType.Friend:
-                re = new RegExp(/(?<=[,{])[^,}]*$/g);
+                re = /(?<=[,{])[^,}]*$/g;
+                break;
+            case CompletionType.Tag:
+                re = /(?<=[,[])[^,\]]*$/g;
                 break;
             case CompletionType.ShowTitle:
-                re = new RegExp(/^/g);
+                re = /^/g;
                 break;
             default:
-                re = new RegExp(/NOTIMPL/g);
+                re = /NOTIMPL/g;
                 break;
         }
 
-        match = re.exec(lineText);
-        const attStart = match?.index || 0;
+        const attStart = lineText.search(re);
 
         if (attStart < 0 || attStart >= lineText.length) {
             return '';
