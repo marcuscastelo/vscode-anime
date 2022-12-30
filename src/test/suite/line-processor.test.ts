@@ -6,6 +6,7 @@ import LineContext from '../../list-parser/line-context';
 import DocumentReader from '../../utils/document-reader';
 import { DocumentMaker } from '../helpers/text-document';
 import * as SampleDocuments from '../mocks/sample-documents';
+import { beforeEach, describe, it, suite } from 'mocha';
 
 class LineProcessorTest {
     private processor: LineProcessor;

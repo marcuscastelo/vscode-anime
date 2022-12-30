@@ -5,6 +5,7 @@ import { TextLine } from "vscode";
 import LineIdentifier from "../../list-parser/line-identifier";
 import { LineInfo } from '../../list-parser/line-info';
 import { LineType } from "../../list-parser/line-type";
+import { beforeEach, describe, it, suite } from 'mocha';
 
 class LineIdentifierTest {
     private line?: TextLine;
