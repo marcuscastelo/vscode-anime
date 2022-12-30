@@ -5,12 +5,14 @@ export enum TagTarget {
 	SHOW, //such as [NOT-ANIME]
 }
 
+//TODO: move to a separate file
 export type Tag = {
 	name: string
 	target: TagTarget
 	parameters: string[]
 };
 
+//TODO: move to a separate file
 export const Tags: { [key: string]: Tag } = {
 	"NOT-ANIME": {
 		name: 'NOT-ANIME',
@@ -44,6 +46,11 @@ export const Tags: { [key: string]: Tag } = {
 	},
 	"MANGA": {
 		name: 'MANGA',
+		target: TagTarget.SHOW,
+		parameters: []
+	},
+	"WEBTOON": {
+		name: 'WEBTOON',
 		target: TagTarget.SHOW,
 		parameters: []
 	},
