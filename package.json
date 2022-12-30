@@ -27,13 +27,17 @@
 		"url": "https://github.com/marcuscastelo/vscode-anime"
 	},
 	"capabilities": {
-		"codeLensProvider" : {
-            "resolveProvider": "false"
-        },
-		"completionProvider" : {
-            "resolveProvider": "false",
-            "triggerCharacters": ["{", "[", ","]
-        },
+		"codeLensProvider": {
+			"resolveProvider": "false"
+		},
+		"completionProvider": {
+			"resolveProvider": "false",
+			"triggerCharacters": [
+				"{",
+				"[",
+				","
+			]
+		},
 		"definitionProvider": "true"
 	},
 	"preview": true,
@@ -102,7 +106,7 @@
 	],
 	"scripts": {
 		"vscode:prepublish": "yarn run compile",
-		"compile": "tsc -p ./",
+		"compile": "rm -rf ./out && tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"pretest": "yarn run compile && yarn run lint",
 		"lint": "eslint src --ext ts",
@@ -122,6 +126,7 @@
 		"vscode-test": "^1.5.0"
 	},
 	"dependencies": {
-		"axios": "^0.21.1"
+		"axios": "^0.21.1",
+		"rustic": "^1.2.2"
 	}
 }

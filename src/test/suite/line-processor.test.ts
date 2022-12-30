@@ -24,7 +24,7 @@ class LineProcessorTest {
         this.processor.processDocument(sample.document);
 
         suite("Date + Anime + 2 Episodes + Friends", () => {
-            let show = this.storage.getShow(sample.expectations.currentShowTitle);
+            let show = this.storage.searchShow(sample.expectations.currentShowTitle);
             let processorContext = ((this.processor as any).lineContext as LineContext);
 
             //TODO: check if context is right after reading all lines

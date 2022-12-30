@@ -9,6 +9,7 @@ import { Tag, TagTarget, Tags, WatchEntry } from "../types";
 import { checkTags } from "../analysis/check-tags";
 import LineIdentifier from "./line-identifier";
 import { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info";
+import { isErr } from "rustic";
 
 
 export default class LineProcessor {
@@ -70,13 +71,19 @@ export default class LineProcessor {
 
         this.lineContext.currentTagsLines = this.lineContext.currentTagsLines?.filter(lineInfo => lineInfo.params.tag.target !== TagTarget.SHOW && lineInfo.params.tag.target !== TagTarget.WATCH_SESSION);
 
-        const currentShow = this.storage.getOrCreateShow(showTitle, lineInfo.line.lineNumber, this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag));
+        const showResult = this.storage.getOrCreateShow(showTitle, lineInfo.line.lineNumber, this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag));
+
+        if (isErr(showResult)) {
+            this.diagnosticController.addLineDiagnostic(lineInfo.line, `Error while processing show: ${showResult.data}`);
+            return;
+        }
 
         //TODO: check for empty sessions ( i.e: no watch entries between titles )
-        currentShow.updateLastMentionedLine(lineInfo.line.lineNumber);
+        const currShow = showResult.data;
+        currShow.updateLastMentionedLine(lineInfo.line.lineNumber);
 
         const currTags = this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag) || [];
-        const { missingTags, extraTags } = checkTags(currTags, currentShow);
+        const { missingTags, extraTags } = checkTags(currTags, currShow);
     
         const names = (tag: Tag) => tag.name;
         const toList = (accum: string, token: string) => accum + ',' + token;
@@ -94,7 +101,7 @@ export default class LineProcessor {
                 message: `Incorrect tagging (does not align with previous definition): ${relatedErrorMessage}`,
                 range: lineInfo.line.range,
                 severity: DiagnosticSeverity.Error,
-                relatedInformation: [{ location: new Location(document.uri, document.lineAt(currentShow.info.firstMentionedLine).range), message: "Fist show declaration is here" }]
+                relatedInformation: [{ location: new Location(document.uri, document.lineAt(currShow.info.firstMentionedLine).range), message: "Fist show declaration is here" }]
             });
         }
 
@@ -111,7 +118,7 @@ export default class LineProcessor {
         }
 
         const currentShowTitle = currentShowLine.params.showTitle;
-        let currentShow = this.storage.getShow(currentShowLine.params.showTitle);
+        let currentShow = this.storage.searchShow(currentShowLine.params.showTitle);
 
         this.lineContext.currentTagsLines = this.lineContext.currentTagsLines?.filter(lineInfo => lineInfo.params.tag.target !== TagTarget.WATCH_LINE);
 

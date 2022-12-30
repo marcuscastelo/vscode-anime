@@ -1,3 +1,4 @@
+import { isOk } from "rustic";
 import { CancellationToken, ExtensionContext, Hover, HoverProvider, languages, MarkdownString, Position, TextDocument, window } from "vscode";
 import { LANGUAGE_ID } from "../constants";
 
@@ -28,14 +29,14 @@ export default class ShowHoverProvider implements HoverProvider {
     private generateLineContextHover(document: TextDocument, line: number) {
         const searchResult = LineContextFinder.findContext(document, line);
         
-        if (!searchResult.ok) {
+        if (!isOk(searchResult)) {
             const md = new MarkdownString();
             md.appendMarkdown(`### ERROR: `);
-            md.appendText(`${searchResult.error.message}`);
+            md.appendText(`${searchResult.data.message}`);
             return new Hover(md);
         }
 
-        const lineContext = searchResult.result;
+        const lineContext = searchResult.data;
         const { currentDateLine, currentShowLine, currentTagsLines } = lineContext;
 
         if (!currentDateLine || !currentShowLine) {
@@ -48,16 +49,16 @@ export default class ShowHoverProvider implements HoverProvider {
         const tagNames = currentTagsLines.map(lineInfo => lineInfo.params.tag.name);
         const tagNamesString = tagNames.join(', ');
 
-        const show = MarucsAnime.INSTANCE.showStorage.getShow(currentShowLine.params.showTitle);
+        const show = MarucsAnime.INSTANCE.showStorage.searchShow(currentShowLine.params.showTitle);
         let showLastTitle = 'NOT FOUND';
         let showLastDate = 'NOT FOUND';
         let showLastTagNamesString = 'NOT FOUND';
         if (show) {
             const firstMentionedContext = LineContextFinder.findContext(document, show.info.firstMentionedLine+1);
-            if (firstMentionedContext.ok) {
-                showLastTitle = firstMentionedContext.result.currentShowLine?.params.showTitle || 'EMPTY';
-                showLastDate = firstMentionedContext.result.currentDateLine?.params.date || "EMPTY";
-                showLastTagNamesString = firstMentionedContext.result.currentTagsLines.map(lineInfo => lineInfo.params.tag).join(', ');
+            if (isOk(firstMentionedContext)) {
+                showLastTitle = firstMentionedContext.data.currentShowLine?.params.showTitle || 'EMPTY';
+                showLastDate = firstMentionedContext.data.currentDateLine?.params.date || "EMPTY";
+                showLastTagNamesString = firstMentionedContext.data.currentTagsLines.map(lineInfo => lineInfo.params.tag).join(', ');
             }
         }
 

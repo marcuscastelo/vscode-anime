@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import { LANGUAGE_ID } from "../constants";
 import { MarucsAnime } from "../extension";
 import LineContextFinder from "../list-parser/line-context-finder";
+import { equip, isErr } from "rustic";
 
 export default class ShowLensProvider implements CodeLensProvider {
     public static register(context: ExtensionContext) {
@@ -31,21 +32,21 @@ export default class ShowLensProvider implements CodeLensProvider {
         const lineContext = LineContextFinder.findContext(document, currLine);
 
         let lineMessages: string[] = [];
-        let targetLine = lineContext.ok ? lineContext.result.currentShowLine.line.lineNumber : currLine;
+        let targetLine = equip(lineContext).mapOr(currLine, (ctx) => ctx.currentShowLine.line.lineNumber);
 
-        if (!lineContext.ok) {
-            lineMessages.push(`${lineContext.error}`);
+        if (isErr(lineContext)) {
+            lineMessages.push(`${lineContext.data}`);
         } else {
-            const currShowTitle = lineContext.result.currentShowLine.params.showTitle;
-            const show = MarucsAnime.INSTANCE.showStorage.getShow(currShowTitle);
+            const currShowTitle = lineContext.data.currentShowLine.params.showTitle;
+            const show = MarucsAnime.INSTANCE.showStorage.searchShow(currShowTitle);
             if (!show) {
                 lineMessages.push(`Show '${currShowTitle}' not found in database`);
             } else {
                 const originalShowContext = LineContextFinder.findContext(document, show.info.firstMentionedLine);
-                if (!originalShowContext.ok) {
-                    lineMessages.push(`Original '${currShowTitle}' context is invalid...`);
+                if (isErr(originalShowContext)) {
+                    lineMessages.push(`Original '${currShowTitle}' context is invalid... Error: ${originalShowContext.data}`);
                 } else {
-                    lineMessages.push(`Show original Tags: [${originalShowContext.result.currentTagsLines.map(lineInfo => lineInfo.params.tag.name).join(', ')}]`);
+                    lineMessages.push(`Show original Tags: [${originalShowContext.data.currentTagsLines.map(lineInfo => lineInfo.params.tag.name).join(', ')}]`);
                 }
             }
         }

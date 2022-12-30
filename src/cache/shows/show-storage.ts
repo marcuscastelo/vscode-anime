@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable curly */
+import { Err, Ok, Result, Option, equip } from "rustic";
 import { WatchEntry, Tag } from "../../types";
 import { Show } from "./cached-shows";
 
@@ -11,15 +12,14 @@ export default class ShowStorage {
 	private showDict: ShowDict = {};
 	private friendList: string[] = [];
 
-	public registerShow(declarationLine: number, title: string, tags: Tag[] = [], overwrite = true): Show {
+	public registerShow(declarationLine: number, title: string, tags: Tag[] = [], overwrite = true): Result<Show, Error> {
 		if (!overwrite && this.isShowRegistered(title)) {
-			console.warn(`Not registering already registered anime: `, title);
-			return this.getShow(title) as Show;
+			return Err(new Error(`Anime already registered: ${title}`));
 		}
 
-		let anime = new Show(declarationLine, {title, tags});
-		this.showDict[title] = anime;
-		return anime;
+		let show = new Show(declarationLine, { title, tags });
+		this.showDict[title] = show;
+		return Ok(show);
 	}
 
 	public registerFriend(friendName: string) {
@@ -27,30 +27,33 @@ export default class ShowStorage {
 			this.friendList.push(friendName);
 	}
 
-	public getShow(animeName: string): Show | undefined {
-		const show = this.showDict[animeName];
-		return show;
+	public searchShow(showName: string): Option<Show> {
+		return this.showDict[showName];
 	}
 
-	public getOrCreateShow(showTitle: string, currentLine: number, animeTagsAtCreation: Tag[] = []): Show {
-		return this.getShow(showTitle) ?? this.registerShow(currentLine, showTitle, animeTagsAtCreation);
+	public getOrCreateShow(showTitle: string, currentLine: number, animeTagsAtCreation: Tag[] = []): Result<Show, Error> {
+		const get = () => equip(this.searchShow(showTitle));
+		const create = () => this.registerShow(currentLine, showTitle, animeTagsAtCreation);
+
+		return get().mapOrElse(create, (show) => Ok(show));
 	}
 
-	public isShowRegistered(animeName: string): boolean {
-		return this.getShow(animeName) !== null;
+	public isShowRegistered(showTitle: string): boolean {
+		return equip(this.searchShow(showTitle)).isSome();
 	}
 
-	public registerWatchEntry(animeName: string, watchEntry: WatchEntry) {
-		let show = this.getShow(animeName);
-		if (show) {
-			show.updateLastWatchEntry(watchEntry);
+	public registerWatchEntry(showTitle: string, watchEntry: WatchEntry): Option<Error> {
+		const searchRes = equip(this.searchShow(showTitle));
+
+		if (searchRes.isSome()) {
+			searchRes.unwrap().updateLastWatchEntry(watchEntry);
+			return null;
 		}
-		else {
-			console.error(`Trying to add watch entry to unkown anime: \n\
-			Anime: ${animeName} \n\
-			Entry: ${watchEntry}`);
-		}
 
+		return new Error(`Trying to add watch entry to unkown Show: \n` +
+			`Show: ${showTitle} \n` +
+			`Entry: ${watchEntry}`
+		);
 	}
 
 	public listShows() {

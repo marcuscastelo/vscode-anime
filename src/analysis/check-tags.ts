@@ -4,7 +4,6 @@ import LineContext from "../list-parser/line-context";
 import LineContextFinder from "../list-parser/line-context-finder";
 import { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "../list-parser/line-info";
 import { Tag, TagTarget } from "../types";
-import { Result } from "../utils/typescript-utils";
 
 //TODO: move
 type LineAddressable = number | TextLine | LineContext;
@@ -31,21 +30,21 @@ function isLineAddressable(arg: any): arg is LineAddressable {
 }
 
 //TODO: move
-function lineAddressableToContext(document: TextDocument, line: LineAddressable): LineContext | Error {
-    if (isNumber(line)) {
-        line = document.lineAt(line);
-    }
+// function lineAddressableToContext(document: TextDocument, line: LineAddressable): LineContext | Error {
+//     if (isNumber(line)) {
+//         line = document.lineAt(line);
+//     }
 
-    if (isTextLine(line)) {
-        const contextRes = LineContextFinder.findContext(document, line.lineNumber);
-        if (!contextRes.ok) {
-            return contextRes.error;
-        }
-        line = contextRes.result;
-    }
+//     if (isTextLine(line)) {
+//         const contextRes = LineContextFinder.findContext(document, line.lineNumber);
+//         if (!contextRes.ok) {
+//             return contextRes.error;
+//         }
+//         line = contextRes.result;
+//     }
 
-    return line;
-}
+//     return line;
+// }
 
 export function checkTags(currTags: Tag[], targetShow: Show) {
     const missingTags = targetShow.info.tags.filter(tag => tag.target === TagTarget.SHOW && !currTags.includes(tag));
