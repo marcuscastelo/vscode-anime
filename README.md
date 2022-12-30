@@ -13,12 +13,10 @@ Here is a simple example:
 
 Dates are in orange, anime titles in green, watch times in blue, episodes in cyan and friends in yellow.
 
-### WIP: autocompletion
-
 ### Keybinds
 
 - `Alt + D` - inserts current date (dd/mm/yyyy) below the cursor
 - `Alt + T` - inserts current time (mm:ss) below the cursor
 - `Alt + N` - inserts current anime's next episode (last episode + 1)
 
-![kebinds example gif](images/keybinds-example.gif)
+![kebinds example gif](https://user-images.githubusercontent.com/27441558/210034257-76635017-c312-49bf-ba75-62d24d163346.gif)
