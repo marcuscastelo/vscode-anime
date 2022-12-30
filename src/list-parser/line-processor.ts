@@ -1,5 +1,5 @@
 import { DiagnosticRelatedInformation, DiagnosticSeverity, Location, Range, TextDocument, TextLine } from "vscode";
-import ShowStorage from "../cache/shows/showStorage";
+import ShowStorage from "../cache/shows/show-storage";
 import DocumentReader from "../utils/document-reader";
 import { Show } from "../cache/shows/cached-shows";
 import MADiagnosticController from "../lang/maDiagnosticCollection";

@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import ShowStorage from '../../cache/shows/showStorage';
+import ShowStorage from '../../cache/shows/show-storage';
 import MADiagnosticController from '../../lang/maDiagnosticCollection';
 import LineProcessor from '../../list-parser/line-processor';
 import LineContext from '../../list-parser/line-context';

@@ -1,6 +1,6 @@
 import { CancellationToken, CompletionContext, CompletionItem, CompletionItemKind, CompletionItemProvider, CompletionTriggerKind, DebugConsoleMode, DocumentFilter, ExtensionContext, languages, Position, ProviderResult, Range, TextDocument, TextEdit, window } from "vscode";
 import * as vscode from "vscode";
-import ShowStorage from "../cache/shows/showStorage";
+import ShowStorage from "../cache/shows/show-storage";
 import { LANGUAGE_ID } from "../constants";
 import { MarucsAnime } from "../extension";
 import { LineType } from "../list-parser/line-type";

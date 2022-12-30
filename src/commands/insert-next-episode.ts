@@ -1,6 +1,6 @@
 
 	import { TextEditor, TextEditorEdit, window } from "vscode";
-	import ShowStorage from "../cache/shows/showStorage";
+	import ShowStorage from "../cache/shows/show-storage";
 	import LineContextFinder from "../list-parser/line-context-finder";
 	import { isEditingSimpleCursor } from "../utils/editor-utils";
 	import { MarucsAnime } from '../extension';
