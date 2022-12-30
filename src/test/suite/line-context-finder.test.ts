@@ -3,6 +3,7 @@ import * as assert from 'assert';
 import * as SampleDocuments from '../mocks/sample-documents';
 import { LineType } from '../../list-parser/line-type';
 import { DateLineInfo, LineInfo, LineInfoBase } from '../../list-parser/line-info';
+import { isErr } from 'rustic';
 
 type LineInfoOfType<T extends LineType> = LineInfoBase & {type: T};
 class LineContextFinderTest {
@@ -46,11 +47,11 @@ class LineContextFinderTest {
     public canFindContext() {
         const sample = SampleDocuments.minimalDateTitleWatchEntry;
         const contextRes = LineContextFinder.findContext(sample.document, sample.document.lineCount - 1);
-        if (!contextRes.ok) {
-            assert.fail(contextRes.error);
+        if (isErr(contextRes)) {
+            assert.fail(contextRes.data);
         }
 
-        const context = contextRes.result;
+        const context = contextRes.data;
         suite("LineContextFinder", () => {
             test('Correct date', () => this.isDateLineCorrect(sample.expectations, context.currentDateLine));
             test('Correct show title', () => this.isShowTitleLineCorrect(sample.expectations, context.currentShowLine));

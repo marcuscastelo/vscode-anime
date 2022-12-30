@@ -1,6 +1,6 @@
+import { Err, Ok, Result } from 'rustic';
 import * as vscode from 'vscode';
 import { LineType } from '../list-parser/line-type';
-import { Result } from './typescript-utils';
 
 type GetLineFunc = (line: number) => vscode.TextLine;
 export interface LineMatcher<T> {
@@ -47,17 +47,10 @@ export default class DocumentReader implements IterableIterator<vscode.TextLine>
 		}
 
 		if (results.length > 0) {
-			return {
-				ok: true,
-				result: results.reverse(),
-			};
+			return Ok(results.reverse());
 		}
 
-		return {
-			ok: false,
-			error: new Error('No line found!'),
-		};
-
+		return Err(new Error('No line found!'));
 	}
 
 	public next(): { done: boolean, value: vscode.TextLine } {
