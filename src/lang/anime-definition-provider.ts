@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import { LANGUAGE_ID } from "../constants";
 import { MarucsAnime } from "../extension";
 import LineContextFinder from "../list-parser/line-context-finder";
+import { isErr } from "rustic";
 
 export default class ShowDefinitionProvider implements DefinitionProvider {
     public static register(context: ExtensionContext) {
@@ -16,16 +17,16 @@ export default class ShowDefinitionProvider implements DefinitionProvider {
 
     provideDefinition(document: TextDocument, position: Position, token: CancellationToken): ProviderResult<Definition | DefinitionLink[]> {
         const contextRes = LineContextFinder.findContext(document, position.line);
-        if (!contextRes.ok) {
+        if (isErr(contextRes)) {
             return;
         }
 
-        if (position.line === contextRes.result.currentDateLine.line.lineNumber) {
+        if (position.line === contextRes.data.currentDateLine.line.lineNumber) {
             return; // We don't want to highlight the date line
         }
         
-        const currentShowLine = contextRes.result.currentShowLine.line.lineNumber;
-        const show = MarucsAnime.INSTANCE.showStorage.getShow(contextRes.result.currentShowLine.params.showTitle);
+        const currentShowLine = contextRes.data.currentShowLine.line.lineNumber;
+        const show = MarucsAnime.INSTANCE.showStorage.searchShow(contextRes.data.currentShowLine.params.showTitle);
         if (!show) {
             return;
         }
