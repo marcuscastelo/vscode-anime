@@ -1,18 +1,18 @@
 import { DecorationOptions, EndOfLine, Position, Range, Selection, SnippetString, TextDocument, TextEditor, TextEditorDecorationType, TextEditorEdit, TextEditorOptions, TextEditorRevealType, TextLine, Uri, ViewColumn } from "vscode";
 
 export class TextDocumentMock implements TextDocument {
-    uri!: Uri;
-    fileName!: string;
-    isUntitled!: boolean;
-    languageId!: string;
-    version!: number;
-    isDirty!: boolean;
-    isClosed!: boolean;
+    uri: Uri = Uri.parse('mock uri');
+    fileName: string = 'mock file name';
+    isUntitled: boolean = false;
+    languageId: string = 'mock language id';
+    version: number = 0;
+    isDirty: boolean = false;
+    isClosed: boolean = false;
     save(): Thenable<boolean> {
         throw new Error("Method not implemented.");
     }
-    eol!: EndOfLine;
-    lineCount!: number;
+    eol: EndOfLine = EndOfLine.LF;
+    lineCount: number = 100000;
     lineAt(line: number): TextLine;
     lineAt(position: Position): TextLine;
     lineAt(position: unknown): import("vscode").TextLine {
