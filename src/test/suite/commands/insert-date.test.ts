@@ -18,13 +18,12 @@ suite("Insert Date", () => {
 
         sinon.stub(Date.prototype, "toLocaleDateString").returns("2020-01-01");
 
-        const textEditorMock = sinon.mock(textEditor);
         const textEditorEditMock = sinon.mock(textEditorEdit);
 
         textEditorEditMock.expects("insert").once().withArgs(textEditor.selection.active, "2020-01-01");
 
         insertDate(textEditor, textEditorEdit);
 
-        textEditorMock.verify();
+        textEditorEditMock.verify();
     });
 });

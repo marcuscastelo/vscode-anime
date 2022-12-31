@@ -1,12 +1,24 @@
 import { DecorationOptions, EndOfLine, Position, Range, Selection, SnippetString, TextDocument, TextEditor, TextEditorDecorationType, TextEditorEdit, TextEditorOptions, TextEditorRevealType, TextLine, Uri, ViewColumn } from "vscode";
+import { TextDocumentMock } from "./text-document-mock";
 
 export class TextEditorMock implements TextEditor {
-    document!: TextDocument;
-    selection!: Selection;
-    selections!: Selection[];
-    visibleRanges!: Range[];
+    document: TextDocument;
+    selection: Selection;
+    selections: Selection[];
+    visibleRanges: Range[];
     options!: TextEditorOptions;
-    viewColumn?: ViewColumn | undefined;
+    viewColumn: ViewColumn | undefined;
+
+    constructor(overrides?: Partial<TextEditorMock>) {
+        this.document = new TextDocumentMock();
+        this.selection = new Selection(new Position(0, 0), new Position(0, 1));
+        this.selections = [this.selection];
+        this.visibleRanges = [new Range(new Position(0, 0), new Position(0, 1))];
+        //TODO: TextEditorOptionsMock
+
+        Object.assign(this, overrides);
+    }
+
     edit(callback: (editBuilder: TextEditorEdit) => void, options?: { undoStopBefore: boolean; undoStopAfter: boolean; } | undefined): Thenable<boolean> {
         throw new Error("Method not implemented.");
     }

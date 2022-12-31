@@ -1,28 +1,10 @@
 
 import { isErr } from "rustic";
 import { Selection, TextDocument, TextEditor, TextEditorEdit, window } from "vscode";
+import { checkLineInDocumentIsToday } from "../analysis/check-date-time";
 import LineContextFinder from "../list-parser/line-context-finder";
 import { isEditingSimpleCursor } from "../utils/editor-utils";
 import { TextEditorCommand } from "./types";
-
-function checkLineContextDateIsToday(document: TextDocument, line: number): [boolean, string] {
-	const contextRes = LineContextFinder.findContext(document, line);
-	if (isErr(contextRes)) {
-		console.error(contextRes.data);
-		return [false, contextRes.data.message];
-	}
-
-	const context = contextRes.data;
-	const contextDate = context.currentDateLine.params.date;
-
-	let currDate = (new Date(Date.now())).toLocaleDateString('pt-BR');
-
-	if (contextDate !== currDate) {
-		return [false, `The date of the current line is not today. Today: ${currDate}, line date: ${contextDate}`];
-	}
-
-	return [true, 'Ok'];
-}
 
 function insertTimeCallback(textEditor: TextEditor, currTime: string) {
 	textEditor.edit(
@@ -30,15 +12,19 @@ function insertTimeCallback(textEditor: TextEditor, currTime: string) {
 	);
 }
 
+export function getTimeString() {
+	return (new Date(Date.now())).toLocaleTimeString('pt-BR', {
+		hour: `2-digit`,
+		minute: `2-digit`
+	});
+}
+
 export const insertTime: TextEditorCommand<void> = (textEditor: TextEditor, edit: TextEditorEdit) => {
 	if (!isEditingSimpleCursor(textEditor)) {
 		return;
 	}
 
-	let currTime = (new Date(Date.now())).toLocaleTimeString('pt-BR', {
-		hour: `2-digit`,
-		minute: `2-digit`
-	});
+	let currTime = getTimeString();
 
 	let currentLineText = textEditor.document.lineAt(textEditor.selection.start.line).text;
 
@@ -60,12 +46,20 @@ export const insertTime: TextEditorCommand<void> = (textEditor: TextEditor, edit
 		currTime += currentLineText.endsWith(' ') ? '- ' : ' - ';
 	}
 
-	const [isSameDate, error] = checkLineContextDateIsToday(textEditor.document, textEditor.selection.start.line);
+	const checkResult = checkLineInDocumentIsToday(textEditor.document, textEditor.selection.start.line);
+
+	if (isErr(checkResult)) {
+		window.showErrorMessage(checkResult.data.message);
+		return;
+	}
+
+	const isSameDate = checkResult.data;
+
 	if (!isSameDate) {
-		window.showWarningMessage(error, {
+		window.showWarningMessage(`The date of the last declared date line is not today. Are you sure you want to insert the time?`, {
 			modal: true
-		}, 'Insert time anyways').then((value) => {
-			if (value === 'Insert time anyways') {
+		}, 'Insert time').then((value) => {
+			if (value === 'Insert time') {
 				insertTimeCallback(textEditor, currTime);
 			}
 		});
