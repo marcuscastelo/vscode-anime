@@ -3,7 +3,7 @@ import { Show } from "../cache/anime/shows";
 import LineContext from "../list-parser/line-context";
 import LineContextFinder from "../list-parser/line-context-finder";
 import { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "../list-parser/line-info";
-import { Tag, TagTarget } from "../types";
+import { Tag, TagTarget } from "../core/tag";
 
 type LineAddressable = number | TextLine | LineContext;
 function isNumber(arg: any): arg is number {

@@ -3,7 +3,6 @@ import * as vscode from "vscode";
 import ShowStorage from "../cache/anime/show-storage";
 import { LANGUAGE_ID } from "../constants";
 import { MarucsAnime } from "../extension";
-import { Tags } from "../types";
 
 enum CompletionType {
     ShowTitle = 1,
@@ -70,7 +69,7 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
         switch (completionType) {
             case CompletionType.Friend: return storage.listFriends();
             case CompletionType.ShowTitle: return storage.listShows();
-            case CompletionType.Tag: return Object.keys(Tags);
+            case CompletionType.Tag: return MarucsAnime.INSTANCE.tagRegistry.listKeys();
             default:
                 console.error('Not Implemented completion: ', completionType.toString());
                 return [];

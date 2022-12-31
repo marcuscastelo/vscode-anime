@@ -28,7 +28,7 @@ export const minimalDateTitleWatchEntry: Sample = {
         lastWatchEntryParams: {
             startTime: "21:32",
             endTime: "21:33",
-            episode: 1,
+            episode: "01",
             company: [],
         }
     }
@@ -46,7 +46,7 @@ export const minimalDateTitleWatchEntryWithFriends: Sample = {
         lastWatchEntryParams: {
             startTime: "21:32",
             endTime: "21:33",
-            episode: 1,
+            episode: "01",
             company: ["Fulano"],
         }
     }
@@ -65,7 +65,7 @@ export const minimalDateTitleWatchEntryWithFriendsAndTags: Sample = {
         lastWatchEntryParams: {
             startTime: "21:32",
             endTime: "21:33",
-            episode: 1,
+            episode: "01",
             company: ["Fulano"],
         }
     }

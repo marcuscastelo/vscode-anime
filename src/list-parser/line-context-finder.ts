@@ -1,5 +1,5 @@
 import { TextDocument, TextLine } from "vscode";
-import { Tag, Tags, TagTarget, WatchEntry } from "../types";
+import { TagTarget } from "../core/tag";
 import DocumentReader, { LineMatcher } from "../utils/document-reader";
 import LineContext from "./line-context";
 import { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info";
@@ -7,6 +7,7 @@ import { LineType } from "./line-type";
 import { Err, isOk, Ok, Result } from 'rustic';
 import LineIdentifier from "./line-identifier";
 import { PredefinedArray } from "../utils/typescript-utils";
+import { MarucsAnime } from "../extension";
 
 type FindContextResult = Result<LineContext, Error>;
 
@@ -123,7 +124,12 @@ export default class LineContextFinder {
                 
                 if (lineInfo.type === LineType.Tag) {
                     const tagName = lineInfo.params.tagName; //TODO: tagParams
-                    const tag = Tags[lineInfo.params.tagName];
+                    const tag = MarucsAnime.INSTANCE.tagRegistry.get(lineInfo.params.tagName);
+                    if (tag === undefined) {
+                        console.error(`Tag ${tagName} is not registered!`);
+                        return { hasData: false, stop: false };
+                    }
+                    
                     if (tag.target === TagTarget.WATCH_LINE) {
                         if (firstLine) {
                             return { hasData: true, data: lineInfo, stop: false };

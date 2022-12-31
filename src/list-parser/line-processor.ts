@@ -5,18 +5,19 @@ import { Show } from "../cache/anime/shows";
 import MADiagnosticController from "../lang/maDiagnosticCollection";
 import LineContext from "./line-context";
 import { LineType } from "./line-type";
-import { Tag, TagTarget, Tags, WatchEntry } from "../types";
+import { CompleteWatchEntry, DocumentContexted, PartialWatchEntry, WatchEntry } from "../types";
 import { checkTags } from "../analysis/check-tags";
 import LineIdentifier from "./line-identifier";
 import { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info";
 import { isErr } from "rustic";
-
+import { Tag, TagTarget } from "../core/tag";
+import { MarucsAnime } from "../extension";
+import { Supplier } from "../utils/typescript-utils";
 
 export default class LineProcessor {
-
     private lineContext: Partial<LineContext>;
     constructor(
-        private storage: ShowStorage,
+        private getStorage: Supplier<ShowStorage>,
         private diagnosticController: MADiagnosticController
     ) {
         this.lineContext = {};
@@ -30,7 +31,7 @@ export default class LineProcessor {
             this.processLine(currentLine, reader);
 
             if (reader.lineCount < 10 || currentLine.lineNumber % Math.floor(reader.lineCount / 10) === 0) {
-                console.log(`${currentLine.lineNumber+1}/${reader.lineCount} lines read (${((currentLine.lineNumber+1) / reader.lineCount * 100).toFixed(2)}%)`);
+                console.log(`${currentLine.lineNumber + 1}/${reader.lineCount} lines read (${((currentLine.lineNumber + 1) / reader.lineCount * 100).toFixed(2)}%)`);
             }
         }
     }
@@ -71,7 +72,8 @@ export default class LineProcessor {
 
         this.lineContext.currentTagsLines = this.lineContext.currentTagsLines?.filter(lineInfo => lineInfo.params.tag.target !== TagTarget.SHOW && lineInfo.params.tag.target !== TagTarget.WATCH_SESSION);
 
-        const showResult = this.storage.getOrCreateShow(showTitle, lineInfo.line.lineNumber, this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag));
+        const storage = this.getStorage();
+        const showResult = storage.getOrCreateShow(showTitle, lineInfo.line.lineNumber, this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag));
 
         if (isErr(showResult)) {
             this.diagnosticController.addLineDiagnostic(lineInfo.line, `Error while processing show: ${showResult.data}`);
@@ -84,17 +86,17 @@ export default class LineProcessor {
 
         const currTags = this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag) || [];
         const { missingTags, extraTags } = checkTags(document, currTags, currShow);
-    
+
         const names = (tag: Tag) => tag.name;
         const toList = (accum: string, token: string) => accum + ',' + token;
         const listTags = (tags: Tag[]) => tags.map(names).reduce(toList, '');
 
         let relatedErrorMessage = '';
         let messageBitmask = ((missingTags.length > 0) ? 1 : 0) | ((extraTags.length > 0) ? 2 : 0);
-        if (messageBitmask !== 0) { relatedErrorMessage = "Error: " ; }
-        if (messageBitmask & 1  ) { relatedErrorMessage += `those tags are missing: [${listTags(missingTags)}]` ; }
-        if (messageBitmask & 3  ) { relatedErrorMessage += `\nand ` ; }
-        if (messageBitmask & 2  ) { relatedErrorMessage += `too many tags: [${listTags(extraTags)}]` ; }
+        if (messageBitmask !== 0) { relatedErrorMessage = "Error: "; }
+        if (messageBitmask & 1) { relatedErrorMessage += `those tags are missing: [${listTags(missingTags)}]`; }
+        if (messageBitmask & 3) { relatedErrorMessage += `\nand `; }
+        if (messageBitmask & 2) { relatedErrorMessage += `too many tags: [${listTags(extraTags)}]`; }
 
         if (messageBitmask !== 0) {
             this.diagnosticController.addDiagnostic({
@@ -118,7 +120,7 @@ export default class LineProcessor {
         }
 
         const currentShowTitle = currentShowLine.params.showTitle;
-        let currentShow = this.storage.searchShow(currentShowLine.params.showTitle);
+        let currentShow = this.getStorage().searchShow(currentShowLine.params.showTitle);
 
         this.lineContext.currentTagsLines = this.lineContext.currentTagsLines?.filter(lineInfo => lineInfo.params.tag.target !== TagTarget.WATCH_LINE);
 
@@ -132,8 +134,8 @@ export default class LineProcessor {
         }
 
         let { startTime, endTime, episode, company: friends } = lineInfo.params;
-        if (isNaN(episode)) {
-            this.diagnosticController.addLineDiagnostic(lineInfo.line, "Episode is not a number");
+        if (episode !== '--' && isNaN(parseInt(episode))) {
+            this.diagnosticController.addLineDiagnostic(lineInfo.line, "Episode is nor a number nor --");
             return;
         }
 
@@ -141,31 +143,52 @@ export default class LineProcessor {
         const lineRange = lineInfo.line.range;
         const lineStart = lineRange.start;
 
-        if (!validTimeReg.test(startTime)) { 
-            this.diagnosticController.addRangeDiagnostic(new Range(lineStart, lineStart.with({character: 4})), 'WatchEntry: Invalid startTime'); 
+        if (!validTimeReg.test(startTime)) {
+            this.diagnosticController.addRangeDiagnostic(new Range(lineStart, lineStart.with({ character: 4 })), 'WatchEntry: Invalid startTime');
         }
 
-        if (!validTimeReg.test(endTime)) { 
-            this.diagnosticController.addRangeDiagnostic(new Range(lineStart.with({character:6}), lineStart.with({character: 10})), 'WatchEntry: Invalid endTime'); 
+        if (!validTimeReg.test(endTime)) {
+            this.diagnosticController.addRangeDiagnostic(new Range(lineStart.with({ character: 6 }), lineStart.with({ character: 10 })), 'WatchEntry: Invalid endTime');
         }
 
         //TODO: consider currDate and 23:59 - 00:00 entries
-        const watchEntry: WatchEntry = {
-            showTitle: currentShowTitle,
-            startTime,
-            endTime,
-            episode,
-            lineNumber: lineInfo.line.lineNumber,
-            company: friends
-        };
+        let watchEntry: WatchEntry;
+        if (episode === '--') {
+            const lastEpisode = currentShow.info.lastCompleteWatchEntry?.data.episode ?? 0;
+            watchEntry = <PartialWatchEntry>{
+                partial: true,
+                showTitle: currentShowTitle,
+                startTime,
+                endTime,
+                episode: lastEpisode + 1,
+                lineNumber: lineInfo.line.lineNumber,
+                company: friends
+            };
+        } else {
+            watchEntry = <CompleteWatchEntry>{
+                partial: false,
+                showTitle: currentShowTitle,
+                startTime,
+                endTime,
+                episode: parseInt(episode),
+                lineNumber: lineInfo.line.lineNumber,
+                company: friends
+            };
+        }
 
-        const lastWatchedEpisode = currentShow.info.lastWatchEntry.episode;
-        if (lastWatchedEpisode >= episode) {
+        const lastWatchedEpisode = currentShow.info.lastCompleteWatchEntry?.data.episode ?? 0;
+        if (lastWatchedEpisode >= watchEntry.episode) {
             //TODO: related info last ep's line
             //TODO: check for skipped as well
             //TODO: check for [UNSAFE-ORDER]
             //TODO: check for REWATCH (major rewrite of the code to support this)
-            const isUnsafeOrder = this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag).indexOf(Tags['UNSAFE-ORDER']) !== -1;
+            function checkUnsafeOrder(currentTags: Tag[]) {
+                return currentTags.find(tag => tag.name === 'UNSAFE-ORDER') !== undefined;
+            }
+
+            const currentTags = this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag) ?? [];
+
+            const isUnsafeOrder = checkUnsafeOrder(currentTags);
             const isSkip = false;
             const checkOrder = !isUnsafeOrder && !isSkip;
             if (checkOrder) {
@@ -180,18 +203,23 @@ export default class LineProcessor {
             }
         }
 
-        this.storage.registerWatchEntry(currentShowTitle, watchEntry);
+        const watchEntryCtx : DocumentContexted<WatchEntry> = {
+            data: watchEntry,
+            lineNumber: lineInfo.line.lineNumber
+        };
+
+        this.getStorage().registerWatchEntry(currentShowTitle, watchEntryCtx);
 
         for (let friend of friends) {
-            this.storage.registerFriend(friend);
+            this.getStorage().registerFriend(friend);
         }
     }
 
     processTag(lineInfo: TagLineInfo, reader: DocumentReader) {
         let { tagName } = lineInfo.params;
 
-        let tag = Tags[tagName];
-        
+        let tag = MarucsAnime.INSTANCE.tagRegistry.get(tagName);
+
         if (!tag) {
             this.diagnosticController.addLineDiagnostic(lineInfo.line, "Unknown tag, ignoring!", { severity: DiagnosticSeverity.Warning });
             return;

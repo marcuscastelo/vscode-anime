@@ -2,8 +2,8 @@ import { Diagnostic, DiagnosticSeverity, Position, Range, TextDocument, TextEdit
 import { DiagnosticCollection, ExtensionContext, languages, window } from "vscode";
 
 export default class MADiagnosticController {
-    public static register(context: ExtensionContext, collectionName: string) {
-        const provider = new MADiagnosticController(context, collectionName);
+    public static register(collectionName: string) {
+        const provider = new MADiagnosticController(collectionName);
         return provider;
     }
 
@@ -12,8 +12,7 @@ export default class MADiagnosticController {
     private document?: TextDocument;
 
     private constructor(
-        private readonly context: ExtensionContext,
-        private readonly collectionName: string
+        collectionName: string
     ) {
         this.collection = languages.createDiagnosticCollection(collectionName);
         this.document = window.activeTextEditor?.document;
