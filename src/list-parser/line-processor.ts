@@ -1,7 +1,7 @@
 import { DiagnosticRelatedInformation, DiagnosticSeverity, Location, Range, TextDocument, TextLine } from "vscode";
-import ShowStorage from "../cache/anime/showStorage";
+import ShowStorage from "../cache/shows/show-storage";
 import DocumentReader from "../utils/document-reader";
-import { Show } from "../cache/anime/shows";
+import { Show } from "../cache/shows/cached-shows";
 import MADiagnosticController from "../lang/maDiagnosticCollection";
 import LineContext from "./line-context";
 import { LineType } from "./line-type";
@@ -85,8 +85,8 @@ export default class LineProcessor {
         currShow.updateLastMentionedLine(lineInfo.line.lineNumber);
 
         const currTags = this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag) || [];
-        const { missingTags, extraTags } = checkTags(document, currTags, currShow);
-
+        const { missingTags, extraTags } = checkTags(currTags, currShow);
+    
         const names = (tag: Tag) => tag.name;
         const toList = (accum: string, token: string) => accum + ',' + token;
         const listTags = (tags: Tag[]) => tags.map(names).reduce(toList, '');

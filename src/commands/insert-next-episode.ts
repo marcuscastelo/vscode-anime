@@ -1,10 +1,10 @@
 
 import { TextEditor, TextEditorEdit, window } from "vscode";
-import ShowStorage from "../cache/anime/showStorage";
+import ShowStorage from "../cache/shows/show-storage";
 import LineContextFinder from "../list-parser/line-context-finder";
 import { isEditingSimpleCursor } from "../utils/editor-utils";
 import { MarucsAnime } from '../extension';
-import { Show } from "../cache/anime/shows";
+import { Show } from "../cache/shows/cached-shows";
 import { TextEditorCommand } from "./types";
 import { equip, isErr, isOk, Option, OptionEquipped } from "rustic";
 
@@ -43,10 +43,27 @@ export const insertNextEpisode: TextEditorCommand<void> = (textEditor: TextEdito
 		return;
 	}
 
+	const insertEp = (ep: string) => {
+		textEditor.edit(edit => {
+			edit.insert(textEditor.selection.start, ep.toString());
+		});
+	};
+
 	let lastEp = show.unwrap().info.lastCompleteWatchEntry?.data.episode ?? 0;
+
+	if (lastEp === undefined) {
+		window.showWarningMessage(`Anime ${context.currentShowLine.params.showTitle} has no last episode! Couldn't determine next epiode.`, {
+			modal: true
+		}, "Insert Episode 1").then((value) => {
+			if (value === "Insert Episode 1") {
+				insertEp("01");
+			}
+		});
+		return;
+	}
 
 	let nextEpStr = (lastEp + 1).toString();
 	if (nextEpStr.length < 2) { nextEpStr = "0" + nextEpStr; };
 
-	edit.insert(textEditor.selection.start, nextEpStr);
+	insertEp(nextEpStr);
 };

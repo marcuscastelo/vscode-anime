@@ -3,7 +3,7 @@
 import DocumentReader from './utils/document-reader';
 import LineProcessor from './list-parser/line-processor';
 
-import ShowStorage from './cache/anime/showStorage';
+import ShowStorage from './cache/shows/show-storage';
 import * as vscode from 'vscode';
 import { ExtensionContext } from 'vscode';
 import { TextDocument } from 'vscode';

@@ -4,6 +4,7 @@ import * as SampleDocuments from '../mocks/sample-documents';
 import { LineType } from '../../list-parser/line-type';
 import { DateLineInfo, LineInfo, LineInfoBase } from '../../list-parser/line-info';
 import { isErr } from 'rustic';
+import { beforeEach, describe, it, suite } from 'mocha';
 
 type LineInfoOfType<T extends LineType> = LineInfoBase & {type: T};
 class LineContextFinderTest {

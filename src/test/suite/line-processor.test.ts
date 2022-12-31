@@ -1,11 +1,12 @@
 import * as assert from 'assert';
-import ShowStorage from '../../cache/anime/showStorage';
+import ShowStorage from '../../cache/shows/show-storage';
 import MADiagnosticController from '../../lang/maDiagnosticCollection';
 import LineProcessor from '../../list-parser/line-processor';
 import LineContext from '../../list-parser/line-context';
 import DocumentReader from '../../utils/document-reader';
 import { DocumentMaker } from '../helpers/text-document';
 import * as SampleDocuments from '../mocks/sample-documents';
+import { beforeEach, describe, it, suite } from 'mocha';
 
 class LineProcessorTest {
     private processor: LineProcessor;
