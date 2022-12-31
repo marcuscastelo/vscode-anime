@@ -1,14 +1,16 @@
 import { utils } from "mocha";
 import { Tag } from "../../core/tag";
 import { MAL } from "../../services/mal";
-import { WatchEntry } from "../../types";
+import { CompleteWatchEntry, DocumentContexted, WatchEntry } from "../../types";
 
 type ShowInfo = {
     title: string,
-    lastWatchEntry: WatchEntry | null,
+    watchEntries: DocumentContexted<WatchEntry>[],
     lastMentionedLine: number,
     firstMentionedLine: number,
     tags: Tag[]
+
+    get lastCompleteWatchEntry(): DocumentContexted<CompleteWatchEntry> | undefined;
 };
 
 type MALAnimeInfo = {
@@ -26,16 +28,21 @@ export class Show {
         const {
             title,
             lastMentionedLine,
-            lastWatchEntry: lastWatchedEpisode,
+            watchEntries,
             tags
         } = initializer as ShowInfo;
 
         this.info = {
             title,
-            lastMentionedLine: lastMentionedLine ?? declarationLine,
-            lastWatchEntry: lastWatchedEpisode ?? null,
+            lastMentionedLine: lastMentionedLine ?? -1,
+            watchEntries: watchEntries ?? [],
             firstMentionedLine: declarationLine,
-            tags: tags ?? []
+            tags: tags ?? [],
+
+            get lastCompleteWatchEntry() {
+                const a = Array.from(this.watchEntries).reverse().find(w => w.data.partial === false);
+                return a as DocumentContexted<CompleteWatchEntry> | undefined; //TODO: type guard
+            }
         };
     }
 
@@ -43,9 +50,9 @@ export class Show {
         this.info.lastMentionedLine = lineNumber;
     }
 
-    public updateLastWatchEntry(lastEntry: WatchEntry) {
-        this.info.lastWatchEntry = lastEntry;
-        this.info.lastMentionedLine = lastEntry.lineNumber;
+    public addWatchEntry(lastEntryCtx: DocumentContexted<WatchEntry>) {
+        this.info.watchEntries.push(lastEntryCtx);
+        this.info.lastMentionedLine = lastEntryCtx.lineNumber;
     }
 }
 
