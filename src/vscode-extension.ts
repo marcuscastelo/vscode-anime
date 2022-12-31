@@ -8,7 +8,7 @@ export function activate(context: ExtensionContext) {
 	context.workspaceState.update(TAG_REGISTRY_ID, undefined); //TODO: stop doing this and fix the bug
 
 	console.log("Activating...");
-	MarucsAnime.activate(context);
+	MarucsAnime.INSTANCE.activate(context);
 	console.log("Activated!");
 
 	const tagRegistry = MarucsAnime.INSTANCE.tagRegistry;

@@ -95,6 +95,7 @@ export default class LineIdentifier {
     private static getTagParams(line: TextLine, groups: RegExpExecArray): LineInfo {
 
         let [_, tagName, tagParamsStr] = groups;
+        tagName = tagName.trim();
 
         let tagParams: TagParam[];
         //Assumes valid unless proven wrong below

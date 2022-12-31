@@ -31,7 +31,7 @@ export abstract class Registry<T> {
     }
 
     public toJson(): string {
-        return JSON.stringify(this._registry);
+        return JSON.stringify(Object.fromEntries(this._registry));
     }
 
     public register(key: string, value: T): void {
