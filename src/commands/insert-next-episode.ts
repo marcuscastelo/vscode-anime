@@ -43,7 +43,7 @@ export const insertNextEpisode: TextEditorCommand<void> = (textEditor: TextEdito
 		return;
 	}
 
-	let lastEp = show.unwrap().info.lastWatchEntry.episode;
+	let lastEp = show.unwrap().info.lastCompleteWatchEntry?.data.episode ?? 0;
 
 	let nextEpStr = (lastEp + 1).toString();
 	if (nextEpStr.length < 2) { nextEpStr = "0" + nextEpStr; };
