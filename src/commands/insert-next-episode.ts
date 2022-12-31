@@ -28,7 +28,7 @@ export const insertNextEpisode: TextEditorCommand<void> = (textEditor: TextEdito
 	}
 
 	function secondAttempt(): Option<Show> {
-		extension.reactToDocumentChange(textEditor.document);
+		extension.reactToDocumentChange(extension.context!, textEditor.document);
 		return extension.showStorage.searchShow(context.currentShowLine.params.showTitle);
 	}
 

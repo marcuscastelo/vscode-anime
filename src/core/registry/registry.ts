@@ -42,6 +42,14 @@ export abstract class Registry<T> {
         return this._registry.get(key);
     }
 
+    public has(key: string): boolean {
+        return this._registry.has(key);
+    }
+
+    public clear(): void {
+        this._registry.clear();
+    }
+
     public incorporate(registry: Registry<T>): void {
         for (const [key, value] of registry._registry) {
             this.register(key, value);

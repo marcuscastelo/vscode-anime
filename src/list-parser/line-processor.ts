@@ -12,13 +12,12 @@ import { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from
 import { isErr } from "rustic";
 import { Tag, TagTarget } from "../core/tag";
 import { MarucsAnime } from "../extension";
-
+import { Supplier } from "../utils/typescript-utils";
 
 export default class LineProcessor {
-
     private lineContext: Partial<LineContext>;
     constructor(
-        private storage: ShowStorage,
+        private getStorage: Supplier<ShowStorage>,
         private diagnosticController: MADiagnosticController
     ) {
         this.lineContext = {};
@@ -73,7 +72,8 @@ export default class LineProcessor {
 
         this.lineContext.currentTagsLines = this.lineContext.currentTagsLines?.filter(lineInfo => lineInfo.params.tag.target !== TagTarget.SHOW && lineInfo.params.tag.target !== TagTarget.WATCH_SESSION);
 
-        const showResult = this.storage.getOrCreateShow(showTitle, lineInfo.line.lineNumber, this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag));
+        const storage = this.getStorage();
+        const showResult = storage.getOrCreateShow(showTitle, lineInfo.line.lineNumber, this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag));
 
         if (isErr(showResult)) {
             this.diagnosticController.addLineDiagnostic(lineInfo.line, `Error while processing show: ${showResult.data}`);
@@ -120,7 +120,7 @@ export default class LineProcessor {
         }
 
         const currentShowTitle = currentShowLine.params.showTitle;
-        let currentShow = this.storage.searchShow(currentShowLine.params.showTitle);
+        let currentShow = this.getStorage().searchShow(currentShowLine.params.showTitle);
 
         this.lineContext.currentTagsLines = this.lineContext.currentTagsLines?.filter(lineInfo => lineInfo.params.tag.target !== TagTarget.WATCH_LINE);
 
@@ -188,10 +188,10 @@ export default class LineProcessor {
             }
         }
 
-        this.storage.registerWatchEntry(currentShowTitle, watchEntry);
+        this.getStorage().registerWatchEntry(currentShowTitle, watchEntry);
 
         for (let friend of friends) {
-            this.storage.registerFriend(friend);
+            this.getStorage().registerFriend(friend);
         }
     }
 
