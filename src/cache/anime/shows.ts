@@ -34,7 +34,7 @@ export class Show {
 
         this.info = {
             title,
-            lastMentionedLine: lastMentionedLine ?? -1,
+            lastMentionedLine: lastMentionedLine ?? declarationLine,
             watchEntries: watchEntries ?? [],
             firstMentionedLine: declarationLine,
             tags: tags ?? [],
