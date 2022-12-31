@@ -1,19 +1,20 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable curly */
-import { Err, Ok, Result, Option, equip, ResultErr } from "rustic";
-import { WatchEntry, Tag } from "../../types";
+import { Err, Ok, Result, Option, equip } from "rustic";
+import { Registry } from "../../core/registry/registry";
+import { Tag } from "../../core/tag";
+import { WatchEntry } from "../../types";
 import { Show } from "./cached-shows";
-
-type ShowDict = {
-	[name: string]: Show | undefined
-};
 
 /**
  * TODO: separar em 2 classes: ShowStorage e FriendStorage
  * TODO: ver onde colocar o "registerWatchEntry"
  */
-export default class ShowStorage {
-	private showDict: ShowDict = {};
+export default class ShowStorage extends Registry<Show> {
+	private get showDict() {
+		return this._registry;
+	}
+
 	private friendList: string[] = [];
 
 	public registerShow(declarationLine: number, title: string, tags: Tag[] = [], overwrite = true): Result<Show, Error> {
@@ -22,7 +23,7 @@ export default class ShowStorage {
 		}
 
 		let show = new Show(declarationLine, { title, tags });
-		this.showDict[title] = show;
+		this.showDict.set(title, show);
 		return Ok(show);
 	}
 
@@ -36,7 +37,7 @@ export default class ShowStorage {
 	}
 
 	public searchShow(showName: string): Option<Show> {
-		return this.showDict[showName];
+		return this.showDict.get(showName);
 	}
 
 	public searchFriend(friendName: string): Option<string> {
@@ -92,7 +93,7 @@ export default class ShowStorage {
 	}
 
 	public listShows() {
-		return Object.keys(this.showDict);
+		return Array.from(this.showDict.keys());
 	}
 
 	public listFriends() {

@@ -1,5 +1,6 @@
 import { TextLine } from "vscode";
-import { Tag, WatchEntry } from "../types";
+import { Tag } from "../core/tag";
+import {  WatchEntry } from "../types";
 import { LineType } from "./line-type";
 
 export type LineInfoBase = {

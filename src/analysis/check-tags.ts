@@ -3,7 +3,7 @@ import { Show } from "../cache/shows/cached-shows";
 import LineContext from "../list-parser/line-context";
 import LineContextFinder from "../list-parser/line-context-finder";
 import { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "../list-parser/line-info";
-import { Tag, TagTarget } from "../types";
+import { Tag, TagTarget } from "../core/tag";
 
 //TODO: move
 type LineAddressable = number | TextLine | LineContext;

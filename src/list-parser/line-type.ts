@@ -13,10 +13,10 @@ export const TAG_REG = makeGlobalReg(/^\s*(?<!\[)\[([^=[\]0-9]+?)(?:\(([^)]+)\))
 export const TAG_PARAM_REG = makeGlobalReg(/^([^=,0-9]+)=([^),]+)$/);
 
 export enum LineType {
-	ShowTitle = 1,
-	Date,
-	WatchEntry,
-	Tag,
-	Invalid,
-	Ignored,
+	ShowTitle = 'ShowTitle',
+	Date = 'Date',
+	WatchEntry = 'WatchEntry',
+	Tag = 'Tag',
+	Invalid = 'Invalid',
+	Ignored = 'Ignored',
 }

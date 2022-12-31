@@ -21,13 +21,18 @@ class LineIdentifierTest {
     private identifyLine() {
         if (!this.line) {
             throw new Error('Please use givenLines before parseLines');
-        } 
+        }
         this.parsedLine = LineIdentifier.identifyLine(this.line);
     }
 
     // --- Success tests: OK ---
     private thenAssertLineTypeOk(type: LineType, message?: string) {
-        assert.strictEqual(this.parsedLine?.type, type, message);
+        if (!this.parsedLine) {
+            throw new Error('Please use identifyLine before thenAssertLineTypeOk');
+        }
+
+        message = message || `Line type should be ${LineType[type]}, but was ${LineType[this.parsedLine.type]}`;
+        assert.strictEqual(this.parsedLine.type, type, message);
     }
 
     private lineTypeOK(lineText: string, lineType: LineType) {
@@ -63,23 +68,28 @@ class LineIdentifierTest {
     }
 
     public tagTypeOK() {
-        this.lineTypeOK('[Teste]', LineType.Tag);
-        this.lineTypeOK('[Teste] ', LineType.Tag);
-        this.lineTypeOK('[Teste] //With comment and space', LineType.Tag);
-        this.lineTypeOK('[Teste]//With comment and no space', LineType.Tag);
-        this.lineTypeOK(' [ Teste ] // With spaces all the way', LineType.Tag);
-        this.lineTypeOK('[Teste(param=3)]', LineType.Tag);
-        this.lineTypeOK('[Teste(param= 3)]', LineType.Tag);
-        this.lineTypeOK('[Teste(param = 3)]', LineType.Tag);
-        this.lineTypeOK('[Teste(param =3)]', LineType.Tag);
         this.lineTypeOK('[NOT-ANIME]', LineType.Tag);
-        this.lineTypeOK('[SKIP-LINES(from = 30, to = 100)]', LineType.Tag);
-        this.lineTypeOK('[SKIP-EPISODES(reason = "Filler", episodes = 40-45 )]', LineType.Tag);
+        this.lineTypeOK('[NOT-ANIME] ', LineType.Tag);
+        this.lineTypeOK('[NOT-ANIME] //With comment and space', LineType.Tag);
+        this.lineTypeOK('[NOT-ANIME]//With comment and no space', LineType.Tag);
+        this.lineTypeOK(' [ NOT-ANIME ] // With spaces all the way', LineType.Tag);
+        this.lineTypeOK('[NOT-ANIME(param=3)]', LineType.Tag);
+        this.lineTypeOK('[NOT-ANIME(param= 3)]', LineType.Tag);
+        this.lineTypeOK('[NOT-ANIME(param = 3)]', LineType.Tag);
+        this.lineTypeOK('[NOT-ANIME(param =3)]', LineType.Tag);
+        this.lineTypeOK('[NOT-ANIME]', LineType.Tag);
+        this.lineTypeOK('[NOT-ANIME(from = 30, to = 100)]', LineType.Tag);
+        this.lineTypeOK('[NOT-ANIME(reason = "Filler", episodes = 40-45 )]', LineType.Tag);
     }
 
     // --- Fail tests (it is expected to fail) ---
     private thenAssertLineTypeFail(type: LineType, message?: string) {
-        assert.notStrictEqual(this.parsedLine?.type, type, message);
+        if (!this.parsedLine) {
+            throw new Error('Please use identifyLine before thenAssertLineTypeOk');
+        }
+
+        message = message || `Line type should not be ${type}`;
+        assert.notStrictEqual(this.parsedLine.type, type, message);
     }
 
     private lineTypeFail(lineText: string, lineType: LineType, message?: string) {
@@ -92,9 +102,9 @@ class LineIdentifierTest {
 
     public showTitleTypeFail() {
         this.lineTypeFail("Missing colon", LineType.ShowTitle);
-        this.lineTypeFail("Tags should not be here: [TAG]", LineType.ShowTitle);
-        this.lineTypeFail("[TAG] Tags should not be here:", LineType.ShowTitle);
-        this.lineTypeFail("Tags should [TAG] not be here:", LineType.ShowTitle);
+        this.lineTypeFail("Tags should not be here: [NOT-ANIME]", LineType.ShowTitle);
+        this.lineTypeFail("[NOT-ANIME] Tags should not be here:", LineType.ShowTitle);
+        this.lineTypeFail("Tags should [NOT-ANIME] not be here:", LineType.ShowTitle);
         this.lineTypeFail("Friends should not be here: {Friend}", LineType.ShowTitle);
         this.lineTypeFail("{Friend} Friends should not be here:", LineType.ShowTitle);
         this.lineTypeFail("Friends should not {Friend} be here:", LineType.ShowTitle);
@@ -125,40 +135,48 @@ class LineIdentifierTest {
     }
 
     public tagTypeFail() {
-        this.lineTypeFail('(TestTag)', LineType.Tag);
-        this.lineTypeFail('[WRONG-BRACKETS]]', LineType.Tag);
-        this.lineTypeFail('[[WRONG-BRACKETS2]]', LineType.Tag);
-        this.lineTypeFail('[[WRONG-BRACKETS3]', LineType.Tag);
-        this.lineTypeFail('WRONG-BRACKETS4]', LineType.Tag);
-        this.lineTypeFail('[WRONG-BRACKETS5', LineType.Tag);
+        this.lineTypeFail('(NOT-ANIME)', LineType.Tag);
+        this.lineTypeFail('[NOT-ANIME]]', LineType.Tag);
+        this.lineTypeFail('[[NOT-ANIME]]', LineType.Tag);
+        this.lineTypeFail('[[NOT-ANIME]', LineType.Tag);
+        this.lineTypeFail('NOT-ANIME]', LineType.Tag);
+        this.lineTypeFail('[NOT-ANIME', LineType.Tag);
         this.lineTypeFail('[]', LineType.Tag);
-        this.lineTypeFail('[]Out', LineType.Tag);
-        this.lineTypeFail('Out2[]', LineType.Tag);
-        this.lineTypeFail('[123]', LineType.Tag);
-        this.lineTypeFail('[OldStyle=nono]', LineType.Tag);
-        this.lineTypeFail('[OldStyle=0]', LineType.Tag);
-        this.lineTypeFail('[Tag(noequal)]', LineType.Tag);
-        this.lineTypeFail('[Tag(12)]', LineType.Tag);
-        this.lineTypeFail('[Tag(=)]', LineType.Tag);
-        this.lineTypeFail('[Tag(=34)]', LineType.Tag);
-        this.lineTypeFail('[Tag(a, b)]', LineType.Tag);
-        this.lineTypeFail('[Tag(12, 43)]', LineType.Tag);
+        this.lineTypeFail('[]NOT-ANIME', LineType.Tag);
+        this.lineTypeFail('NOT-ANIME[]', LineType.Tag);
+        this.lineTypeFail('[1234]', LineType.Tag);
+        this.lineTypeFail('[NOT-ANIME=nono]', LineType.Tag);
+        this.lineTypeFail('[NOT-ANIME=0]', LineType.Tag);
+        this.lineTypeFail('[NOT-ANIME(noequal)]', LineType.Tag);
+        this.lineTypeFail('[NOT-ANIME(12)]', LineType.Tag);
+        this.lineTypeFail('[NOT-ANIME(=)]', LineType.Tag);
+        this.lineTypeFail('[NOT-ANIME(=34)]', LineType.Tag);
+        this.lineTypeFail('[NOT-ANIME(a, b)]', LineType.Tag);
+        this.lineTypeFail('[NOT-ANIME(12, 43)]', LineType.Tag);
+        this.lineTypeFail('[UNKNOWN-TAG]', LineType.Tag); //TODO: This should not fail, since identifier shouldn't know about registered tags
     }
 }
 
-suite("LineInfoParser Test Suite", () => {
+suite("Line Identifier Test Suite", () => {
     const suites = LineIdentifierTest.test;
     suite("ShowTitles", () => {
-        //Expected to Success
         suite('should recognize correct show titles', () => suites.showTitleTypeOk());
-        suite('should recognize correct dates', () => suites.dateTypeOK());
-        suite('should recognize correct watch entries', () => suites.watchEntryTypeOK());
-        suite('should recognize correct tags', () => suites.tagTypeOK());
-
-        //Expected to Fail
         suite("shouldn't read malformed show titles ", () => suites.showTitleTypeFail());
+    });
+
+    suite("Dates", () => {
+        suite('should recognize correct dates', () => suites.dateTypeOK());
         suite("shouldn't read malformed dates ", () => suites.dateTypeFail());
+    });
+
+    suite("WatchEntries", () => {
+        suite('should recognize correct watch entries', () => suites.watchEntryTypeOK());
         suite("shouldn't read malformed watch entries ", () => suites.watchEntryTypeFail());
+
+    });
+
+    suite("Tags", () => {
+        suite('should recognize correct tags', () => suites.tagTypeOK());
         suite("shouldn't read malformed tags ", () => suites.tagTypeFail());
     });
 });

@@ -5,11 +5,13 @@ import { Show } from "../cache/shows/cached-shows";
 import MADiagnosticController from "../lang/maDiagnosticCollection";
 import LineContext from "./line-context";
 import { LineType } from "./line-type";
-import { Tag, TagTarget, Tags, WatchEntry } from "../types";
+import { WatchEntry } from "../types";
 import { checkTags } from "../analysis/check-tags";
 import LineIdentifier from "./line-identifier";
 import { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info";
 import { isErr } from "rustic";
+import { Tag, TagTarget } from "../core/tag";
+import { MarucsAnime } from "../extension";
 
 
 export default class LineProcessor {
@@ -165,7 +167,13 @@ export default class LineProcessor {
             //TODO: check for skipped as well
             //TODO: check for [UNSAFE-ORDER]
             //TODO: check for REWATCH (major rewrite of the code to support this)
-            const isUnsafeOrder = this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag).indexOf(Tags['UNSAFE-ORDER']) !== -1;
+            function checkUnsafeOrder(currentTags: Tag[]) {
+                return currentTags.find(tag => tag.name === 'UNSAFE-ORDER') !== undefined;
+            }
+
+            const currentTags = this.lineContext.currentTagsLines?.map(lineInfo => lineInfo.params.tag) ?? [];
+
+            const isUnsafeOrder = checkUnsafeOrder(currentTags);
             const isSkip = false;
             const checkOrder = !isUnsafeOrder && !isSkip;
             if (checkOrder) {
@@ -190,7 +198,7 @@ export default class LineProcessor {
     processTag(lineInfo: TagLineInfo, reader: DocumentReader) {
         let { tagName } = lineInfo.params;
 
-        let tag = Tags[tagName];
+        let tag = MarucsAnime.INSTANCE.tagRegistry.get(tagName);
         
         if (!tag) {
             this.diagnosticController.addLineDiagnostic(lineInfo.line, "Unknown tag, ignoring!", { severity: DiagnosticSeverity.Warning });
