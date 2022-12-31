@@ -4,7 +4,6 @@ import ShowStorage from "../cache/anime/showStorage";
 import { LANGUAGE_ID } from "../constants";
 import { MarucsAnime } from "../extension";
 import { LineType } from "../list-parser/line-type";
-import { Tags } from "../types";
 
 enum CompletionType {
     ShowTitle = 1,
@@ -71,7 +70,7 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
         switch (completionType) {
             case CompletionType.Friend: return storage.listFriends();
             case CompletionType.ShowTitle: return storage.listShows();
-            case CompletionType.Tag: return Object.keys(Tags);
+            case CompletionType.Tag: return MarucsAnime.INSTANCE.tagRegistry.listKeys();
             default:
                 console.error('Not Implemented completion: ', completionType.toString());
                 return [];

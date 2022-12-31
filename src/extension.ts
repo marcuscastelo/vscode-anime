@@ -13,10 +13,12 @@ import { insertNextEpisode } from './commands/insert-next-episode';
 import ShowHoverProvider from './lang/anime-hover-provider';
 import AnimeCompletionItemProvider from './lang/anime-completion-provider';
 import MADiagnosticController from './lang/maDiagnosticCollection';
-import { ANIME_STORAGE_ID, EXTENSION_ID, LANGUAGE_ID } from './constants';
+import { ANIME_STORAGE_ID, EXTENSION_ID, LANGUAGE_ID, TAG_REGISTRY_ID } from './constants';
 import ShowLensProvider from './lang/anime-codelens-provider';
 import { formatFriend } from './commands/format-friend';
 import ShowDefinitionProvider from './lang/anime-definition-provider';
+import { TagRegistry } from './core/registry/tag-registry';
+import { registerDefaultTags } from './core/tag';
 
 export class MarucsAnime {
     private static _INSTANCE: MarucsAnime;
@@ -28,7 +30,7 @@ export class MarucsAnime {
             return null;
         }
 
-        MarucsAnime._INSTANCE = new MarucsAnime(context);;
+        MarucsAnime._INSTANCE = new MarucsAnime(context);
         
         return MarucsAnime._INSTANCE;
     }
@@ -47,6 +49,7 @@ export class MarucsAnime {
     }
 
     get showStorage(): ShowStorage {
+        return 
         let animeStorage = this.context.workspaceState.get<ShowStorage>(ANIME_STORAGE_ID);
 
         if (!animeStorage) {
@@ -55,6 +58,16 @@ export class MarucsAnime {
         }
 
         return animeStorage;
+    }
+
+    get tagRegistry(): TagRegistry {
+        function createTagRegistry() {
+            const tagRegistry = new TagRegistry();
+            registerDefaultTags(tagRegistry);
+            return tagRegistry;
+        }
+
+        return TagRegistry.getOrCreateWorkspaceRegistry(this.context, TAG_REGISTRY_ID, createTagRegistry);
     }
 
     public reactToDocumentChange(document: vscode.TextDocument) {

@@ -1,5 +1,5 @@
 import { TextLine } from "vscode";
-import { Tag, Tags, WatchEntry } from "../types";
+import { MarucsAnime } from "../extension";
 import { LineInfo, TagParam } from "./line-info";
 import { COMMENT_TOKEN, DATE_REG, LineType, SHOW_TITLE_REG, TAG_PARAM_REG, TAG_REG, WATCH_REG } from "./line-type";
 
@@ -106,7 +106,7 @@ export default class LineIdentifier {
         else {
             tagParams = tagParamsStr.split(',').map((paramStr) => {
                 let execResult = TAG_PARAM_REG.exec(paramStr);
-                if (execResult == null) { //TODO: strict check (===)
+                if (!execResult) {
                     parametersValid = false;
                     return <TagParam>{};
                 }
@@ -123,7 +123,15 @@ export default class LineIdentifier {
             };
         }
 
-        const tag = Tags[tagName];
+        const tag = MarucsAnime.INSTANCE.tagRegistry.get(tagName);
+
+        if (!tag) {
+            return {
+                type: LineType.Invalid,
+                errors: [`Tag: Tag '${tagName}' not registered`],
+                line,
+            };
+        }
 
         return {
             type: LineType.Tag,
