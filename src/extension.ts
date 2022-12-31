@@ -65,12 +65,8 @@ export class MarucsAnime {
         vscode.window.setStatusBarMessage(`Parsing all lines...`);
         let animeStorage = this.createStorageFromEntireDocument(document);
 
-        this.overwriteAnimeStorage(animeStorage);
+        // animeStorage.save(); //TODO: save
         vscode.window.setStatusBarMessage(`Parsing completed!`,);
-    }
-
-    public overwriteAnimeStorage(storage: ShowStorage) {
-        // this.context.workspaceState.update(ANIME_STORAGE_ID, storage);
     }
 
     private createStorageFromEntireDocument(textDocument: TextDocument): ShowStorage {
