@@ -1,6 +1,11 @@
 import * as assert from 'assert';
 import { Show } from '../../../../cache/shows/cached-shows';
-import { Tags, WatchEntry } from '../../../../types';
+import { MarucsAnime } from '../../../../extension';
+import { WatchEntry } from '../../../../types';
+
+function nameToTag(tagName: string) {
+    return MarucsAnime.INSTANCE.tagRegistry.get(tagName);
+}
 
 class CachedShowTest {
     public static get test() { return new CachedShowTest(); }
@@ -48,7 +53,7 @@ suite("LineProcessor Test Suite", () => {
 
     suite("Show after declaration with tags", () => {
         const declaredLine = 0x29A;
-        const show = new Show(declaredLine, {title: "SimpleTitle", tags: [Tags['NOT-ANIME'], Tags['MANGA']]});
+        const show = new Show(declaredLine, {title: "SimpleTitle", tags: [nameToTag('NOT-ANIME')!, nameToTag('MANGA')!]});
         test("Should have correct title", () => CachedShowTest.test.withShow(show).expectTitleIs("SimpleTitle"));
         test("Should have correct first mentioned line", () => CachedShowTest.test.withShow(show).expectFirstMentionedLineIs(0x29A));
         test("Should have correct last mentioned line", () => CachedShowTest.test.withShow(show).expectLastMentionedLineIs(0x29A));

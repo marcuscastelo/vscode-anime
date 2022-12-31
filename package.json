@@ -117,6 +117,7 @@
 		"@types/mocha": "^10.0.1",
 		"@types/node": "^18.11.17",
 		"@types/should": "^13.0.0",
+		"@types/sinon": "^10.0.13",
 		"@types/vscode": "^1.54.0",
 		"@typescript-eslint/eslint-plugin": "^4.14.1",
 		"@typescript-eslint/parser": "^4.14.1",
@@ -129,6 +130,7 @@
 	"dependencies": {
 		"axios": "^0.21.1",
 		"rustic": "^1.2.2",
-		"should": "^13.2.3"
+		"should": "^13.2.3",
+		"sinon": "^15.0.1"
 	}
 }

@@ -1,7 +1,8 @@
 import * as assert from 'assert';
 import { checkTags } from "../../../analysis/check-tags";
 import { Show } from "../../../cache/shows/cached-shows";
-import { Tag, Tags } from "../../../types";
+import { Tag } from "../../../core/tag";
+import { MarucsAnime } from '../../../extension';
 
 interface ExpectOptions {
     BeOk(): void;
@@ -46,14 +47,17 @@ class TagsExpect implements ExpectOptions {
     }
 }
 
+function nameToTag(tagName: string) {
+    return MarucsAnime.INSTANCE.tagRegistry.get(tagName);
+}
 
 class CheckTagsTest {
     public static get test() { return new CheckTagsTest(); }
     private _result?: ReturnType<typeof checkTags>;
 
     private _checkTags(actualTags: (Tag | string)[], showTags: (Tag | string)[]) {
-        const actual = actualTags.map(t => typeof t === 'string' ? Tags[t] : t);
-        const expected = showTags.map(t => typeof t === 'string' ? Tags[t] : t);
+        const actual = actualTags.map(t => typeof t === 'string' ? nameToTag(t)! : t);
+        const expected = showTags.map(t => typeof t === 'string' ? nameToTag(t)! : t);
 
         const dummyShow = new Show(0, {
             title: 'test',
@@ -97,12 +101,12 @@ suite("LineProcessor Test Suite", () => {
     });
 
     suite("Wrong usage", () => {
-        test("MissingTagEmpty", () => CheckTagsTest.test.withTags([], ['NOT-ANIME']).expectTo.HaveTheseMissingTags([Tags['NOT-ANIME']]));
-        test("MissingTag", () => CheckTagsTest.test.withTags(['MANGA'], ['NOT-ANIME', 'MANGA']).expectTo.HaveTheseMissingTags([Tags['NOT-ANIME']]));
-        test("ExtraTagEmpty", () => CheckTagsTest.test.withTags(['NOT-ANIME'], []).expectTo.HaveTheseExtraTags([Tags['NOT-ANIME']]));
-        test("ExtraTag", () => CheckTagsTest.test.withTags(['NOT-ANIME', 'MANGA'], ['MANGA']).expectTo.HaveTheseExtraTags([Tags['NOT-ANIME']]));
-        test("MissingAndExtraTag", () => CheckTagsTest.test.withTags(['NOT-IN-MAL'], ['MANGA']).expectTo.HaveThoseMissingAndExtraTags([Tags['MANGA']], [Tags['NOT-IN-MAL']]));
-        test("MissingAndExtraTagInDifferentOrder", () => CheckTagsTest.test.withTags(['MANGA'], ['NOT-IN-MAL']).expectTo.HaveThoseMissingAndExtraTags([Tags['NOT-IN-MAL']], [Tags['MANGA']]));
+        test("MissingTagEmpty", () => CheckTagsTest.test.withTags([], ['NOT-ANIME']).expectTo.HaveTheseMissingTags([nameToTag('NOT-ANIME')!]));
+        test("MissingTag", () => CheckTagsTest.test.withTags(['MANGA'], ['NOT-ANIME', 'MANGA']).expectTo.HaveTheseMissingTags([nameToTag('NOT-ANIME')!]));
+        test("ExtraTagEmpty", () => CheckTagsTest.test.withTags(['NOT-ANIME'], []).expectTo.HaveTheseExtraTags([nameToTag('NOT-ANIME')!]));
+        test("ExtraTag", () => CheckTagsTest.test.withTags(['NOT-ANIME', 'MANGA'], ['MANGA']).expectTo.HaveTheseExtraTags([nameToTag('NOT-ANIME')!]));
+        test("MissingAndExtraTag", () => CheckTagsTest.test.withTags(['NOT-IN-MAL'], ['MANGA']).expectTo.HaveThoseMissingAndExtraTags([nameToTag('MANGA')!], [nameToTag('NOT-IN-MAL')!]));
+        test("MissingAndExtraTagInDifferentOrder", () => CheckTagsTest.test.withTags(['MANGA'], ['NOT-IN-MAL']).expectTo.HaveThoseMissingAndExtraTags([nameToTag('NOT-IN-MAL')!], [nameToTag('MANGA')!]));
     });
 
     suite("Tags which target are not the show", () => {
