@@ -1,6 +1,6 @@
 {
 	"name": "marucs-anime",
-	"version": "0.2.0-rc1",
+	"version": "0.2.0-rc2",
 	"publisher": "Marucs",
 	"engines": {
 		"vscode": "^1.65.0"
