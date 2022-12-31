@@ -20,5 +20,5 @@ export function checkContextDateIsToday(context: LineContext): boolean {
 
 export function checkDateIsToday(date: string): boolean {
     let currDate = (new Date(Date.now())).toLocaleDateString('pt-BR');
-    return currDate === currDate;
+    return currDate === date;
 }

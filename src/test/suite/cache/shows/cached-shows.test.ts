@@ -35,12 +35,12 @@ class CachedShowTest {
         assert.deepStrictEqual(this._show?.info.tags.map(t => t.name), tags, `Expected tags to be ${tags} but was ${this._show?.info.tags.map(t => t.name)}`);
     }
 
-    public expectLastWatchEntryIs(watchEntry: DocumentContexted<WatchEntry> | null) {
+    public expectLastWatchEntryIs(watchEntry: DocumentContexted<WatchEntry> | undefined) {
         assert.deepStrictEqual(this._show?.info.lastCompleteWatchEntry, watchEntry, `Expected last watch entry to be ${watchEntry} but was ${this._show?.info.lastCompleteWatchEntry}`);
     }
 }
 
-suite("LineProcessor Test Suite", () => {
+suite("Cached Shows Test Suite", () => {
     suite("Show after simple declaration", () => {
         const declaredLine = 0x29A;
         const show = new Show(declaredLine, { title: "SimpleTitle" });
@@ -48,7 +48,7 @@ suite("LineProcessor Test Suite", () => {
         test("Should have correct first mentioned line", () => CachedShowTest.test.withShow(show).expectFirstMentionedLineIs(0x29A));
         test("Should have correct last mentioned line", () => CachedShowTest.test.withShow(show).expectLastMentionedLineIs(0x29A));
         test("Should have correct tags", () => CachedShowTest.test.withShow(show).expectTagsAre([]));
-        test("Should have correct last watch entry", () => CachedShowTest.test.withShow(show).expectLastWatchEntryIs(null));
+        test("Should have correct last watch entry", () => CachedShowTest.test.withShow(show).expectLastWatchEntryIs(undefined));
     });
 
     suite("Show after declaration with tags", () => {
@@ -58,7 +58,7 @@ suite("LineProcessor Test Suite", () => {
         test("Should have correct first mentioned line", () => CachedShowTest.test.withShow(show).expectFirstMentionedLineIs(0x29A));
         test("Should have correct last mentioned line", () => CachedShowTest.test.withShow(show).expectLastMentionedLineIs(0x29A));
         test("Should have correct tags", () => CachedShowTest.test.withShow(show).expectTagsAre(['NOT-ANIME', 'MANGA']));
-        test("Should have correct last watch entry", () => CachedShowTest.test.withShow(show).expectLastWatchEntryIs(null));
+        test("Should have correct last watch entry", () => CachedShowTest.test.withShow(show).expectLastWatchEntryIs(undefined));
     });
 
     suite("Show after declaration and update mentioned line", () => {
@@ -69,7 +69,7 @@ suite("LineProcessor Test Suite", () => {
         test("Should have correct first mentioned line", () => CachedShowTest.test.withShow(show).expectFirstMentionedLineIs(0x29A));
         test("Should have correct last mentioned line", () => CachedShowTest.test.withShow(show).expectLastMentionedLineIs(0xFFFF));
         test("Should have correct tags", () => CachedShowTest.test.withShow(show).expectTagsAre([]));
-        test("Should have correct last watch entry", () => CachedShowTest.test.withShow(show).expectLastWatchEntryIs(null));
+        test("Should have correct last watch entry", () => CachedShowTest.test.withShow(show).expectLastWatchEntryIs(undefined));
     });
 
     suite("Show after declaration and update last watch entry", () => {
