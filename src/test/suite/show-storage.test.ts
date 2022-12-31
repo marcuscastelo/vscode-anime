@@ -5,7 +5,7 @@ import ShowStorage from '../../cache/shows/show-storage';
 import 'should';
 import { beforeEach, describe, it, suite } from 'mocha';
 import { equip } from 'rustic';
-import { WatchEntry } from '../../types';
+import { DocumentContexted, WatchEntry } from '../../types';
 
 describe("The Show Storage", () => {
     describe("When fresh", () => {
@@ -97,14 +97,14 @@ describe("The Show Storage", () => {
         it("Should be able to search for a show", () => {
             const option1 = showStorage.searchShow("The Office");
             equip(option1).isSome().should.be.true();
-            
+
             equip(option1).unwrap().info.title.should.equal("The Office");
         });
 
         it("Should be able to search for a friend", () => {
             const option1 = showStorage.searchFriend("Jim");
             equip(option1).isSome().should.be.true();
-            
+
             equip(option1).unwrap().should.equal("Jim");
         });
 
@@ -150,14 +150,17 @@ describe("The Show Storage", () => {
         });
 
         it("Should be able to add a watch entry to a valid show", () => {
-            const watchEntry: WatchEntry = {
-                showTitle: "The Office",
-                company: [
-                    "Jim",
-                ],
-                startTime: "20:00",
-                endTime: "21:00",
-                episode: 1,
+            const watchEntry: DocumentContexted<WatchEntry> = {
+                data: {
+                    partial: false,
+                    showTitle: "The Office",
+                    company: [
+                        "Jim",
+                    ],
+                    startTime: "20:00",
+                    endTime: "21:00",
+                    episode: 1,
+                },
                 lineNumber: 5,
             };
 
@@ -166,14 +169,17 @@ describe("The Show Storage", () => {
         });
 
         it("Should not be able to add a watch entry with mismatching show titles", () => {
-            const watchEntry: WatchEntry = {
-                showTitle: "The Office",
-                company: [
-                    "Jim",
-                ],
-                startTime: "20:00",
-                endTime: "21:00",
-                episode: 1,
+            const watchEntry: DocumentContexted<WatchEntry> = {
+                data: {
+                    partial: false,
+                    showTitle: "The Office",
+                    company: [
+                        "Jim",
+                    ],
+                    startTime: "20:00",
+                    endTime: "21:00",
+                    episode: 1,
+                },
                 lineNumber: 5,
             };
 
@@ -182,14 +188,17 @@ describe("The Show Storage", () => {
         });
 
         it("Should not be able to add a watch entry with a friend that doesn't exist", () => {
-            const watchEntry: WatchEntry = {
-                showTitle: "The Office",
-                company: [
-                    "Michael",
-                ],
-                startTime: "20:00",
-                endTime: "21:00",
-                episode: 1,
+            const watchEntry: DocumentContexted<WatchEntry> = {
+                data: {
+                    partial: false,
+                    showTitle: "The Office",
+                    company: [
+                        "Michael",
+                    ],
+                    startTime: "20:00",
+                    endTime: "21:00",
+                    episode: 1,
+                },
                 lineNumber: 5,
             };
 
@@ -198,14 +207,17 @@ describe("The Show Storage", () => {
         });
 
         it("Should not be able to add a watch entry with a show that doesn't exist", () => {
-            const watchEntry: WatchEntry = {
-                showTitle: "The Simpsons",
-                company: [
-                    "Jim",
-                ],
-                startTime: "20:00",
-                endTime: "21:00",
-                episode: 1,
+            const watchEntry: DocumentContexted<WatchEntry> = {
+                data: {
+                    partial: false,
+                    showTitle: "The Simpsons",
+                    company: [
+                        "Jim",
+                    ],
+                    startTime: "20:00",
+                    endTime: "21:00",
+                    episode: 1,
+                },
                 lineNumber: 5,
             };
 

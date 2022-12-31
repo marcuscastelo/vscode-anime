@@ -1,7 +1,7 @@
 import * as assert from 'assert';
 import { Show } from '../../../../cache/shows/cached-shows';
 import { MarucsAnime } from '../../../../extension';
-import { WatchEntry } from '../../../../types';
+import { DocumentContexted, WatchEntry } from '../../../../types';
 
 function nameToTag(tagName: string) {
     return MarucsAnime.INSTANCE.tagRegistry.get(tagName);
@@ -35,15 +35,15 @@ class CachedShowTest {
         assert.deepStrictEqual(this._show?.info.tags.map(t => t.name), tags, `Expected tags to be ${tags} but was ${this._show?.info.tags.map(t => t.name)}`);
     }
 
-    public expectLastWatchEntryIs(watchEntry: WatchEntry | null) {
-        assert.deepStrictEqual(this._show?.info.lastWatchEntry, watchEntry, `Expected last watch entry to be ${watchEntry} but was ${this._show?.info.lastWatchEntry}`);
+    public expectLastWatchEntryIs(watchEntry: DocumentContexted<WatchEntry> | null) {
+        assert.deepStrictEqual(this._show?.info.lastCompleteWatchEntry, watchEntry, `Expected last watch entry to be ${watchEntry} but was ${this._show?.info.lastCompleteWatchEntry}`);
     }
 }
 
 suite("LineProcessor Test Suite", () => {
     suite("Show after simple declaration", () => {
         const declaredLine = 0x29A;
-        const show = new Show(declaredLine, {title: "SimpleTitle"});
+        const show = new Show(declaredLine, { title: "SimpleTitle" });
         test("Should have correct title", () => CachedShowTest.test.withShow(show).expectTitleIs("SimpleTitle"));
         test("Should have correct first mentioned line", () => CachedShowTest.test.withShow(show).expectFirstMentionedLineIs(0x29A));
         test("Should have correct last mentioned line", () => CachedShowTest.test.withShow(show).expectLastMentionedLineIs(0x29A));
@@ -53,7 +53,7 @@ suite("LineProcessor Test Suite", () => {
 
     suite("Show after declaration with tags", () => {
         const declaredLine = 0x29A;
-        const show = new Show(declaredLine, {title: "SimpleTitle", tags: [nameToTag('NOT-ANIME')!, nameToTag('MANGA')!]});
+        const show = new Show(declaredLine, { title: "SimpleTitle", tags: [nameToTag('NOT-ANIME')!, nameToTag('MANGA')!] });
         test("Should have correct title", () => CachedShowTest.test.withShow(show).expectTitleIs("SimpleTitle"));
         test("Should have correct first mentioned line", () => CachedShowTest.test.withShow(show).expectFirstMentionedLineIs(0x29A));
         test("Should have correct last mentioned line", () => CachedShowTest.test.withShow(show).expectLastMentionedLineIs(0x29A));
@@ -63,7 +63,7 @@ suite("LineProcessor Test Suite", () => {
 
     suite("Show after declaration and update mentioned line", () => {
         const declaredLine = 0x29A;
-        const show = new Show(declaredLine, {title: "SimpleTitle"});
+        const show = new Show(declaredLine, { title: "SimpleTitle" });
         show.updateLastMentionedLine(0xFFFF);
         test("Should have correct title", () => CachedShowTest.test.withShow(show).expectTitleIs("SimpleTitle"));
         test("Should have correct first mentioned line", () => CachedShowTest.test.withShow(show).expectFirstMentionedLineIs(0x29A));
@@ -74,17 +74,20 @@ suite("LineProcessor Test Suite", () => {
 
     suite("Show after declaration and update last watch entry", () => {
         const declaredLine = 0x29A;
-        const show = new Show(declaredLine, {title: "SimpleTitle"});
-        const watchEntry: WatchEntry = {
-            startTime: "20:00",
-            endTime: "21:00",
-            episode: 1,
+        const show = new Show(declaredLine, { title: "SimpleTitle" });
+        const watchEntry: DocumentContexted<WatchEntry> = {
+            data: {
+                partial: false,
+                startTime: "20:00",
+                endTime: "21:00",
+                episode: 1,
+                showTitle: "SimpleTitle",
+                company: ['Friend1', 'Friend2']
+            },
             lineNumber: 0xABCD,
-            showTitle: "SimpleTitle",
-            company: ['Friend1', 'Friend2']
         };
-        show.updateLastWatchEntry(watchEntry);
-        
+        show.addWatchEntry(watchEntry);
+
         test("Should have correct title", () => CachedShowTest.test.withShow(show).expectTitleIs("SimpleTitle"));
         test("Should have correct first mentioned line", () => CachedShowTest.test.withShow(show).expectFirstMentionedLineIs(0x29A));
         test("Should have correct last mentioned line", () => CachedShowTest.test.withShow(show).expectLastMentionedLineIs(0xABCD));
