@@ -17,7 +17,7 @@ class LineProcessorTest {
         this.storage = new ShowStorage();
         let dummyDiagnosticController = {} as MADiagnosticController;
 
-        this.processor = new LineProcessor(this.storage, dummyDiagnosticController);
+        this.processor = new LineProcessor(() => this.storage, dummyDiagnosticController);
     }
 
     public simpleTest() {

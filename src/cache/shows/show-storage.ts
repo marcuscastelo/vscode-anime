@@ -5,6 +5,7 @@ import { Registry } from "../../core/registry/registry";
 import { Tag } from "../../core/tag";
 import { WatchEntry } from "../../types";
 import { Show } from "./cached-shows";
+import { DocumentContexted as DocumentContexted } from "../../types";
 
 /**
  * TODO: separar em 2 classes: ShowStorage e FriendStorage
@@ -60,9 +61,10 @@ export default class ShowStorage extends Registry<Show> {
 		return equip(this.searchFriend(friendName)).isSome();
 	}
 
-	public registerWatchEntry(showTitle: string, watchEntry: WatchEntry): Result<undefined, Error> {
+	public registerWatchEntry(showTitle: string, watchEntryCtx: DocumentContexted<WatchEntry>): Result<undefined, Error> {
 		const searchRes = equip(this.searchShow(showTitle));
 
+		const watchEntry = watchEntryCtx.data;
 		if (showTitle !== watchEntry.showTitle) {
 			return Err(new Error(`Show title mismatch: \n` +
 				`Show: ${showTitle} \n` +
@@ -82,13 +84,13 @@ export default class ShowStorage extends Registry<Show> {
 		}
 
 		if (searchRes.isSome()) {
-			searchRes.unwrap().updateLastWatchEntry(watchEntry);
+			searchRes.unwrap().addWatchEntry(watchEntryCtx);
 			return Ok(undefined);
 		}
 
 		return Err(new Error(`Trying to add watch entry to unkown Show: \n` +
 			`Show: ${showTitle} \n` +
-			`Entry: ${watchEntry}`
+			`Entry: ${JSON.stringify(watchEntryCtx.data)}`
 		));
 	}
 

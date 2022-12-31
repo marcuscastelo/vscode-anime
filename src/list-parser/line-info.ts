@@ -34,7 +34,7 @@ export type WatchEntryLineInfo =
         params: {
             startTime: string,
             endTime: string,
-            episode: number,
+            episode: string,
             company: string[],
         }
     };

@@ -28,7 +28,7 @@ export const insertNextEpisode: TextEditorCommand<void> = (textEditor: TextEdito
 	}
 
 	function secondAttempt(): Option<Show> {
-		extension.reactToDocumentChange(textEditor.document);
+		extension.reactToDocumentChange(extension.context!, textEditor.document);
 		return extension.showStorage.searchShow(context.currentShowLine.params.showTitle);
 	}
 
@@ -49,7 +49,7 @@ export const insertNextEpisode: TextEditorCommand<void> = (textEditor: TextEdito
 		});
 	};
 
-	let lastEp = show.unwrap().info.lastWatchEntry?.episode;
+	let lastEp = show.unwrap().info.lastCompleteWatchEntry?.data.episode ?? 0;
 
 	if (lastEp === undefined) {
 		window.showWarningMessage(`Anime ${context.currentShowLine.params.showTitle} has no last episode! Couldn't determine next epiode.`, {
