@@ -5,4 +5,3 @@ export class TagRegistry extends Registry<Tag> {
     public static readonly instance = new TagRegistry();
 }
 
-

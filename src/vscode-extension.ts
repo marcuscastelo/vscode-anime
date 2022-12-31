@@ -10,11 +10,6 @@ export function activate(context: ExtensionContext) {
 	console.log("Activating...");
 	MarucsAnime.INSTANCE.activate(context);
 	console.log("Activated!");
-
-	const tagRegistry = MarucsAnime.INSTANCE.tagRegistry;
-	console.log(`tagRegistry: ${tagRegistry}`);
-	console.log(`listKeys: ${tagRegistry.listKeys()}`);
-
 }
 
 export function deactivate() {
