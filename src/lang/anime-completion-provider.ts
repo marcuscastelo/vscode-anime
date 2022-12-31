@@ -5,11 +5,11 @@ import { LANGUAGE_ID } from "../constants";
 import { MarucsAnime } from "../extension";
 
 enum CompletionType {
-    ShowTitle = 1,
-    Friend,
-    Tag,
-    Episode,
-    NoCompletion,
+    ShowTitle = 'ShowTitle',
+    Friend = 'Friend',
+    Tag = 'Tag',
+    Episode = 'Episode',
+    NoCompletion = 'NoCompletion',
 }
 
 type SurroundingTokenInfo = {
