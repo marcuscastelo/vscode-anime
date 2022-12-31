@@ -44,3 +44,7 @@ export type PropertyType<T, K extends keyof T> = T[K];
 export function staticImplements<T>() {
     return <U extends T>(constructor: U) => {constructor;};
 }
+
+/// 
+
+export type Supplier<T> = () => T;
