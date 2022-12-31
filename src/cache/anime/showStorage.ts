@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable curly */
 import { Err, Ok, Result, Option, equip } from "rustic";
-import { WatchEntry, Tag } from "../../types";
+import { Registry } from "../../core/registry/registry";
+import { Tag } from "../../core/tag";
+import { WatchEntry } from "../../types";
 import { Show } from "./shows";
 
-type ShowDict = {
-	[name: string]: Show | undefined
-};
+export default class ShowStorage extends Registry<Show> {
+	private get showDict() {
+		return this._registry;
+	}
 
-export default class ShowStorage {
-	private showDict: ShowDict = {};
 	private friendList: string[] = [];
 
 	public registerShow(declarationLine: number, title: string, tags: Tag[] = [], overwrite = true): Result<Show, Error> {
@@ -18,7 +19,7 @@ export default class ShowStorage {
 		}
 
 		let show = new Show(declarationLine, { title, tags });
-		this.showDict[title] = show;
+		this.showDict.set(title, show);
 		return Ok(show);
 	}
 
@@ -28,7 +29,7 @@ export default class ShowStorage {
 	}
 
 	public searchShow(showName: string): Option<Show> {
-		return this.showDict[showName];
+		return this.showDict.get(showName);
 	}
 
 	public getOrCreateShow(showTitle: string, currentLine: number, animeTagsAtCreation: Tag[] = []): Result<Show, Error> {
