@@ -3,7 +3,7 @@
 import { Err, Ok, Result, Option, equip } from "rustic";
 import { Registry } from "../../core/registry/registry";
 import { Tag } from "../../core/tag";
-import { WatchEntry } from "../../types";
+import { DocumentContexted as DocumentContexted, WatchEntry } from "../../types";
 import { Show } from "./shows";
 
 export default class ShowStorage extends Registry<Show> {
@@ -43,17 +43,17 @@ export default class ShowStorage extends Registry<Show> {
 		return equip(this.searchShow(showTitle)).isSome();
 	}
 
-	public registerWatchEntry(showTitle: string, watchEntry: WatchEntry): Option<Error> {
+	public registerWatchEntry(showTitle: string, watchEntryCtx: DocumentContexted<WatchEntry>): Option<Error> {
 		const searchRes = equip(this.searchShow(showTitle));
 
 		if (searchRes.isSome()) {
-			searchRes.unwrap().updateLastWatchEntry(watchEntry);
+			searchRes.unwrap().addWatchEntry(watchEntryCtx);
 			return null;
 		}
 
 		return new Error(`Trying to add watch entry to unkown Show: \n` +
 			`Show: ${showTitle} \n` +
-			`Entry: ${watchEntry}`
+			`Entry: ${JSON.stringify(watchEntryCtx.data)}`
 		);
 	}
 

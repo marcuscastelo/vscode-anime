@@ -85,7 +85,7 @@ export default class LineIdentifier {
             params: {
                 startTime: groups[1],
                 endTime: groups[2],
-                episode: parseInt(groups[3]),
+                episode: groups[3],
                 company: (groups[4]) ? (groups[4] as string).split(',').map(name => name.trim()) : [],
             },
             line,

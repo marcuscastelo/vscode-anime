@@ -1,11 +1,25 @@
 import { Tag } from "./core/tag";
 
-export type WatchEntry = {
+type WatchEntryBase = {
 	showTitle: string,
 	startTime: string,
 	endTime: string,
-	episode: number,
 	company: string[], //Friends
+	episode: number,
+};
+
+export type WatchEntry = CompleteWatchEntry | PartialWatchEntry;
+
+export type CompleteWatchEntry = WatchEntryBase & {
+	partial: false,
+};
+
+export type PartialWatchEntry = WatchEntryBase & {
+	partial: true,
+};
+
+export type DocumentContexted<T> = {
+	data: T,
 	lineNumber: number, //TODO: remover?
 };
 
