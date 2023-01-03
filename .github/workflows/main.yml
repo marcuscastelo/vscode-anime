@@ -15,6 +15,12 @@ jobs:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
+      - name: Cache vscode
+        uses: actions/cache@v2
+        with:
+          path: '**/.vscode-test'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/bin/code') }}
+
       - name: Install remaining dependencies
         run: yarn install
       - name: Run pretest scripts
