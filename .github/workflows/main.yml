@@ -8,8 +8,8 @@ on:
 
 jobs:
   tests:
+    uses: marcastelo/vscode-anime/.github/workflows/compile_lint.yml@main
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: marcastelo/vscode-anime/.github/workflows/compile_lint.yml@main
       - run: npm run test
