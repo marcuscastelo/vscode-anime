@@ -21,6 +21,10 @@ jobs:
           path: '**/.vscode-test'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/bin/code') }}
 
+      - name: Mark vscode for download
+        if: steps.cache-primes.outputs.cache-hit != 'true'
+        run: rm -rf .vscode-test
+
       - name: Install remaining dependencies
         run: yarn install
       - name: Run pretest scripts
