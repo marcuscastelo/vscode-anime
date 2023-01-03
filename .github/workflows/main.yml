@@ -1,14 +1,14 @@
 name: Unit Tests Pass (Fast)
 
 on:
-  push:
-    branches: [ develop ]
-  pull_request:
-    branches: [ develop ]
-
+  workflow_dispatch:
+  
 jobs:
-  tests:
+  build:
     uses: marcastelo/vscode-anime/.github/workflows/compile_lint.yml@main
+    runs-on: ubuntu-latest
+
+  tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
