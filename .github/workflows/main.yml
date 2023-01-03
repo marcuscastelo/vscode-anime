@@ -19,7 +19,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: '**/.vscode-test'
-          key: ${{ runner.os }}-vscode-${{ hashFiles('**/.vscode-test/bin/code') }}
+          key: ${{ runner.os }}-vscode-${{ hashFiles('**/yarn.lock') }}
 
       - name: Mark vscode for download (if cache miss)
         if: steps.cache-primes.outputs.cache-hit != 'true'
