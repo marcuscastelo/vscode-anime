@@ -3,6 +3,7 @@ import * as vscode from "vscode";
 import ShowStorage from "../cache/anime/showStorage";
 import { LANGUAGE_ID } from "../constants";
 import { MarucsAnime } from "../extension";
+import { Show } from "../cache/anime/shows";
 
 enum CompletionType {
     ShowTitle = 1,
@@ -66,9 +67,10 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
     }
 
     private getCompletionOptionsFromStorage(storage: ShowStorage, completionType: CompletionType): string[] {
+        const byLastMentionedLine = (show1: Show, show2: Show) => show2.info.lastMentionedLine - show1.info.lastMentionedLine;
         switch (completionType) {
             case CompletionType.Friend: return storage.listFriends();
-            case CompletionType.ShowTitle: return storage.listShows();
+            case CompletionType.ShowTitle: return [...storage.iterShows()].sort(byLastMentionedLine).map(show => show.info.title);
             case CompletionType.Tag: return MarucsAnime.INSTANCE.tagRegistry.listKeys();
             default:
                 console.error('Not Implemented completion: ', completionType.toString());
@@ -129,17 +131,24 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
             [CompletionType.NoCompletion]: undefined,
         };
 
-        const createCompletionItem = (option: string): CompletionItem => {
+        const createCompletionItem = (option: string, index: number): CompletionItem => {
             const commitCharacters = commitCharactersPerType[completionType];
             const textToInsert = option + postfixesPerType[completionType];
-            const item = {
-                label: option,
+
+            const zeros = Math.ceil(Math.log10(options.length+1));
+            const indexAlphaOrdered =`${(index+1)}`.padStart(zeros, '0');
+            const sortIndex = `${indexAlphaOrdered}/${options.length}`;
+
+            const item = <CompletionItem>{
+                // label: `${sortIndex} - ${option}`,
+                label: `${option}`,
                 kind: getCompletionKind(),
                 insertText: textToInsert,
                 keepWhitespace: true,
                 range: new Range(position.translate(0, -alreadyTypedText.length), position),
                 commitCharacters: commitCharacters,
-                command: commandPerType[completionType]
+                command: commandPerType[completionType],
+                sortText: sortIndex,
             };
             return item;
         };
