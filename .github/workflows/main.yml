@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    uses: marcastelo/vscode-anime/.github/workflows/compile_lint.yml@main
+    uses: marcuscastelo/vscode-anime/.github/workflows/compile_lint.yml@main
 
   tests:
     runs-on: ubuntu-latest
