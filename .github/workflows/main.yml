@@ -1,20 +1,23 @@
-name: Unit Tests Pass (Fast)
+name: Automated Tests and Linting
 
-on:
-  push:
-    branches: [ develop ]
-  pull_request:
-    branches: [ develop ]
+on: [push]
 
 jobs:
-  tests:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+
+      - uses: actions/cache@v2
         with:
-          node-version: 16.x
-          cache: npm
-      - run: npm ci
-      - run: npm run pretest
-      - run: npm run lint
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install packages
+        run: yarn install
+
+      - name: Run Tests
+        run: yarn pretest
+
+      - name: Run Tests
+        run: yarn test
