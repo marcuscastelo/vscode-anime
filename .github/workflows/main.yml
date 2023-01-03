@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Unit Tests Pass (Fast)
 
 on:
   push:
@@ -7,23 +7,9 @@ on:
     branches: [ develop ]
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        node-version: [10.x, 12.x, 14.x, 15.x]
-
-    runs-on: ${{ matrix.os }}
-
+  tests:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-      - run: npm install
-      - run: npm run pretest
-      - uses: GabrielBB/xvfb-action@v1.0
-        with:
-          run: npm test
+      - uses: marcastelo/vscode-anime/.github/workflows/compile_lint.yml@main
+      - run: npm run test
