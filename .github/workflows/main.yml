@@ -12,13 +12,8 @@ jobs:
       #   with:
       #     path: '**/node_modules'
       #     key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-
-      - name: Install packages
       - run: yarn install
-
-      - name: Run Pretest
       - run: yarn pretest
-
       - uses: GabrielBB/xvfb-action@v1.0
         with:
           run: yarn test
