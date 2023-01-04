@@ -2,10 +2,8 @@ name: Compile, Lint, and Tests (Fast)
 
 on:
   push:
-    branches: [ '*' ]
     branches-ignore: [ 'develop' ]
   pull_request:
-    branches: [ '*' ]
     branches-ignore: [ 'develop' ]
     types: [ opened, synchronize, reopened, ready_for_review ]
 
