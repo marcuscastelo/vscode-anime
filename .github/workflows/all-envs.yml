@@ -94,7 +94,7 @@ jobs:
 
       - name: (Windows) Mark vscode for download (if cache miss)
         if: steps.cache-vscode.outputs.cache-hit != 'true' && matrix.os == 'windows-latest'
-        run: rmdir /s /q .vscode-test 
+        run: rmdir /s /q ".vscode-test"
 
       - name: (Linux) Mark vscode for download (if cache miss)
         if: steps.cache-vscode.outputs.cache-hit != 'true' && matrix.os != 'windows-latest'
