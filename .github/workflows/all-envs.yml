@@ -1,6 +1,8 @@
-name: Compile, Lint, and Tests
+name: Compile, Lint, and Tests (Fast)
 
-on: [push]
+on:
+  push:
+    branches: [ develop ]
 
 jobs:
   compile:
