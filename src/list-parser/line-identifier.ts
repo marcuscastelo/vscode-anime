@@ -2,16 +2,17 @@ import { TextLine } from "vscode";
 import { MarucsAnime } from "../extension";
 import { LineInfo, TagParam } from "./line-info";
 import { COMMENT_TOKEN, DATE_REG, LineType, SHOW_TITLE_REG, TAG_PARAM_REG, TAG_REG, WATCH_REG } from "./line-type";
-
+import LineUtils from "./line-utils";
 
 export default class LineIdentifier {
+    /**
+     * Identifies the line type and returns the line info
+     * @param line line to be identified
+     * @returns line info with the line type and the line params
+     */
     public static identifyLine(line: TextLine): LineInfo {
         let text = line.text;
-
-        let commentTokenPosition = text.indexOf(COMMENT_TOKEN);
-        if (commentTokenPosition !== -1) {
-            text = text.substring(0, commentTokenPosition);
-        }
+        text = LineUtils.removeComment(text);
 
         //Checks if empty line before regex for performance
         if (text === '') {
