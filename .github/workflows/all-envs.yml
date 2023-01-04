@@ -8,11 +8,22 @@ on:
 
 jobs:
   compile:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node-version: [10.x, 12.x, 14.x, 15.x]
+
+    runs-on: ${{ matrix.os }}
     if: ${{ !github.event.pull_request.draft }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
 
       - name: Cache node modules
         id: cache-modules
@@ -42,11 +53,22 @@ jobs:
           run: yarn run compile
 
   lint:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node-version: [10.x, 12.x, 14.x, 15.x]
+
+    runs-on: ${{ matrix.os }}
     if: ${{ !github.event.pull_request.draft }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
 
       - name: Cache node modules
         id: cache-modules
@@ -76,11 +98,22 @@ jobs:
           run: yarn run lint
 
   tests:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node-version: [10.x, 12.x, 14.x, 15.x]
+
+    runs-on: ${{ matrix.os }}
     if: ${{ !github.event.pull_request.draft }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
 
       - name: Cache node modules
         id: cache-modules
