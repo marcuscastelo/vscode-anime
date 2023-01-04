@@ -10,24 +10,26 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Cache node modules
+        id: cache-modules
         uses: actions/cache@v2
         with:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
-      - name: Restored cached vscode
+      - name: Install remaining dependencies (if cache miss)
+        if: steps.cache-modules.outputs.cache-hit != 'true'
+        run: yarn install
+
+      - name: Cache vscode
+        id: cache-vscode
         uses: actions/cache@v2
         with:
           path: '**/.vscode-test'
           key: ${{ runner.os }}-vscode-${{ hashFiles('**/yarn.lock') }}
 
       - name: Mark vscode for download (if cache miss)
-        if: steps.cache-primes.outputs.cache-hit != 'true'
+        if: steps.cache-vscode.outputs.cache-hit != 'true'
         run: rm -rf .vscode-test
-
-      - name: Install remaining dependencies (if cache miss)
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: yarn install
 
       - name: Run tests
         uses: GabrielBB/xvfb-action@v1.0
