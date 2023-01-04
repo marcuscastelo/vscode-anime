@@ -19,7 +19,6 @@ import { formatFriend } from './commands/format-friend';
 import ShowDefinitionProvider from './lang/anime-definition-provider';
 import { TagRegistry } from './core/registry/tag-registry';
 import { registerDefaultTags } from './core/tag';
-import ShowSymbolProvider from './lang/anime-symbol-provider';
 
 type ExtensionActivationState = { activated: true, context: ExtensionContext } | { activated: false };
 
@@ -100,7 +99,6 @@ export class MarucsAnime {
             AnimeCompletionItemProvider.register(context),
             ShowLensProvider.register(context),
             ShowDefinitionProvider.register(context),
-            ShowSymbolProvider.register(context),
         );
     }
 }
