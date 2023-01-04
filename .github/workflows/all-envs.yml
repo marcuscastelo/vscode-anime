@@ -43,14 +43,6 @@ jobs:
           path: '**/.vscode-test'
           key: ${{ runner.os }}-vscode-${{ hashFiles('**/yarn.lock') }}
 
-      - name: (Windows) Mark vscode for download (if cache miss)
-        if: steps.cache-vscode.outputs.cache-hit != 'true' && matrix.os == 'windows-latest'
-        run: rmdir vscode-test /s /q
-
-      - name: (Linux) Mark vscode for download (if cache miss)
-        if: steps.cache-vscode.outputs.cache-hit != 'true' && matrix.os != 'windows-latest'
-        run: rm -rf .vscode-test
-
       - name: Run tests
         uses: GabrielBB/xvfb-action@v1.0
         with:
@@ -92,14 +84,6 @@ jobs:
           path: '**/.vscode-test'
           key: ${{ runner.os }}-vscode-${{ hashFiles('**/yarn.lock') }}
 
-      - name: (Windows) Mark vscode for download (if cache miss)
-        if: steps.cache-vscode.outputs.cache-hit != 'true' && matrix.os == 'windows-latest'
-        run: Remove-Item -Path .vscode-test -Force -Recurse
-
-      - name: (Linux) Mark vscode for download (if cache miss)
-        if: steps.cache-vscode.outputs.cache-hit != 'true' && matrix.os != 'windows-latest'
-        run: rm -rf .vscode-test
-
       - name: Run tests
         uses: GabrielBB/xvfb-action@v1.0
         with:
@@ -140,14 +124,6 @@ jobs:
         with:
           path: '**/.vscode-test'
           key: ${{ runner.os }}-vscode-${{ hashFiles('**/yarn.lock') }}
-
-      - name: (Windows) Mark vscode for download (if cache miss)
-        if: steps.cache-vscode.outputs.cache-hit != 'true' && matrix.os == 'windows-latest'
-        run: rmdir vscode-test /s /q
-
-      - name: (Linux) Mark vscode for download (if cache miss)
-        if: steps.cache-vscode.outputs.cache-hit != 'true' && matrix.os != 'windows-latest'
-        run: rm -rf .vscode-test
 
       - name: Compile
         run: yarn run compile
