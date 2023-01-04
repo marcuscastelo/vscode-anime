@@ -65,13 +65,13 @@ export default class LineIdentifier {
         let errors = [];
         if (groups[1] === undefined) { errors.push('WatchEntry: Missing startTime'); } 
         if (groups[2] === undefined) { errors.push('WatchEntry: Missing endTime'); } 
-        if (groups[3] === undefined) { errors.push('WatchEntry: Missing episode number'); }
+        if (groups[3] === undefined) { errors.push('WatchEntry: Missing episode declaration'); }
 
-        //TODO: validar em outro lugar (line-processor?)
-        const validEpisodeReg = /^(0\d{1}|\d{2,}|\-\-)$/;
-        if (!validEpisodeReg.test(groups[3])) { 
-            errors.push('WatchEntry: Missing leading zeros in episode number'); 
-        }
+        // //TODO: validar em outro lugar (line-processor?)
+        // const validEpisodeReg = /^(0\d{1}|\d{2,}|\-\-)$/;
+        // if (!validEpisodeReg.test(groups[3])) { 
+        //     errors.push('WatchEntry: Missing leading zeros in episode number'); 
+        // }
 
         if (errors.length > 0) {
             return {
