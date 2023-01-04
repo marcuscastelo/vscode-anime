@@ -1,16 +1,16 @@
 import { CancellationToken, CompletionContext, CompletionItem, CompletionItemKind, CompletionItemProvider, CompletionTriggerKind, DebugConsoleMode, DocumentFilter, ExtensionContext, languages, Position, ProviderResult, Range, TextDocument, TextEdit, window } from "vscode";
 import * as vscode from "vscode";
-import ShowStorage from "../cache/anime/showStorage";
+import ShowStorage from "../cache/anime/show-storage";
 import { LANGUAGE_ID } from "../constants";
 import { MarucsAnime } from "../extension";
 import { Show } from "../cache/anime/shows";
 
 enum CompletionType {
-    ShowTitle = 1,
-    Friend,
-    Tag,
-    Episode,
-    NoCompletion,
+    ShowTitle = 'ShowTitle',
+    Friend = 'Friend',
+    Tag = 'Tag',
+    Episode = 'Episode',
+    NoCompletion = 'NoCompletion',
 }
 
 type SurroundingTokenInfo = {
