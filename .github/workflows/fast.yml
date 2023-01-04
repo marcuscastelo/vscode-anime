@@ -1,8 +1,8 @@
 name: Compile, Lint, and Tests (Fast)
 
 on:
-  push:
-    branches-ignore: [ 'develop' ]
+  pull_request:
+    branches-ignore: [ develop ]
 
 jobs:
   compile:
@@ -15,7 +15,7 @@ jobs:
         id: cache-modules
         uses: actions/cache@v2
         with:
-          path: '**/node_modules'
+          path: '**/node_modules' 
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
       - name: Install remaining dependencies (if cache miss)
