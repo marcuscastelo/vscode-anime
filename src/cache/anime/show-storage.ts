@@ -61,6 +61,10 @@ export default class ShowStorage extends Registry<Show> {
 		return Array.from(this.showDict.keys());
 	}
 
+	public iterShows() {
+		return this.showDict.values();
+	}
+
 	public listFriends() {
 		return [...this.friendList];
 	}
