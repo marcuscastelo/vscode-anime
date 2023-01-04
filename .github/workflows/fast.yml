@@ -1,8 +1,6 @@
 name: Compile, Lint, and Tests (Fast)
 
-on:
-  pull_request:
-    branches-ignore: [ develop ]
+on: pull_request
 
 jobs:
   compile:
