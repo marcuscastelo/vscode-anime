@@ -9,25 +9,18 @@ import { CompleteWatchEntry, DocumentContexted, PartialWatchEntry, WatchEntry } 
 import { checkTags } from "../analysis/check-tags";
 import LineIdentifier from "./line-identifier";
 import { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info";
-import { equip, isErr } from "rustic";
+import { isErr } from "rustic";
 import { Tag, TagTarget } from "../core/tag";
 import { MarucsAnime } from "../extension";
 import { Supplier } from "../utils/typescript-utils";
-import { ddmmyyyToDate } from "../utils/date-utils";
 
 export default class LineProcessor {
     private lineContext: Partial<LineContext>;
-    private diagnosticExtraContext: {
-        mostRecentDateLine: DateLineInfo | undefined;
-    };
     constructor(
         private getStorage: Supplier<ShowStorage>,
         private diagnosticController: MADiagnosticController
     ) {
         this.lineContext = {};
-        this.diagnosticExtraContext = {
-            mostRecentDateLine: undefined,
-        };
     }
 
     processDocument(document: TextDocument) {
@@ -63,43 +56,7 @@ export default class LineProcessor {
     }
 
     processDateLine(lineInfo: DateLineInfo) {
-        if (this.diagnosticExtraContext.mostRecentDateLine === undefined) {
-            if (this.lineContext.currentShowLine !== undefined) {
-                console.error('Unexpected state: current show line is defined but most recent date line is not');
-            }
-        }
-
-        const newDateRes = ddmmyyyToDate(lineInfo.params.date);
-        if (isErr(newDateRes)) {
-            this.diagnosticController.addLineDiagnostic(lineInfo.line, `Error while processing current date at line ${lineInfo.line.lineNumber + 1}: ${lineInfo.params.date}`);
-        }
-        const newDate = equip(newDateRes).unwrap();
-        
-        const mostRecentDateStr = this.diagnosticExtraContext.mostRecentDateLine?.params.date;
-        if (mostRecentDateStr !== undefined) {
-            const mostRecentDateRes = ddmmyyyToDate(mostRecentDateStr);
-            if (isErr(mostRecentDateRes)) {
-                this.diagnosticController.addLineDiagnostic(lineInfo.line, `Error while processing most recent date at line ${this.diagnosticExtraContext.mostRecentDateLine?.line.lineNumber! + 1 ?? 'unknown'}: ${mostRecentDateStr}`);
-            }
-
-            const mostRecentDate = equip(mostRecentDateRes).unwrap();
-
-            if (newDate.getTime() < mostRecentDate.getTime()) {
-                this.diagnosticController.addLineDiagnostic(lineInfo.line, 'New date is older than previous declared date');
-                //TODO: link to previous date line
-            }
-
-            if (newDate.getTime() === mostRecentDate.getTime()) {
-                this.diagnosticController.addLineDiagnostic(lineInfo.line, 'Redundant date');
-                //TODO: link to previous date line
-            }
-        }
-
         this.lineContext.currentDateLine = lineInfo;
-
-        if (this.diagnosticExtraContext.mostRecentDateLine === undefined || newDate.getTime() > equip(ddmmyyyToDate(this.diagnosticExtraContext.mostRecentDateLine.params.date)).unwrap().getTime()) {
-            this.diagnosticExtraContext.mostRecentDateLine = lineInfo;
-        }
 
         //Resets current anime, so that it is necessary to explicitly set an anime title everytime the day changes
         this.lineContext.currentShowLine = undefined;
@@ -246,7 +203,7 @@ export default class LineProcessor {
             }
         }
 
-        const watchEntryCtx: DocumentContexted<WatchEntry> = {
+        const watchEntryCtx : DocumentContexted<WatchEntry> = {
             data: watchEntry,
             lineNumber: lineInfo.line.lineNumber
         };
