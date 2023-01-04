@@ -1,9 +1,7 @@
-name: Compile, Lint, and Tests (Extensive)
+name: Compile, Lint, and Tests (Fast)
 
 on:
   push:
-    branches: [ develop ]
-  pull_request:
     branches: [ develop ]
 
 jobs:
