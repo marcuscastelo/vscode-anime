@@ -13,7 +13,7 @@ import { equip, isErr } from "rustic";
 import { Tag, TagTarget } from "../core/tag";
 import { MarucsAnime } from "../extension";
 import { Supplier } from "../utils/typescript-utils";
-import { ddmmyyyToDate } from "../utils/date-utils";
+import { ddmmyyyToDate, isValidTime } from "../utils/date-utils";
 
 export default class LineProcessor {
     private lineContext: Partial<LineContext>;
@@ -182,15 +182,14 @@ export default class LineProcessor {
             return;
         }
 
-        const validTimeReg = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
         const lineRange = lineInfo.line.range;
         const lineStart = lineRange.start;
 
-        if (!validTimeReg.test(startTime)) {
+        if (!isValidTime(startTime)) {
             this.diagnosticController.addRangeDiagnostic(new Range(lineStart, lineStart.with({ character: 4 })), 'WatchEntry: Invalid startTime');
         }
 
-        if (!validTimeReg.test(endTime)) {
+        if (!isValidTime(endTime)) {
             this.diagnosticController.addRangeDiagnostic(new Range(lineStart.with({ character: 6 }), lineStart.with({ character: 10 })), 'WatchEntry: Invalid endTime');
         }
 
