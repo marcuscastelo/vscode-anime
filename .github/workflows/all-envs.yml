@@ -92,8 +92,12 @@ jobs:
           path: '**/.vscode-test'
           key: ${{ runner.os }}-vscode-${{ hashFiles('**/yarn.lock') }}
 
-      - name: Mark vscode for download (if cache miss)
-        if: steps.cache-vscode.outputs.cache-hit != 'true'
+      - name: (Windows) Mark vscode for download (if cache miss)
+        if: steps.cache-vscode.outputs.cache-hit != 'true' && matrix.os == 'windows-latest'
+        run: rmdir vscode-test /s /q
+
+      - name: (Linux) Mark vscode for download (if cache miss)
+        if: steps.cache-vscode.outputs.cache-hit != 'true' && matrix.os != 'windows-latest'
         run: rm -rf .vscode-test
 
       - name: Run tests
@@ -137,8 +141,12 @@ jobs:
           path: '**/.vscode-test'
           key: ${{ runner.os }}-vscode-${{ hashFiles('**/yarn.lock') }}
 
-      - name: Mark vscode for download (if cache miss)
-        if: steps.cache-vscode.outputs.cache-hit != 'true'
+      - name: (Windows) Mark vscode for download (if cache miss)
+        if: steps.cache-vscode.outputs.cache-hit != 'true' && matrix.os == 'windows-latest'
+        run: rmdir vscode-test /s /q
+
+      - name: (Linux) Mark vscode for download (if cache miss)
+        if: steps.cache-vscode.outputs.cache-hit != 'true' && matrix.os != 'windows-latest'
         run: rm -rf .vscode-test
 
       - name: Compile
