@@ -13,7 +13,8 @@ import { equip, isErr } from "rustic";
 import { Tag, TagTarget } from "../core/tag";
 import { MarucsAnime } from "../extension";
 import { Supplier } from "../utils/typescript-utils";
-import { ddmmyyyToDate } from "../utils/date-utils";
+import { ddmmyyyToDate, isValidTime } from "../utils/date-utils";
+import { EpisodeSpecification, EpisodeSpecificationKind } from "../core/episode-specification";
 
 export default class LineProcessor {
     private lineContext: Partial<LineContext>;
@@ -176,34 +177,34 @@ export default class LineProcessor {
             throw new Error(`Unexpected error: anime '${currentShowTitle}' not found in list, despite being the current show`);
         }
 
-        let { startTime, endTime, episode, company: friends } = lineInfo.params;
-        if (episode !== '--' && isNaN(parseInt(episode))) {
+        let { startTime, endTime, episodeSpec: episodeSpec, company: friends } = lineInfo.params;
+        if (episodeSpec.kind !== EpisodeSpecificationKind.EpisodePartial && isNaN(EpisodeSpecification.getLastEpisodeNumber(episodeSpec))) {
             this.diagnosticController.addLineDiagnostic(lineInfo.line, "Episode is nor a number nor --");
             return;
         }
 
-        const validTimeReg = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
         const lineRange = lineInfo.line.range;
         const lineStart = lineRange.start;
 
-        if (!validTimeReg.test(startTime)) {
+        if (!isValidTime(startTime)) {
             this.diagnosticController.addRangeDiagnostic(new Range(lineStart, lineStart.with({ character: 4 })), 'WatchEntry: Invalid startTime');
         }
 
-        if (!validTimeReg.test(endTime)) {
+        if (!isValidTime(endTime)) {
             this.diagnosticController.addRangeDiagnostic(new Range(lineStart.with({ character: 6 }), lineStart.with({ character: 10 })), 'WatchEntry: Invalid endTime');
         }
 
         //TODO: consider currDate and 23:59 - 00:00 entries
         let watchEntry: WatchEntry;
-        if (episode === '--') {
-            const lastEpisode = currentShow.info.lastCompleteWatchEntry?.data.episode ?? 0;
+        if (episodeSpec.kind === EpisodeSpecificationKind.EpisodePartial) {
+            const lastEpisodeSpec = currentShow.info.lastCompleteWatchEntry?.data.episodeSpec;
+            const lastEpisode = lastEpisodeSpec ? EpisodeSpecification.getLastEpisodeNumber(lastEpisodeSpec) : 0;
             watchEntry = <PartialWatchEntry>{
                 partial: true,
                 showTitle: currentShowTitle,
                 startTime,
                 endTime,
-                episode: lastEpisode + 1,
+                episodeSpec: EpisodeSpecification.fromNumber(lastEpisode + 1),
                 lineNumber: lineInfo.line.lineNumber,
                 company: friends
             };
@@ -213,14 +214,14 @@ export default class LineProcessor {
                 showTitle: currentShowTitle,
                 startTime,
                 endTime,
-                episode: parseInt(episode),
+                episodeSpec: episodeSpec,
                 lineNumber: lineInfo.line.lineNumber,
                 company: friends
             };
         }
 
-        const lastWatchedEpisode = currentShow.info.lastCompleteWatchEntry?.data.episode ?? 0;
-        if (lastWatchedEpisode >= watchEntry.episode) {
+        const lastWatchedEpisode = currentShow.info.lastCompleteWatchEntry?.data.episodeSpec ?? 0;
+        if (lastWatchedEpisode >= watchEntry.episodeSpec) {
             //TODO: related info last ep's line
             //TODO: check for skipped as well
             //TODO: check for [UNSAFE-ORDER]
