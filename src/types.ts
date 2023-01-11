@@ -1,22 +1,24 @@
 import { Tag } from "./core/tag";
-import { EpisodeSpecification } from "./core/episode-specification";
+import { CompleteEpisodeSpecification, EpisodeSpecification, PartialEpisodeSpecification } from "./core/episode-specification";
 
 type WatchEntryBase = {
 	showTitle: string,
 	startTime: string,
 	endTime: string,
 	company: string[], //Friends
-	episode: EpisodeSpecification,
+	episodeSpec: CompleteEpisodeSpecification | PartialEpisodeSpecification,
 };
 
 export type WatchEntry = CompleteWatchEntry | PartialWatchEntry;
 
 export type CompleteWatchEntry = WatchEntryBase & {
 	partial: false,
+	episodeSpec: CompleteEpisodeSpecification
 };
 
 export type PartialWatchEntry = WatchEntryBase & {
 	partial: true,
+	episodeSpec: PartialEpisodeSpecification
 };
 
 export type DocumentContexted<T> = {

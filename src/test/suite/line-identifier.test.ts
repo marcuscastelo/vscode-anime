@@ -64,6 +64,7 @@ class LineIdentifierTest {
         this.lineTypeOK('04:30 - 04:52 03 {Vitinho, Gabs, Mayara}', LineType.WatchEntry);
         this.lineTypeOK('01:10 - 02:45 01 {Mãe}', LineType.WatchEntry);
         this.lineTypeOK('22:46 - 22:54 -- //@10:00', LineType.WatchEntry);
+        this.lineTypeOK('19:14 - 19:44 1 -> 2', LineType.WatchEntry);
     }
 
     public tagTypeOK() {

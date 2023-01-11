@@ -1,11 +1,13 @@
 import assert = require("assert");
 import { test, suite } from "mocha";
 import { equip } from "rustic";
+import { EpisodeRange } from "../../core/episode-range";
 import { EpisodeSpecificationKind, EpisodeSpecification } from "../../core/episode-specification";
 
 suite("Episode Specification", () => {
+    //TODO: move to new test file for range
     test("Episode parseRange Test", () => {
-        const { start, end } = EpisodeSpecification.parseEpisodeRange("1->2")!;
+        const { start, end } = EpisodeRange.fromString("1->2")!;
         assert.strictEqual(start, 1);
         assert.strictEqual(end, 2);
     });

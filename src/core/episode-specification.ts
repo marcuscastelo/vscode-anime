@@ -1,53 +1,45 @@
-import { Err, Ok, Result } from "rustic";
+import { equip, Err, Ok, Result } from "rustic";
+import { EpisodeRange } from './episode-range';
 
 export enum EpisodeSpecificationKind {
     EpisodeNumber = "EpisodeNumber",
     EpisodeRange = "EpisodeRange",
+    EpisodePartial = "EpisodePartial",
 };
+
+export type CompleteEpisodeSpecification = EpisodeSpecification & { partial: false };
+export type PartialEpisodeSpecification = EpisodeSpecification & { partial: true };
 
 export type EpisodeSpecification =
-    | { kind: EpisodeSpecificationKind.EpisodeNumber, number: number }
-    | { kind: EpisodeSpecificationKind.EpisodeRange, range: EpisodeRange };
-
-export type EpisodeRange = {
-    start: number,
-    end: number,
-};
+    | { partial: false } & { kind: EpisodeSpecificationKind.EpisodeNumber, number: number }
+    | { partial: false } & { kind: EpisodeSpecificationKind.EpisodeRange, range: EpisodeRange }
+    | { partial: true  } & { kind: EpisodeSpecificationKind.EpisodePartial };
 
 export namespace EpisodeSpecification {
-    export function parseEpisodeRange(spec: string): EpisodeRange | undefined {
-        const match = spec.match(/^([\d.]+)(?:->|,)([\d.]+)$/); //TODO: episode list vs range [1,2,3] == [1->3]
-        if (match === null) {
-            return undefined;
-        }
-
-        const start = parseInt(match[1]);
-        const end = parseInt(match[2]);
-
-        if (isNaN(start) || isNaN(end)) {
-            return undefined;
-        }
-
-        return {
-            start,
-            end,
-        };
-    }
-
     export function fromString(spec: string): Result<EpisodeSpecification, Error> {
+        spec = spec ?? '';
+        if (spec === '--') {
+            return Ok({
+                kind: EpisodeSpecificationKind.EpisodePartial,
+                partial: true,
+            });
+        }
+
         const episodeNumber = +spec;
         if (!isNaN(episodeNumber)) {
             return Ok({
                 kind: EpisodeSpecificationKind.EpisodeNumber,
+                partial: false,
                 number: episodeNumber,
             });
         }
 
-        const range = parseEpisodeRange(spec);
-        if (range !== undefined) {
+        const range = equip(EpisodeRange.fromString(spec));
+        if (range.isSome()) {
             return Ok({
                 kind: EpisodeSpecificationKind.EpisodeRange,
-                range,
+                partial: false,
+                range: range.unwrap(),
             });
         }
 
@@ -57,11 +49,12 @@ export namespace EpisodeSpecification {
     export function fromNumber(episodeNumber: number): EpisodeSpecification {
         return {
             kind: EpisodeSpecificationKind.EpisodeNumber,
+            partial: false,
             number: episodeNumber,
         };
     }
 
-    export function getLastEpisodeNumber(specification: EpisodeSpecification): number {
+    export function getLastEpisodeNumber(specification: CompleteEpisodeSpecification): number {
         switch (specification.kind) {
             case EpisodeSpecificationKind.EpisodeNumber:
                 return specification.number;
