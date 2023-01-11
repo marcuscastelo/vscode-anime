@@ -1,11 +1,12 @@
 import { Tag } from "./core/tag";
+import { EpisodeSpecification } from "./core/episode-specification";
 
 type WatchEntryBase = {
 	showTitle: string,
 	startTime: string,
 	endTime: string,
 	company: string[], //Friends
-	episode: number,
+	episode: EpisodeSpecification,
 };
 
 export type WatchEntry = CompleteWatchEntry | PartialWatchEntry;

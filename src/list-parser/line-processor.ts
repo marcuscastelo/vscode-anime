@@ -14,6 +14,7 @@ import { Tag, TagTarget } from "../core/tag";
 import { MarucsAnime } from "../extension";
 import { Supplier } from "../utils/typescript-utils";
 import { ddmmyyyToDate, isValidTime } from "../utils/date-utils";
+import { EpisodeSpecification } from "../core/episode-specification";
 
 export default class LineProcessor {
     private lineContext: Partial<LineContext>;
@@ -196,13 +197,14 @@ export default class LineProcessor {
         //TODO: consider currDate and 23:59 - 00:00 entries
         let watchEntry: WatchEntry;
         if (episode === '--') {
-            const lastEpisode = currentShow.info.lastCompleteWatchEntry?.data.episode ?? 0;
+            const lastEpisodeSpec = currentShow.info.lastCompleteWatchEntry?.data.episode;
+            const lastEpisode = lastEpisodeSpec ? EpisodeSpecification.getLastEpisodeNumber(lastEpisodeSpec) : 0;
             watchEntry = <PartialWatchEntry>{
                 partial: true,
                 showTitle: currentShowTitle,
                 startTime,
                 endTime,
-                episode: lastEpisode + 1,
+                episode: EpisodeSpecification.fromNumber(lastEpisode + 1),
                 lineNumber: lineInfo.line.lineNumber,
                 company: friends
             };
@@ -212,7 +214,7 @@ export default class LineProcessor {
                 showTitle: currentShowTitle,
                 startTime,
                 endTime,
-                episode: parseInt(episode),
+                episode: EpisodeSpecification.fromNumber(parseInt(episode)),
                 lineNumber: lineInfo.line.lineNumber,
                 company: friends
             };
