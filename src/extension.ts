@@ -14,9 +14,10 @@ import ShowHoverProvider from './lang/anime-hover-provider';
 import AnimeCompletionItemProvider from './lang/anime-completion-provider';
 import MADiagnosticController from './lang/maDiagnosticCollection';
 import { SHOW_STORAGE_ID as SHOW_STORAGE_ID, EXTENSION_ID, LANGUAGE_ID, TAG_REGISTRY_ID } from './constants';
-import ShowLensProvider from './lang/anime-codelens-provider';
 import { formatFriend } from './commands/format-friend';
 import ShowDefinitionProvider from './lang/anime-definition-provider';
+import TagsLensProvider from './lang/code-lens/tags-codelens-provider';
+import EpisodeLensProvider from './lang/code-lens/episode-code-lens-provider';
 import { TagRegistry } from './core/registry/tag-registry';
 import { registerDefaultTags } from './core/tag';
 import ShowSymbolProvider from './lang/anime-symbol-provider';
@@ -98,7 +99,8 @@ export class MarucsAnime {
         
             ShowHoverProvider.register(context),
             AnimeCompletionItemProvider.register(context),
-            ShowLensProvider.register(context),
+            EpisodeLensProvider.register(context),
+            TagsLensProvider.register(context),
             ShowDefinitionProvider.register(context),
             ShowSymbolProvider.register(context),
         );

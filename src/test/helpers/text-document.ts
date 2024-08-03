@@ -7,6 +7,7 @@ export class DocumentMaker {
     public makeDocument() {
         return <TextDocument>{
             lineAt: (index: number) => this.lines[index],
+            getText: () => this.lines.map(line => line.text).join('\n'),
             lineCount: this.lines.length,
         };
     }

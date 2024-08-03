@@ -20,6 +20,8 @@ type WatchEntrySearchResult = SearchResult<WatchEntryLineInfo>;
 type TagSearchResult = SearchResults<TagLineInfo>;
 
 export default class LineContextFinder {
+    private static readonly cache: Map<string, LineContext> = new Map();
+
     private static findLastShowTitle(reader: DocumentReader): ShowTitleSearchResult {
         const showTitleMatcher: LineMatcher<ShowTitleLineInfo> = {
             testLine: (line: TextLine) => {
@@ -156,7 +158,6 @@ export default class LineContextFinder {
             }
         };  
 
-        console.debug('Searching for Tags...');
         let tagRes = reader.searchLine(-1, tagMatcher);
         if (isOk(tagRes)) {
             return { found: true, info: tagRes.data };
@@ -166,6 +167,11 @@ export default class LineContextFinder {
     }
 
     public static findContext(document: TextDocument, lineNumber: number): FindContextResult {
+        const cacheKey = `${document.lineCount}/${document.getText().length}/${lineNumber}`;
+        if (this.cache.has(cacheKey)) {
+            return Ok(this.cache.get(cacheKey) as LineContext);
+        }
+
         let reader = new DocumentReader(document);
         reader.goToLine(lineNumber);
 

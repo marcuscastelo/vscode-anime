@@ -95,7 +95,13 @@ export class Anime extends MALShow<MALAnimeInfo> {
     async searchMALInfo(): Promise<MALAnimeInfo> {
         const result = await MAL.searchAnime(this.info.title);
         if (result.length > 0) {
-            return result[0] as MALAnimeInfo;
+            return <MALAnimeInfo>{
+                mal_id: result[0].mal_id,
+                title: result[0].title,
+                url: result[0].url,
+                type: result[0].type,
+                episodes: result[0].episodes
+            };
         }
 
         throw new Error('Anime Not found');
