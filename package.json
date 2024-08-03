@@ -113,20 +113,20 @@
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
-		"@types/glob": "^7.1.3",
-		"@types/mocha": "^8.0.4",
-		"@types/node": "^18.11.17",
-		"@types/vscode": "^1.54.0",
-		"@typescript-eslint/eslint-plugin": "^4.14.1",
-		"@typescript-eslint/parser": "^4.14.1",
-		"eslint": "^7.19.0",
-		"glob": "^7.1.6",
-		"mocha": "^8.2.1",
-		"typescript": "^4.1.3",
-		"vscode-test": "^1.5.0"
+		"@types/glob": "^7.2.0",
+		"@types/mocha": "^8.2.3",
+		"@types/node": "^18.19.43",
+		"@types/vscode": "^1.92.0",
+		"@typescript-eslint/eslint-plugin": "^4.33.0",
+		"@typescript-eslint/parser": "^4.33.0",
+		"eslint": "^7.32.0",
+		"glob": "^7.2.3",
+		"mocha": "^8.4.0",
+		"typescript": "^4.9.5",
+		"vscode-test": "^1.6.1"
 	},
 	"dependencies": {
-		"axios": "^0.21.1",
-		"axios-rate-limit": "^1.3.0"
+		"axios": "^0.21.4",
+		"axios-rate-limit": "^1.4.0"
 	}
 }
