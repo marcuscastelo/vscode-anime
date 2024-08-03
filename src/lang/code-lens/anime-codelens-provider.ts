@@ -2,21 +2,10 @@ import {
   CancellationToken,
   CodeLens,
   CodeLensProvider,
-  Command,
-  CompletionItem,
-  CompletionItemKind,
-  CompletionItemProvider,
-  CompletionTriggerKind,
-  DebugConsoleMode,
-  DocumentFilter,
   ExtensionContext,
   languages,
-  Position,
-  ProviderResult,
   Range,
   TextDocument,
-  TextEdit,
-  window,
 } from "vscode";
 import * as vscode from "vscode";
 import { LANGUAGE_ID } from "../../constants";
@@ -36,7 +25,7 @@ export default class ShowLensProvider implements CodeLensProvider {
 
   public provideCodeLenses(
     document: TextDocument,
-    token: CancellationToken,
+    _token: CancellationToken,
   ): CodeLens[] | Thenable<CodeLens[]> {
     console.log("provideCodeLenses");
 
