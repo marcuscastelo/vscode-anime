@@ -2,7 +2,7 @@ import { TextEditor, TextEditorEdit, window } from "vscode";
 import LineContextFinder from "../list-parser/line-context-finder";
 import { isEditingSimpleCursor } from "../utils/editor-utils";
 import { MarucsAnime } from "../extension";
-import { Show } from "../cache/anime/shows";
+import { Show } from "../core/show/shows";
 import { TextEditorCommand } from "./types";
 import { equip, isErr, Option } from "rustic";
 

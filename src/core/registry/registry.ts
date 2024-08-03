@@ -8,7 +8,7 @@ export abstract class Registry<T> {
     key: string,
     constructor: () => U,
   ): U {
-    const hasKey = context.workspaceState.get(key) !== undefined;
+    const hasKey = context.globalState.get(key) !== undefined;
 
     if (!hasKey) {
       const newRegistry = constructor();
@@ -16,7 +16,7 @@ export abstract class Registry<T> {
       return newRegistry;
     }
 
-    const registryJson = context.workspaceState.get(key);
+    const registryJson = context.globalState.get(key);
 
     if (typeof registryJson !== "string") {
       throw new Error(`Registry ${key} is not a string`);
@@ -67,12 +67,18 @@ export abstract class Registry<T> {
   }
 
   public save(context: ExtensionContext, key: string): void {
-    const registryJson = JSON.stringify(this._registry);
-    context.workspaceState.update(key, registryJson);
+    console.debug(`[marucs-anime::registry] Saving registry ${key}`);
+    const registryJson = JSON.stringify(Object.fromEntries(this._registry));
+
+    context.globalState.update(key, registryJson);
+    console.debug(
+      `[marucs-anime::registry] Registry ${key} saved! ${registryJson}`,
+    );
   }
 
   public load(context: ExtensionContext, key: string): void {
-    const registryJson = context.workspaceState.get<string>(key);
+    console.debug(`[marucs-anime::registry] Loading registry ${key}`);
+    const registryJson = context.globalState.get<string>(key);
 
     if (
       registryJson &&
@@ -84,5 +90,9 @@ export abstract class Registry<T> {
       );
       this._registry = registryMap;
     }
+
+    console.debug(
+      `[marucs-anime::registry] Registry ${key} loaded! ${this.toJson()}`,
+    );
   }
 }

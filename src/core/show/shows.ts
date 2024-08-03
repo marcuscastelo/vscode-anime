@@ -1,4 +1,4 @@
-import { Tag } from "../../core/tag";
+import { Tag } from "../tag";
 import { MAL } from "../../services/mal";
 import { CompleteWatchEntry, DocumentContexted, WatchEntry } from "../../types";
 

@@ -5,7 +5,7 @@ import {
   TextDocument,
   TextLine,
 } from "vscode";
-import ShowStorage from "../cache/anime/show-storage";
+import ShowStorage from "../core/show/show-storage";
 import DocumentReader from "../utils/document-reader";
 import MADiagnosticController from "../lang/maDiagnosticCollection";
 import LineContext from "./line-context";
@@ -35,6 +35,7 @@ export default class LineProcessor {
   private diagnosticExtraContext: {
     mostRecentDateLine: DateLineInfo | undefined;
   };
+
   constructor(
     private getStorage: Supplier<ShowStorage>,
     private diagnosticController: MADiagnosticController,
@@ -48,7 +49,7 @@ export default class LineProcessor {
   processDocument(document: TextDocument) {
     const reader = new DocumentReader(document);
 
-    console.log(`Processing ${document.uri}...`);
+    console.log(`[line-processor] Processing ${document.uri}...`);
     for (const currentLine of reader) {
       this.processLine(currentLine, reader);
 
@@ -61,6 +62,7 @@ export default class LineProcessor {
         );
       }
     }
+    console.log(`[line-processor] Finished processing ${document.uri}`);
   }
 
   processLine(line: TextLine, reader: DocumentReader) {
@@ -433,7 +435,7 @@ export default class LineProcessor {
           ?.map((lineInfo) => lineInfo.params.tag)
           .indexOf(tag) === -1
       ) {
-        console.log(`Adding tag ${tag.name}`);
+        console.log(`[line-processor] Adding tag ${tag.name}`);
         this.lineContext.currentTagsLines
           ?.map((lineInfo) => lineInfo.params.tag)
           .push(tag);

@@ -12,10 +12,10 @@ import {
   TextDocument,
 } from "vscode";
 import * as vscode from "vscode";
-import ShowStorage from "../../cache/anime/show-storage";
+import ShowStorage from "../../core/show/show-storage";
 import { LANGUAGE_ID } from "../../constants";
 import { MarucsAnime } from "../../extension";
-import { Show } from "../../cache/anime/shows";
+import { Show } from "../../core/show/shows";
 
 enum CompletionType {
   ShowTitle = "ShowTitle",

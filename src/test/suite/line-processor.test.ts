@@ -1,5 +1,5 @@
 import * as assert from "assert";
-import ShowStorage from "../../cache/anime/show-storage";
+import ShowStorage from "../../core/show/show-storage";
 import MADiagnosticController from "../../lang/maDiagnosticCollection";
 import LineProcessor from "../../list-parser/line-processor";
 import * as SampleDocuments from "../mocks/sample-documents";

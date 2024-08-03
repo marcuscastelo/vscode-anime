@@ -1,6 +1,6 @@
 import { Err, Ok, Result, Option, equip } from "rustic";
-import { Registry } from "../../core/registry/registry";
-import { Tag } from "../../core/tag";
+import { Registry } from "../registry/registry";
+import { Tag } from "../tag";
 import {
   DocumentContexted as DocumentContexted,
   WatchEntry,

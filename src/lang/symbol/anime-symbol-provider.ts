@@ -10,7 +10,7 @@ import {
   SymbolKind,
   TextDocument,
 } from "vscode";
-import { Show } from "../../cache/anime/shows";
+import { Show } from "../../core/show/shows";
 import { LANGUAGE_ID } from "../../constants";
 import { MarucsAnime } from "../../extension";
 

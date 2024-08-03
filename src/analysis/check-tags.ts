@@ -1,5 +1,5 @@
 import { TextDocument } from "vscode";
-import { Show } from "../cache/anime/shows";
+import { Show } from "../core/show/shows";
 import { Tag, TagTarget } from "../core/tag";
 
 export function checkTags(
