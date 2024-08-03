@@ -5,6 +5,7 @@ import { MarucsAnime } from "../../extension";
 import LineContextFinder from "../../list-parser/line-context-finder";
 import { MAL } from "../../services/mal";
 import { checkTags } from "../../analysis/check-tags";
+import { isOk } from "rustic";
 
 export default class TagsLensProvider implements CodeLensProvider {
     public static register(context: ExtensionContext) {
@@ -20,26 +21,26 @@ export default class TagsLensProvider implements CodeLensProvider {
         const lineContext = LineContextFinder.findContext(document, line);
 
         let lineMessages: string[] = [];
-        let targetLine = lineContext.ok ? lineContext.result.currentShowLine.line.lineNumber : line;
+        let targetLine = isOk(lineContext) ? lineContext.data.currentShowLine.line.lineNumber : line;
         const range = new Range(targetLine, 0, targetLine+1, 10);
 
         if (lazy) {
             return new CodeLens(range);
         }
 
-        if (!lineContext.ok) {
-            lineMessages.push(`${lineContext.error}`);
+        if (!isOk(lineContext)) {
+            lineMessages.push(`${lineContext.data}`);
         } else {
-            const currShowTitle = lineContext.result.currentShowLine.params.showTitle;
-            const show = MarucsAnime.INSTANCE.showStorage.getShow(currShowTitle);
+            const currShowTitle = lineContext.data.currentShowLine.params.showTitle;
+            const show = MarucsAnime.INSTANCE.showStorage.searchShow(currShowTitle);
             if (!show) {
                 lineMessages.push(`Show '${currShowTitle}' not found in database`);
             } else {
                 const originalShowContext = LineContextFinder.findContext(document, show.info.firstMentionedLine);
-                if (!originalShowContext.ok) {
+                if (!isOk(originalShowContext)) {
                     lineMessages.push(`Original '${currShowTitle}' context is invalid...`);
                 } else {
-                    const currTags = lineContext.result.currentTagsLines.map(lineInfo => lineInfo.params.tag);
+                    const currTags = lineContext.data.currentTagsLines.map(lineInfo => lineInfo.params.tag);
                     const { extraTags, missingTags } = checkTags(document, currTags, show);
                     if (extraTags.length > 0) {
                         lineMessages.push(`Extra tags: ${extraTags.map(tag => tag.name).join(', ')}`);

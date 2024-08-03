@@ -38,7 +38,7 @@ export default class ShowHoverProvider implements HoverProvider {
             const md = new MarkdownString();
             md.appendMarkdown(`### ERROR: `);
             md.appendText(`${searchResult.data.message}`);
-            return new Hover(md);
+            return md;
         }
 
         const lineContext = searchResult.data;
@@ -85,11 +85,11 @@ export default class ShowHoverProvider implements HoverProvider {
         if (!window.activeTextEditor) { return; }
 
         const lineContext = LineContextFinder.findContext(document, position.line);
-        if (!lineContext.ok) {
+        if (!isOk(lineContext)) {
             return;
         }
 
-        const malData = await searchMAL(lineContext.result.currentShowLine.params.showTitle);
+        const malData = await searchMAL(lineContext.data.currentShowLine.params.showTitle);
         const lineContextMD = new MarkdownString(
             `![MAL](${malData?.images.jpg.image_url})`
         );

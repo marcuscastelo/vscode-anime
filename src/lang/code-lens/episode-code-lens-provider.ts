@@ -5,6 +5,7 @@ import { MarucsAnime } from "../../extension";
 import LineContextFinder from "../../list-parser/line-context-finder";
 import { MAL } from "../../services/mal";
 import { checkTags } from "../../analysis/check-tags";
+import { isOk } from "rustic";
 
 export default class EpisodeLensProvider implements CodeLensProvider {
     public static register(context: ExtensionContext) {
@@ -17,26 +18,26 @@ export default class EpisodeLensProvider implements CodeLensProvider {
     constructor(private readonly context: ExtensionContext) { }
 
     private async generateEpisodesLens(document: TextDocument, line: number, lazy = false): Promise<CodeLens> {
-        const lineContext = LineContextFinder.findContext(document, line);
+        const contextSearchResult = LineContextFinder.findContext(document, line);
         const range = new Range(line, 0, line + 1, 10);
 
         if (lazy) {
             return new CodeLens(range);
         }
 
-        if (!lineContext.ok) {
+        if (!isOk(contextSearchResult)) {
             console.warn('generateEpisodesLens had invalid context');
             return new CodeLens(
                 range,
                 {
-                    title: `${lineContext.error}`,
+                    title: `${contextSearchResult.data.message}`,
                     command: ''
                 }
             );
         }
 
-        const currShowTitle = lineContext.result.currentShowLine.params.showTitle;
-        const show = MarucsAnime.INSTANCE.showStorage.getShow(currShowTitle);
+        const currShowTitle = contextSearchResult.data.currentShowLine.params.showTitle;
+        const show = MarucsAnime.INSTANCE.showStorage.searchShow(currShowTitle);
         if (!show) {
             console.warn(`generateEpisodesLens had invalid show '${currShowTitle}'`);
             return new CodeLens(
@@ -48,7 +49,7 @@ export default class EpisodeLensProvider implements CodeLensProvider {
             );
         }
 
-        const lastWatchedEpisode = show.info.lastWatchEntry.episode;
+        const lastWatchedEpisode = show.info.lastCompleteWatchEntry?.data.episode ?? 0;
 
         const bestAnimeMatch = await MAL.searchBestAnime(currShowTitle);
         if (!bestAnimeMatch) {

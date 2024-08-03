@@ -169,7 +169,7 @@ export default class LineContextFinder {
     public static findContext(document: TextDocument, lineNumber: number): FindContextResult {
         const cacheKey = `${document.lineCount}/${document.getText().length}/${lineNumber}`;
         if (this.cache.has(cacheKey)) {
-            return { ok: true, result: this.cache.get(cacheKey) as LineContext };
+            return Ok(this.cache.get(cacheKey) as LineContext);
         }
 
         let reader = new DocumentReader(document);

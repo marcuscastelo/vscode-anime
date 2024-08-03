@@ -14,6 +14,9 @@ importers:
       axios-rate-limit:
         specifier: ^1.4.0
         version: 1.4.0(axios@0.21.4)
+      rustic:
+        specifier: ^1.2.2
+        version: 1.2.2
     devDependencies:
       '@types/glob':
         specifier: ^7.2.0
@@ -797,6 +800,9 @@ packages:
 
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
+
+  rustic@1.2.2:
+    resolution: {integrity: sha512-aagYrcImcYj3QbaP7nirOw8/q8aULMu0LkKucP9B4WsRbXlXpk195nYAEB+uJzAcgk2pKS+yMzbAJtIoOqwZoQ==}
 
   safe-buffer@5.1.2:
     resolution: {integrity: sha512-Gd2UZBJDkXlY7GbJxfsE8/nvKkUEU1G38c1siN6QP6a9PT9MmHB8GnpscSmMJSoF8LOIrt8ud/wPtojys4G6+g==}
@@ -1735,6 +1741,8 @@ snapshots:
   run-parallel@1.2.0:
     dependencies:
       queue-microtask: 1.2.3
+
+  rustic@1.2.2: {}
 
   safe-buffer@5.1.2: {}
 
