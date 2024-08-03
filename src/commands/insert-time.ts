@@ -63,6 +63,11 @@ export const insertTime: TextEditorCommand<void> = (
   if (halfWay) {
     if (!hasDash) {
       currTime = " - " + currTime.trim();
+    } else {
+      const hasSpaceAfterDash = currentLineText.match(/-\s+$/g) !== null;
+      if (!hasSpaceAfterDash) {
+        currTime = " " + currTime.trim();
+      }
     }
     currTime += " ";
   } else if (emptyLine) {
@@ -80,10 +85,10 @@ export const insertTime: TextEditorCommand<void> = (
         {
           modal: true,
         },
-        "Insert time anyways",
+        "Insert time anyway",
       )
       .then((value) => {
-        if (value === "Insert time anyways") {
+        if (value === "Insert time anyway") {
           insertTimeCallback(textEditor, currTime);
         }
       });
