@@ -1,8 +1,8 @@
 import { CancellationToken, CodeLens, DefinitionProvider, Command, CompletionItem, Definition, DefinitionLink, CompletionTriggerKind, DebugConsoleMode, DocumentFilter, ExtensionContext, languages, Position, ProviderResult, Range, TextDocument, TextEdit, window } from "vscode";
 import * as vscode from "vscode";
-import { LANGUAGE_ID } from "../constants";
-import { MarucsAnime } from "../extension";
-import LineContextFinder from "../list-parser/line-context-finder";
+import { LANGUAGE_ID } from "../../constants";
+import { MarucsAnime } from "../../extension";
+import LineContextFinder from "../../list-parser/line-context-finder";
 import { isErr } from "rustic";
 
 export default class ShowDefinitionProvider implements DefinitionProvider {

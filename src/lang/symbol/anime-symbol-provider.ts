@@ -1,7 +1,7 @@
 import { CancellationToken, DocumentSymbol, DocumentSymbolProvider, ExtensionContext, languages, Location, ProviderResult, Range, SymbolInformation, SymbolKind, TextDocument } from "vscode";
-import { Show } from "../cache/anime/shows";
-import { LANGUAGE_ID } from "../constants";
-import { MarucsAnime } from "../extension";
+import { Show } from "../../cache/anime/shows";
+import { LANGUAGE_ID } from "../../constants";
+import { MarucsAnime } from "../../extension";
 
 export default class ShowSymbolProvider implements DocumentSymbolProvider {
     public static register(context: ExtensionContext) {

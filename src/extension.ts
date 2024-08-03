@@ -10,17 +10,17 @@ import { TextDocument } from 'vscode';
 import { insertDate } from './commands/insert-date';
 import { insertTime } from './commands/insert-time';
 import { insertNextEpisode } from './commands/insert-next-episode';
-import ShowHoverProvider from './lang/anime-hover-provider';
-import AnimeCompletionItemProvider from './lang/anime-completion-provider';
+import ShowHoverProvider from './lang/hover/anime-hover-provider';
+import AnimeCompletionItemProvider from './lang/completion/anime-completion-provider';
 import MADiagnosticController from './lang/maDiagnosticCollection';
 import { SHOW_STORAGE_ID as SHOW_STORAGE_ID, EXTENSION_ID, LANGUAGE_ID, TAG_REGISTRY_ID } from './constants';
 import { formatFriend } from './commands/format-friend';
-import ShowDefinitionProvider from './lang/anime-definition-provider';
+import ShowDefinitionProvider from './lang/definition/anime-definition-provider';
 import TagsLensProvider from './lang/code-lens/tags-codelens-provider';
 import EpisodeLensProvider from './lang/code-lens/episode-code-lens-provider';
 import { TagRegistry } from './core/registry/tag-registry';
 import { registerDefaultTags } from './core/tag';
-import ShowSymbolProvider from './lang/anime-symbol-provider';
+import ShowSymbolProvider from './lang/symbol/anime-symbol-provider';
 
 type ExtensionActivationState = { activated: true, context: ExtensionContext } | { activated: false };
 

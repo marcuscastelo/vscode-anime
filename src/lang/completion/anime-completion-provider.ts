@@ -1,9 +1,9 @@
 import { CancellationToken, CompletionContext, CompletionItem, CompletionItemKind, CompletionItemProvider, CompletionTriggerKind, DebugConsoleMode, DocumentFilter, ExtensionContext, languages, Position, ProviderResult, Range, TextDocument, TextEdit, window } from "vscode";
 import * as vscode from "vscode";
-import ShowStorage from "../cache/anime/show-storage";
-import { LANGUAGE_ID } from "../constants";
-import { MarucsAnime } from "../extension";
-import { Show } from "../cache/anime/shows";
+import ShowStorage from "../../cache/anime/show-storage";
+import { LANGUAGE_ID } from "../../constants";
+import { MarucsAnime } from "../../extension";
+import { Show } from "../../cache/anime/shows";
 
 enum CompletionType {
     ShowTitle = 'ShowTitle',

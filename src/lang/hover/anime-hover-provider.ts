@@ -10,11 +10,11 @@ import {
   TextDocument,
   window,
 } from "vscode";
-import { LANGUAGE_ID } from "../constants";
+import { LANGUAGE_ID } from "../../constants";
 
-import { MarucsAnime } from "../extension";
-import LineContextFinder from "../list-parser/line-context-finder";
-import { MAL } from "../services/mal";
+import { MarucsAnime } from "../../extension";
+import LineContextFinder from "../../list-parser/line-context-finder";
+import { MAL } from "../../services/mal";
 
 async function searchMAL(animeTitle: string) {
   const foundAnimes = await MAL.searchAnime(animeTitle);
