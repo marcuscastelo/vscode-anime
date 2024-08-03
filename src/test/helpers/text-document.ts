@@ -1,33 +1,39 @@
-import { Position, Range, TextDocument, TextLine } from 'vscode';
+import { Position, Range, TextDocument, TextLine } from "vscode";
 
 export class DocumentMaker {
-    private lines: TextLine[] = [];
-    private currentLine = 0;
+  private lines: TextLine[] = [];
+  private currentLine = 0;
 
-    public makeDocument() {
-        return <TextDocument>{
-            lineAt: (index: number) => this.lines[index],
-            getText: () => this.lines.map(line => line.text).join('\n'),
-            lineCount: this.lines.length,
-        };
-    }
+  public makeDocument() {
+    return <TextDocument>{
+      lineAt: (index: number) => this.lines[index],
+      getText: () => this.lines.map((line) => line.text).join("\n"),
+      lineCount: this.lines.length,
+    };
+  }
 
-    public addLine(text: string) {
-        let line = <TextLine>{
-            range: new Range(new Position(this.currentLine, 0), new Position(this.currentLine, text.length-1)),
-            rangeIncludingLineBreak: new Range(new Position(this.currentLine, 0), new Position(this.currentLine, text.length)),
-            lineNumber: this.currentLine++,
-            text,
-            isEmptyOrWhitespace: text === '',
-            firstNonWhitespaceCharacterIndex: text.length - text.trimLeft().length,
-        };
+  public addLine(text: string) {
+    const line = <TextLine>{
+      range: new Range(
+        new Position(this.currentLine, 0),
+        new Position(this.currentLine, text.length - 1),
+      ),
+      rangeIncludingLineBreak: new Range(
+        new Position(this.currentLine, 0),
+        new Position(this.currentLine, text.length),
+      ),
+      lineNumber: this.currentLine++,
+      text,
+      isEmptyOrWhitespace: text === "",
+      firstNonWhitespaceCharacterIndex: text.length - text.trimLeft().length,
+    };
 
-        this.lines.push(line);
-    }
+    this.lines.push(line);
+  }
 
-    public static makeFromLines(lines: string[]) {
-        const maker = new DocumentMaker();
-        lines.forEach(line => maker.addLine(line));
-        return maker.makeDocument();
-    }
+  public static makeFromLines(lines: string[]) {
+    const maker = new DocumentMaker();
+    lines.forEach((line) => maker.addLine(line));
+    return maker.makeDocument();
+  }
 }
