@@ -109,7 +109,7 @@
 		"compile": "rm -rf ./out && tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"pretest": "yarn run compile && yarn run lint",
-		"lint": "eslint src --ext ts",
+		"lint": "npx eslint@9.8.0 src",
 		"test": "node ./out/test/runTest.js"
 	},
 	"devDependencies": {
