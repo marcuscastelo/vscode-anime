@@ -56,7 +56,6 @@ function request(resourcePath: string) {
     });
 }
 
-
 export namespace MAL {
     type Cache = {
         anime: {

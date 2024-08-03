@@ -90,7 +90,8 @@ export default class EpisodeLensProvider implements CodeLensProvider {
             }
 
             console.log(`Processing episode lenses for line '${line.text}'...`);
-            lenses.push(await this.generateEpisodesLens(document, i, true));
+            const lazyCodeLenses = await this.generateEpisodesLens(document, i, true);
+            lenses.push(lazyCodeLenses);
 
             if (lenses.length > 1750) {
                 break; // Only check the last 10 lines (for now) //TODO: use resolveCodeLens

@@ -125,7 +125,7 @@ export default class LineProcessor {
         }
 
         let { startTime, endTime, episode, friends } = lineInfo.params;
-        if (episode === NaN) {
+        if (isNaN(episode)) {
             this.diagnosticController.addLineDiagnostic(lineInfo.line, "Episode is not a number");
             return;
         }
