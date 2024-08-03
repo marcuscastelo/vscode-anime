@@ -48,10 +48,6 @@ export class Show {
     };
   }
 
-  public updateLastMentionedLine(lineNumber: number) {
-    this.info.lastMentionedLine = lineNumber;
-  }
-
   public addWatchEntry(lastEntryCtx: DocumentContexted<WatchEntry>) {
     this.info.watchEntries.push(lastEntryCtx);
     this.info.lastMentionedLine = lastEntryCtx.lineNumber;

@@ -81,7 +81,7 @@ export default class EpisodeLensProvider implements CodeLensProvider {
     document: TextDocument,
     _token: CancellationToken,
   ): Promise<CodeLens[]> {
-    console.log("provideCodeLenses");
+    // console.log("provideCodeLenses");
 
     if (document !== vscode.window.activeTextEditor?.document) {
       console.warn("provideCodeLenses had weird document");
@@ -96,7 +96,6 @@ export default class EpisodeLensProvider implements CodeLensProvider {
         continue; // Only check lines with a colon (show title lines)
       }
 
-      console.log(`Processing episode lenses for line '${line.text}'...`);
       const lazyCodeLenses = await this.generateEpisodesLens(document, i, true);
       lenses.push(lazyCodeLenses);
 
@@ -105,7 +104,7 @@ export default class EpisodeLensProvider implements CodeLensProvider {
       }
     }
 
-    console.log(`Found ${lenses.length} episode lenses`);
+    // console.log(`Found ${lenses.length} episode lenses`);
     return lenses;
   }
 
@@ -113,7 +112,7 @@ export default class EpisodeLensProvider implements CodeLensProvider {
     codeLens: CodeLens,
     _token: CancellationToken,
   ): Promise<CodeLens> {
-    console.log("resolveCodeLens");
+    // console.log("resolveCodeLens");
     const line = codeLens.range.start.line;
     const document = vscode.window.activeTextEditor?.document;
     if (!document) {

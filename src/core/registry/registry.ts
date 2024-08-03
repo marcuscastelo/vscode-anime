@@ -3,6 +3,9 @@ import { ExtensionContext } from "vscode";
 export abstract class Registry<T> {
   protected _registry: Map<string, T> = new Map();
 
+  /**
+   * @deprecated
+   */
   public static getOrCreateWorkspaceRegistry<T, U extends Registry<T>>(
     context: ExtensionContext,
     key: string,
@@ -66,6 +69,9 @@ export abstract class Registry<T> {
     return Array.from(this._registry.keys());
   }
 
+  /**
+   * @deprecated
+   */
   public save(context: ExtensionContext, key: string): void {
     console.debug(`[marucs-anime::registry] Saving registry ${key}`);
     const registryJson = JSON.stringify(Object.fromEntries(this._registry));
@@ -76,6 +82,9 @@ export abstract class Registry<T> {
     );
   }
 
+  /**
+   * @deprecated
+   */
   public load(context: ExtensionContext, key: string): void {
     console.debug(`[marucs-anime::registry] Loading registry ${key}`);
     const registryJson = context.globalState.get<string>(key);

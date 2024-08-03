@@ -52,7 +52,7 @@ export default class LineContextFinder {
     }
   }
 
-  private static findLastDate(reader: DocumentReader): DateSearchResult {
+  public static findLastDate(reader: DocumentReader): DateSearchResult {
     const dateMatcher: LineMatcher<DateLineInfo> = {
       testLine: (line: TextLine) => {
         const lineInfo = LineIdentifier.identifyLine(line);

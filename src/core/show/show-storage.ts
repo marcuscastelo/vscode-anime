@@ -38,6 +38,7 @@ export default class ShowStorage extends Registry<Show> {
     return this.showDict.get(showName);
   }
 
+  // TODO: Should return readonly data
   public getOrCreateShow(
     showTitle: string,
     currentLine: number,
@@ -61,7 +62,9 @@ export default class ShowStorage extends Registry<Show> {
     const searchRes = equip(this.searchShow(showTitle));
 
     if (searchRes.isSome()) {
-      searchRes.unwrap().addWatchEntry(watchEntryCtx);
+      const show = searchRes.unwrap();
+      show.info.watchEntries.push(watchEntryCtx);
+      show.info.lastMentionedLine = watchEntryCtx.lineNumber;
       return null;
     }
 

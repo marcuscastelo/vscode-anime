@@ -25,15 +25,14 @@ import {
   TagLineInfo,
   WatchEntryLineInfo,
 } from "./line-info";
-import { equip, isErr } from "rustic";
+import { equip, isErr, isOk } from "rustic";
 import { Tag, TagTarget } from "../core/tag";
 import { MarucsAnime } from "../extension";
 import { Supplier } from "../utils/typescript-utils";
 import { ddmmyyyToDate } from "../utils/date-utils";
+import LineContextFinder from "./line-context-finder";
 
-type ParserListener = {
-  onLineParsed: (lineInfo: LineInfo) => void;
-};
+type ParserListener = (lineInfo: LineInfo) => void;
 
 export default class AnlParser {
   private lineContext: Partial<LineContext>;
@@ -53,14 +52,35 @@ export default class AnlParser {
 
   parseDocument(
     document: TextDocument,
-    config: { listener?: ParserListener } = {},
+    config: {
+      listener?: ParserListener;
+      alreadyProccessedLineCount?: number;
+    } = {},
   ) {
     const reader = new DocumentReader(document);
 
     console.log(`[anl-parser] Processing ${document.uri}...`);
+
+    if (config.alreadyProccessedLineCount !== undefined) {
+      console.log(
+        `[anl-parser] Skipping ${config.alreadyProccessedLineCount} lines, because they were already processed (cache)`,
+      );
+      const gotoLine = config.alreadyProccessedLineCount;
+
+      reader.goToLine(gotoLine);
+      const result = LineContextFinder.findContext(document, gotoLine);
+      if (isOk(result)) {
+        this.lineContext = result.data;
+      } else {
+        console.error(
+          `[anl-parser] Error while trying to find context at line ${gotoLine}, error: ${result.data.message}`,
+        );
+      }
+    }
+
     for (const currentLine of reader) {
       const lineInfo = this.parseLine(currentLine, reader);
-      config.listener?.onLineParsed(lineInfo);
+      config.listener?.(lineInfo);
     }
     console.log(`[anl-parser] Finished processing ${document.uri}`);
   }
@@ -197,7 +217,7 @@ export default class AnlParser {
 
     //TODO: check for empty sessions ( i.e: no watch entries between titles )
     const currShow = showResult.data;
-    currShow.updateLastMentionedLine(lineInfo.line.lineNumber);
+    currShow.info.lastMentionedLine = lineInfo.line.lineNumber;
 
     const currTags =
       this.lineContext.currentTagsLines?.map(
@@ -364,7 +384,7 @@ export default class AnlParser {
       if (checkOrder) {
         this.diagnosticController.addLineDiagnostic(
           lineInfo.line,
-          "Watch entry violates ascending episodes rule",
+          `Watch entry violates ascending episodes rule (${lastWatchedEpisode} -> ${watchEntry.episode})`,
         );
       } else {
         this.diagnosticController.addDiagnostic({
