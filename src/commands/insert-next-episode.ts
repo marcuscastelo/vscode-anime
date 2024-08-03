@@ -6,6 +6,7 @@ import { MarucsAnime } from '../extension';
 import { Show } from "../cache/anime/shows";
 import { TextEditorCommand } from "./types";
 import { equip, isErr, isOk, Option, OptionEquipped } from "rustic";
+import { EpisodeSpecification } from "../core/episode-specification";
 
 export const insertNextEpisode: TextEditorCommand<void> = (textEditor: TextEditor, edit: TextEditorEdit) => {
 	if (!isEditingSimpleCursor(textEditor)) {
@@ -42,8 +43,11 @@ export const insertNextEpisode: TextEditorCommand<void> = (textEditor: TextEdito
 		return;
 	}
 
-	let lastEp = show.unwrap().info.lastCompleteWatchEntry?.data.episode ?? 0;
+	const lastEpSpec = show.unwrap().info.lastCompleteWatchEntry?.data.episodeSpec;
+	const lastEp = lastEpSpec ? EpisodeSpecification.getLastEpisodeNumber(lastEpSpec) : 0;
 
+
+	
 	let nextEpStr = (lastEp + 1).toString();
 	if (nextEpStr.length < 2) { nextEpStr = "0" + nextEpStr; };
 

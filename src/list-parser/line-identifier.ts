@@ -1,17 +1,21 @@
+import { assert } from "console";
+import { isErr, isOk } from "rustic";
 import { TextLine } from "vscode";
+import { EpisodeSpecification } from "../core/episode-specification";
 import { MarucsAnime } from "../extension";
 import { LineInfo, TagParam } from "./line-info";
 import { COMMENT_TOKEN, DATE_REG, LineType, SHOW_TITLE_REG, TAG_PARAM_REG, TAG_REG, WATCH_REG } from "./line-type";
-
+import LineUtils from "./line-utils";
 
 export default class LineIdentifier {
+    /**
+     * Identifies the line type and returns the line info
+     * @param line line to be identified
+     * @returns line info with the line type and the line params
+     */
     public static identifyLine(line: TextLine): LineInfo {
         let text = line.text;
-
-        let commentTokenPosition = text.indexOf(COMMENT_TOKEN);
-        if (commentTokenPosition !== -1) {
-            text = text.substring(0, commentTokenPosition);
-        }
+        text = LineUtils.removeComment(text);
 
         //Checks if empty line before regex for performance
         if (text === '') {
@@ -64,14 +68,19 @@ export default class LineIdentifier {
         let errors = [];
         if (groups[1] === undefined) { errors.push('WatchEntry: Missing startTime'); } 
         if (groups[2] === undefined) { errors.push('WatchEntry: Missing endTime'); } 
-        if (groups[3] === undefined) { errors.push('WatchEntry: Missing episode number'); }
+        if (groups[3] === undefined) { errors.push('WatchEntry: Missing episode declaration'); }
 
-        //TODO: validar em outro lugar (line-processor?)
-        const validEpisodeReg = /^(0\d{1}|\d{2,}|\-\-)$/;
-        if (!validEpisodeReg.test(groups[3])) { 
-            errors.push('WatchEntry: Missing leading zeros in episode number'); 
+        // //TODO: validar em outro lugar (line-processor?)
+        // const validEpisodeReg = /^(0\d{1}|\d{2,}|\-\-)$/;
+        // if (!validEpisodeReg.test(groups[3])) { 
+        //     errors.push('WatchEntry: Missing leading zeros in episode number'); 
+        // }
+        
+        const episodeSpec = EpisodeSpecification.fromString(groups[3]);
+        if (isErr(episodeSpec)) {
+            errors.push(`WatchEntry: Invalid episode declaration: ${episodeSpec.data}`);
         }
-
+        
         if (errors.length > 0) {
             return {
                 type: LineType.Invalid,
@@ -80,12 +89,14 @@ export default class LineIdentifier {
             };
         }
 
+        if (!isOk(episodeSpec)) { throw new Error('EpisodeSpec is not ok'); }
+
         return {
             type: LineType.WatchEntry,
             params: {
                 startTime: groups[1],
                 endTime: groups[2],
-                episode: groups[3],
+                episodeSpec: episodeSpec.data,
                 company: (groups[4]) ? (groups[4] as string).split(',').map(name => name.trim()) : [],
             },
             line,

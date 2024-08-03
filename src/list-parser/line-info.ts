@@ -1,4 +1,5 @@
 import { TextLine } from "vscode";
+import { EpisodeSpecification } from "../core/episode-specification";
 import { Tag } from "../core/tag";
 import {  WatchEntry } from "../types";
 import { LineType } from "./line-type";
@@ -34,7 +35,7 @@ export type WatchEntryLineInfo =
         params: {
             startTime: string,
             endTime: string,
-            episode: string,
+            episodeSpec: EpisodeSpecification,
             company: string[],
         }
     };

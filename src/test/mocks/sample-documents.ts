@@ -4,6 +4,8 @@ import { WatchEntry } from "../../types";
 import { PropertyType } from "../../utils/typescript-utils";
 import { DocumentMaker } from "../helpers/text-document";
 import { WatchEntryLineInfo } from "../../list-parser/line-info";
+import { EpisodeSpecification } from "../../core/episode-specification";
+import { equip } from 'rustic';
 
 export type DocumentTestExpectations = {
     currentDate: string,
@@ -16,6 +18,7 @@ export type Sample = {
     expectations: DocumentTestExpectations,
 };
 
+// TODO: Stop using samples like this! use a builder instead
 export const minimalDateTitleWatchEntry: Sample = {
     document: DocumentMaker.makeFromLines([
         "27/03/2021",
@@ -28,7 +31,7 @@ export const minimalDateTitleWatchEntry: Sample = {
         lastWatchEntryParams: {
             startTime: "21:32",
             endTime: "21:33",
-            episode: "01",
+            episodeSpec: equip(EpisodeSpecification.fromString("01")).unwrap(),
             company: [],
         }
     }
@@ -46,7 +49,7 @@ export const minimalDateTitleWatchEntryWithFriends: Sample = {
         lastWatchEntryParams: {
             startTime: "21:32",
             endTime: "21:33",
-            episode: "01",
+            episodeSpec: equip(EpisodeSpecification.fromString("01")).unwrap(),
             company: ["Fulano"],
         }
     }
@@ -65,7 +68,7 @@ export const minimalDateTitleWatchEntryWithFriendsAndTags: Sample = {
         lastWatchEntryParams: {
             startTime: "21:32",
             endTime: "21:33",
-            episode: "01",
+            episodeSpec: equip(EpisodeSpecification.fromString("01")).unwrap(),
             company: ["Fulano"],
         }
     }
