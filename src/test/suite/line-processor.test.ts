@@ -1,11 +1,11 @@
 import * as assert from "assert";
 import ShowStorage from "../../core/show/show-storage";
 import MADiagnosticController from "../../lang/maDiagnosticCollection";
-import LineProcessor from "../../list-parser/line-processor";
+import AnlParser from "../../list-parser/anl-parser";
 import * as SampleDocuments from "../mocks/sample-documents";
 
 class LineProcessorTest {
-  private processor: LineProcessor;
+  private processor: AnlParser;
   private storage: ShowStorage;
 
   public static get test() {
@@ -15,7 +15,7 @@ class LineProcessorTest {
     this.storage = new ShowStorage();
     const dummyDiagnosticController = {} as MADiagnosticController;
 
-    this.processor = new LineProcessor(
+    this.processor = new AnlParser(
       () => this.storage,
       dummyDiagnosticController,
     );
@@ -23,7 +23,7 @@ class LineProcessorTest {
 
   public simpleTest() {
     const sample = SampleDocuments.minimalDateTitleWatchEntryWithFriends;
-    this.processor.processDocument(sample.document);
+    this.processor.parseDocument(sample.document);
 
     suite("Date + Anime + 2 Episodes + Friends", () => {
       const show = this.storage.searchShow(

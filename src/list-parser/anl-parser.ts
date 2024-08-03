@@ -20,6 +20,7 @@ import { checkTags } from "../analysis/check-tags";
 import LineIdentifier from "./line-identifier";
 import {
   DateLineInfo,
+  LineInfo,
   ShowTitleLineInfo,
   TagLineInfo,
   WatchEntryLineInfo,
@@ -30,7 +31,11 @@ import { MarucsAnime } from "../extension";
 import { Supplier } from "../utils/typescript-utils";
 import { ddmmyyyToDate } from "../utils/date-utils";
 
-export default class LineProcessor {
+type ParserListener = {
+  onLineParsed: (lineInfo: LineInfo) => void;
+};
+
+export default class AnlParser {
   private lineContext: Partial<LineContext>;
   private diagnosticExtraContext: {
     mostRecentDateLine: DateLineInfo | undefined;
@@ -46,44 +51,41 @@ export default class LineProcessor {
     };
   }
 
-  processDocument(document: TextDocument) {
+  parseDocument(
+    document: TextDocument,
+    config: { listener?: ParserListener } = {},
+  ) {
     const reader = new DocumentReader(document);
 
-    console.log(`[line-processor] Processing ${document.uri}...`);
+    console.log(`[anl-parser] Processing ${document.uri}...`);
     for (const currentLine of reader) {
-      this.processLine(currentLine, reader);
-
-      if (
-        reader.lineCount < 10 ||
-        currentLine.lineNumber % Math.floor(reader.lineCount / 10) === 0
-      ) {
-        console.log(
-          `${currentLine.lineNumber + 1}/${reader.lineCount} lines read (${(((currentLine.lineNumber + 1) / reader.lineCount) * 100).toFixed(2)}%)`,
-        );
-      }
+      const lineInfo = this.parseLine(currentLine, reader);
+      config.listener?.onLineParsed(lineInfo);
     }
-    console.log(`[line-processor] Finished processing ${document.uri}`);
+    console.log(`[anl-parser] Finished processing ${document.uri}`);
   }
 
-  processLine(line: TextLine, reader: DocumentReader) {
+  private parseLine(line: TextLine, reader: DocumentReader) {
     const lineInfo = LineIdentifier.identifyLine(line);
 
     if (lineInfo.type === LineType.ShowTitle) {
-      this.processShowTitleLine(lineInfo, reader.document);
+      this.parseShowTitleLine(lineInfo, reader.document);
     } else if (lineInfo.type === LineType.WatchEntry) {
-      this.processWatchLine(lineInfo);
+      this.parseWatchLine(lineInfo);
     } else if (lineInfo.type === LineType.Date) {
-      this.processDateLine(lineInfo);
+      this.parseDateLine(lineInfo);
     } else if (lineInfo.type === LineType.Tag) {
-      this.processTag(lineInfo, reader);
+      this.parseTagLine(lineInfo, reader);
     } else if (lineInfo.type === LineType.Invalid) {
       for (const error of lineInfo.errors) {
         this.diagnosticController.addLineDiagnostic(line, error);
       }
     }
+
+    return lineInfo;
   }
 
-  processDateLine(lineInfo: DateLineInfo) {
+  private parseDateLine(lineInfo: DateLineInfo) {
     if (this.diagnosticExtraContext.mostRecentDateLine === undefined) {
       if (this.lineContext.currentShowLine !== undefined) {
         console.error(
@@ -157,7 +159,10 @@ export default class LineProcessor {
     this.lineContext.currentShowLine = undefined;
   }
 
-  processShowTitleLine(lineInfo: ShowTitleLineInfo, document: TextDocument) {
+  private parseShowTitleLine(
+    lineInfo: ShowTitleLineInfo,
+    document: TextDocument,
+  ) {
     const showTitle = lineInfo.params.showTitle;
 
     if (showTitle === this.lineContext.currentShowLine?.params.showTitle) {
@@ -244,7 +249,7 @@ export default class LineProcessor {
       );
   }
 
-  processWatchLine(lineInfo: WatchEntryLineInfo) {
+  private parseWatchLine(lineInfo: WatchEntryLineInfo) {
     const { currentShowLine } = this.lineContext;
 
     if (!currentShowLine) {
@@ -383,7 +388,7 @@ export default class LineProcessor {
     }
   }
 
-  processTag(lineInfo: TagLineInfo, reader: DocumentReader) {
+  private parseTagLine(lineInfo: TagLineInfo, reader: DocumentReader) {
     const { tagName } = lineInfo.params;
 
     const tag = MarucsAnime.INSTANCE.tagRegistry.get(tagName);
@@ -435,7 +440,7 @@ export default class LineProcessor {
           ?.map((lineInfo) => lineInfo.params.tag)
           .indexOf(tag) === -1
       ) {
-        console.log(`[line-processor] Adding tag ${tag.name}`);
+        console.log(`[anl-parser] Adding tag ${tag.name}`);
         this.lineContext.currentTagsLines
           ?.map((lineInfo) => lineInfo.params.tag)
           .push(tag);
