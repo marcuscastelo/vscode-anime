@@ -1,10 +1,13 @@
 import { TextDocument, TextLine } from "vscode";
-import { Tag, Tags, TagTarget, WatchEntry } from "../types";
+import { TagTarget } from "../core/tag";
 import DocumentReader, { LineMatcher } from "../utils/document-reader";
 import LineContext from "./line-context";
-import LineIdentifier, { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info-parser";
+import { DateLineInfo, ShowTitleLineInfo, TagLineInfo, WatchEntryLineInfo } from "./line-info";
 import { LineType } from "./line-type";
-import { PredefinedArray, Result } from '../utils/typescript-utils';
+import { Err, isOk, Ok, Result } from 'rustic';
+import LineIdentifier from "./line-identifier";
+import { PredefinedArray } from "../utils/typescript-utils";
+import { MarucsAnime } from "../extension";
 
 type FindContextResult = Result<LineContext, Error>;
 
@@ -32,8 +35,11 @@ export default class LineContextFinder {
         };
 
         let showTitleRes = reader.searchLine(-1, showTitleMatcher);
-        if (showTitleRes.ok) {
-            return { found: true, info: showTitleRes.result[0] };
+
+
+
+        if (isOk(showTitleRes)) {
+            return { found: true, info: showTitleRes.data[0] };
         } else {
             return { found: false };
         }
@@ -52,8 +58,8 @@ export default class LineContextFinder {
         };
 
         let dateRes = reader.searchLine(-1, dateMatcher);
-        if (dateRes.ok) {
-            return { found: true, info: dateRes.result[0] };
+        if (isOk(dateRes)) {
+            return { found: true, info: dateRes.data[0] };
         } else {
             return { found: false };
         }
@@ -81,8 +87,8 @@ export default class LineContextFinder {
         };
 
         let watchEntryRes = reader.searchLine(-1, watchEntryMatcher);
-        if (watchEntryRes.ok) {
-            return { found: true, info: watchEntryRes.result[0] };
+        if (isOk(watchEntryRes)) {
+            return { found: true, info: watchEntryRes.data[0] };
         } else {
             return { found: false };
         }
@@ -120,7 +126,12 @@ export default class LineContextFinder {
                 
                 if (lineInfo.type === LineType.Tag) {
                     const tagName = lineInfo.params.tagName; //TODO: tagParams
-                    const tag = Tags[lineInfo.params.tagName];
+                    const tag = MarucsAnime.INSTANCE.tagRegistry.get(lineInfo.params.tagName);
+                    if (tag === undefined) {
+                        console.error(`Tag ${tagName} is not registered!`);
+                        return { hasData: false, stop: false };
+                    }
+                    
                     if (tag.target === TagTarget.WATCH_LINE) {
                         if (firstLine) {
                             return { hasData: true, data: lineInfo, stop: false };
@@ -148,13 +159,12 @@ export default class LineContextFinder {
         };  
 
         let tagRes = reader.searchLine(-1, tagMatcher);
-        if (tagRes.ok) {
-            return { found: true, info: tagRes.result };
+        if (isOk(tagRes)) {
+            return { found: true, info: tagRes.data };
         } else {
             return { found: false, info: [] };
         }
     }
-
 
     public static findContext(document: TextDocument, lineNumber: number): FindContextResult {
         const cacheKey = `${document.lineCount}/${document.getText().length}/${lineNumber}`;
@@ -169,14 +179,14 @@ export default class LineContextFinder {
         reader.goToLine(lineNumber);
         const lastDateRes = this.findLastDate(reader);
         if (!lastDateRes.found) {
-            return { ok: false, error: new Error('No date found') };
+            return Err(new Error('No date found'));
         }
 
         //Finds nearest show title declaration
         reader.goToLine(lineNumber);
         const lastShowTitleRes = this.findLastShowTitle(reader);
         if (!lastShowTitleRes.found) {
-            return { ok: false, error: new Error('No show title found') };
+            return Err(new Error('No show title found'));
         }
 
         //Finds nearest watch entry declaration
@@ -194,11 +204,6 @@ export default class LineContextFinder {
             lastWatchEntryLine: lastWatchEntryRes.found ? lastWatchEntryRes.info : undefined,
         };
 
-        this.cache.set(cacheKey, context);
-
-        return {
-            ok: true,
-            result: context
-        };
+        return Ok(context);
     }
 }

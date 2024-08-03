@@ -1,62 +1,8 @@
 import { TextLine } from "vscode";
-import { Tag, Tags } from "../types";
+import { MarucsAnime } from "../extension";
+import { LineInfo, TagParam } from "./line-info";
 import { COMMENT_TOKEN, DATE_REG, LineType, SHOW_TITLE_REG, TAG_PARAM_REG, TAG_REG, WATCH_REG } from "./line-type";
 
-export type LineInfoBase = {
-    line: TextLine,
-};
-
-export type LineInfo =
-    LineInfoBase & (
-        | { type: LineType.Date } & DateLineInfo
-        | { type: LineType.ShowTitle } & ShowTitleLineInfo
-        | { type: LineType.WatchEntry } & WatchEntryLineInfo
-        | { type: LineType.Tag } & TagLineInfo
-        | { type: LineType.Ignored }
-        | { type: LineType.Invalid, errors: string[] }
-    );
-
-export type ShowTitleLineInfo =
-    LineInfoBase &
-    {
-        params: {
-            showTitle: string
-        }
-    };
-
-export type WatchEntryLineInfo =
-    LineInfoBase &
-    {
-        params: {
-            startTime: string,
-            endTime: string,
-            episode: number,
-            friends: string[],
-        }
-    };
-
-export type DateLineInfo =
-    LineInfoBase &
-    {
-        params: {
-            date: string
-        }
-    };
-
-type TagParam = {
-    name: string,
-    value: string,
-};
-
-export type TagLineInfo =
-    LineInfoBase &
-    {
-        params: {
-            tag: Tag,
-            tagName: string,
-            tagParams: TagParam[],
-        }
-    };
 
 export default class LineIdentifier {
     public static identifyLine(line: TextLine): LineInfo {
@@ -119,7 +65,12 @@ export default class LineIdentifier {
         if (groups[1] === undefined) { errors.push('WatchEntry: Missing startTime'); } 
         if (groups[2] === undefined) { errors.push('WatchEntry: Missing endTime'); } 
         if (groups[3] === undefined) { errors.push('WatchEntry: Missing episode number'); }
-        //TODO: check if episode number is at least 2-dig
+
+        //TODO: validar em outro lugar (line-processor?)
+        const validEpisodeReg = /^(0\d{1}|\d{2,}|\-\-)$/;
+        if (!validEpisodeReg.test(groups[3])) { 
+            errors.push('WatchEntry: Missing leading zeros in episode number'); 
+        }
 
         if (errors.length > 0) {
             return {
@@ -134,8 +85,8 @@ export default class LineIdentifier {
             params: {
                 startTime: groups[1],
                 endTime: groups[2],
-                episode: parseInt(groups[3]),
-                friends: (groups[4]) ? (groups[4] as string).split(',').map(name => name.trim()) : [],
+                episode: groups[3],
+                company: (groups[4]) ? (groups[4] as string).split(',').map(name => name.trim()) : [],
             },
             line,
         };
@@ -144,6 +95,7 @@ export default class LineIdentifier {
     private static getTagParams(line: TextLine, groups: RegExpExecArray): LineInfo {
 
         let [_, tagName, tagParamsStr] = groups;
+        tagName = tagName.trim();
 
         let tagParams: TagParam[];
         //Assumes valid unless proven wrong below
@@ -155,7 +107,7 @@ export default class LineIdentifier {
         else {
             tagParams = tagParamsStr.split(',').map((paramStr) => {
                 let execResult = TAG_PARAM_REG.exec(paramStr);
-                if (execResult == null) { //TODO: strict check (===)
+                if (!execResult) {
                     parametersValid = false;
                     return <TagParam>{};
                 }
@@ -172,7 +124,15 @@ export default class LineIdentifier {
             };
         }
 
-        const tag = Tags[tagName];
+        const tag = MarucsAnime.INSTANCE.tagRegistry.get(tagName);
+
+        if (!tag) {
+            return {
+                type: LineType.Invalid,
+                errors: [`Tag: Tag '${tagName}' not registered`],
+                line,
+            };
+        }
 
         return {
             type: LineType.Tag,

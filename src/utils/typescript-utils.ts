@@ -3,11 +3,11 @@ import LineContext from "../list-parser/line-context";
 interface PrimitivesMap {
     string: string,
     boolean: boolean,
-    number: number,    
+    number: number,
 }
 
-type Constructor<T> = { new (...args: any[] ): T };
-type PrimitiveOrConstructor = 
+type Constructor<T> = { new(...args: any[]): T };
+type PrimitiveOrConstructor =
     | Constructor<any>
     | keyof PrimitivesMap;
 
@@ -31,15 +31,20 @@ export type ArrayItems<T extends Array<any>> = T extends Array<infer TItems> ? T
 
 export type FixedLengthArray<T extends any[]> =
     Pick<T, Exclude<keyof T, ArrayLengthMutationKeys>>
-    & { [Symbol.iterator]: () => IterableIterator< ArrayItems<T> > };
+    & { [Symbol.iterator]: () => IterableIterator<ArrayItems<T>> };
 
 export type PredefinedArray<T extends any[]> =
     T
-    & { [Symbol.iterator]: () => IterableIterator< ArrayItems<T> > };
+    & { [Symbol.iterator]: () => IterableIterator<ArrayItems<T>> };
 
+export type PropertyType<T, K extends keyof T> = T[K];
 
-/// Types
+/// Interfaces
 
-export type Ok<T> = { ok: true, result: T };
-export type Err<E> = { ok: false, error: E };
-export type Result<T, E> = Ok<T> | Err<E>;
+export function staticImplements<T>() {
+    return <U extends T>(constructor: U) => {constructor;};
+}
+
+/// 
+
+export type Supplier<T> = () => T;

@@ -1,4 +1,5 @@
 
+import { isErr } from "rustic";
 import { Selection, TextDocument, TextEditor, TextEditorEdit, window } from "vscode";
 import LineContextFinder from "../list-parser/line-context-finder";
 import { isEditingSimpleCursor } from "../utils/editor-utils";
@@ -6,12 +7,12 @@ import { TextEditorCommand } from "./types";
 
 function checkLineContextDateIsToday(document: TextDocument, line: number): [boolean, string] {
 	const contextRes = LineContextFinder.findContext(document, line);
-	if (!contextRes.ok) {
-		console.error(contextRes.error);
-		return [false, contextRes.error.message];
+	if (isErr(contextRes)) {
+		console.error(contextRes.data);
+		return [false, contextRes.data.message];
 	}
 
-	const context = contextRes.result;
+	const context = contextRes.data;
 	const contextDate = context.currentDateLine.params.date;
 
 	let currDate = (new Date(Date.now())).toLocaleDateString('pt-BR');

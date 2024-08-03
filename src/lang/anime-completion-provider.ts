@@ -1,17 +1,16 @@
 import { CancellationToken, CompletionContext, CompletionItem, CompletionItemKind, CompletionItemProvider, CompletionTriggerKind, DebugConsoleMode, DocumentFilter, ExtensionContext, languages, Position, ProviderResult, Range, TextDocument, TextEdit, window } from "vscode";
 import * as vscode from "vscode";
-import ShowStorage from "../cache/anime/showStorage";
+import ShowStorage from "../cache/anime/show-storage";
 import { LANGUAGE_ID } from "../constants";
 import { MarucsAnime } from "../extension";
-import { LineType } from "../list-parser/line-type";
-import { Tags } from "../types";
+import { Show } from "../cache/anime/shows";
 
 enum CompletionType {
-    ShowTitle = 1,
-    Friend,
-    Tag,
-    Episode,
-    NoCompletion,
+    ShowTitle = 'ShowTitle',
+    Friend = 'Friend',
+    Tag = 'Tag',
+    Episode = 'Episode',
+    NoCompletion = 'NoCompletion',
 }
 
 type SurroundingTokenInfo = {
@@ -68,10 +67,11 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
     }
 
     private getCompletionOptionsFromStorage(storage: ShowStorage, completionType: CompletionType): string[] {
+        const byLastMentionedLine = (show1: Show, show2: Show) => show2.info.lastMentionedLine - show1.info.lastMentionedLine;
         switch (completionType) {
             case CompletionType.Friend: return storage.listFriends();
-            case CompletionType.ShowTitle: return storage.listShows();
-            case CompletionType.Tag: return Object.keys(Tags);
+            case CompletionType.ShowTitle: return [...storage.iterShows()].sort(byLastMentionedLine).map(show => show.info.title);
+            case CompletionType.Tag: return MarucsAnime.INSTANCE.tagRegistry.listKeys();
             default:
                 console.error('Not Implemented completion: ', completionType.toString());
                 return [];
@@ -131,17 +131,24 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
             [CompletionType.NoCompletion]: undefined,
         };
 
-        const createCompletionItem = (option: string): CompletionItem => {
+        const createCompletionItem = (option: string, index: number): CompletionItem => {
             const commitCharacters = commitCharactersPerType[completionType];
             const textToInsert = option + postfixesPerType[completionType];
-            const item = {
-                label: option,
+
+            const zeros = Math.ceil(Math.log10(options.length+1));
+            const indexAlphaOrdered =`${(index+1)}`.padStart(zeros, '0');
+            const sortIndex = `${indexAlphaOrdered}/${options.length}`;
+
+            const item = <CompletionItem>{
+                // label: `${sortIndex} - ${option}`,
+                label: `${option}`,
                 kind: getCompletionKind(),
                 insertText: textToInsert,
                 keepWhitespace: true,
                 range: new Range(position.translate(0, -alreadyTypedText.length), position),
                 commitCharacters: commitCharacters,
-                command: commandPerType[completionType]
+                command: commandPerType[completionType],
+                sortText: sortIndex,
             };
             return item;
         };
@@ -150,22 +157,23 @@ export default class ShowCompletionItemProvider implements CompletionItemProvide
     }
 
     private getAlreadyTypedText(lineText: string, charPosition: number, completionType: CompletionType) {
-        let match;
-        let re;
+        let re: RegExp;
         switch (completionType) {
             case CompletionType.Friend:
-                re = new RegExp(/(?<=[,{])[^,}]*$/g);
+                re = /(?<=[,{])[^,}]*$/g;
+                break;
+            case CompletionType.Tag:
+                re = /(?<=[,[])[^,\]]*$/g;
                 break;
             case CompletionType.ShowTitle:
-                re = new RegExp(/^/g);
+                re = /^/g;
                 break;
             default:
-                re = new RegExp(/NOTIMPL/g);
+                re = /NOTIMPL/g;
                 break;
         }
 
-        match = re.exec(lineText);
-        const attStart = match?.index || 0;
+        const attStart = lineText.search(re);
 
         if (attStart < 0 || attStart >= lineText.length) {
             return '';

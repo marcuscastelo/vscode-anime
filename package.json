@@ -1,6 +1,6 @@
 {
 	"name": "marucs-anime",
-	"version": "0.1.2",
+	"version": "0.2.0",
 	"publisher": "Marucs",
 	"engines": {
 		"vscode": "^1.65.0"
@@ -102,11 +102,11 @@
 		]
 	},
 	"activationEvents": [
-		"onLanguage:anime-list"
+		"onLanguage:anime-list" 
 	],
 	"scripts": {
 		"vscode:prepublish": "yarn run compile",
-		"compile": "tsc -p ./",
+		"compile": "rm -rf ./out && tsc -p ./",
 		"watch": "tsc -watch -p ./",
 		"pretest": "yarn run compile && yarn run lint",
 		"lint": "eslint src --ext ts",
@@ -127,6 +127,7 @@
 	},
 	"dependencies": {
 		"axios": "^0.21.4",
-		"axios-rate-limit": "^1.4.0"
+		"axios-rate-limit": "^1.4.0",
+		"rustic": "^1.2.2"
 	}
 }
