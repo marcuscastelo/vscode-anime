@@ -41,13 +41,13 @@ export default class TagsLensProvider implements CodeLensProvider {
       lineMessages.push(`${lineContext.data}`);
     } else {
       const currShowTitle = lineContext.data.currentShowLine.params.showTitle;
-      const show = MarucsAnime.INSTANCE.showStorage.searchShow(currShowTitle);
+      const show = MarucsAnime.INSTANCE.showRegistry.searchShow(currShowTitle);
       if (!show) {
         lineMessages.push(`Show '${currShowTitle}' not found in database`);
       } else {
         const originalShowContext = LineContextFinder.findContext(
           document,
-          show.info.firstMentionedLine,
+          show.firstMentionedLine,
         );
         if (!isOk(originalShowContext)) {
           lineMessages.push(
@@ -92,7 +92,7 @@ export default class TagsLensProvider implements CodeLensProvider {
     document: TextDocument,
     _token: CancellationToken,
   ): Promise<CodeLens[]> {
-    console.log("provideCodeLenses");
+    // console.log("provideCodeLenses");
 
     if (document !== vscodeWindow.activeTextEditor?.document) {
       console.warn("provideCodeLenses had weird document");
@@ -107,8 +107,7 @@ export default class TagsLensProvider implements CodeLensProvider {
         continue; // Only check lines with a colon (show title lines)
       }
 
-      console.log(`Processing tag lenses for line '${line.text}'...`);
-      const lens = await this.generateTagLens(document, i, true);
+      const lens = this.generateTagLens(document, i, true);
       if (lens) {
         lenses.push(lens);
       }
@@ -118,7 +117,7 @@ export default class TagsLensProvider implements CodeLensProvider {
       }
     }
 
-    console.log(`Found ${lenses.length} tag lenses`);
+    // console.log(`Found ${lenses.length} tag lenses`);
     return lenses;
   }
 

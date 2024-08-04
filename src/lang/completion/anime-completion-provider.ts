@@ -12,10 +12,10 @@ import {
   TextDocument,
 } from "vscode";
 import * as vscode from "vscode";
-import ShowStorage from "../../cache/anime/show-storage";
+import ShowRegistry from "../../core/registry/show-registry";
 import { LANGUAGE_ID } from "../../constants";
 import { MarucsAnime } from "../../extension";
-import { Show } from "../../cache/anime/shows";
+import { Show } from "../../core/show";
 
 enum CompletionType {
   ShowTitle = "ShowTitle",
@@ -98,19 +98,19 @@ export default class ShowCompletionItemProvider
     };
   }
 
-  private getCompletionOptionsFromStorage(
-    storage: ShowStorage,
+  private getCompletionOptionsFromShowRegistry(
+    showRegistry: ShowRegistry,
     completionType: CompletionType,
   ): string[] {
     const byLastMentionedLine = (show1: Show, show2: Show) =>
-      show2.info.lastMentionedLine - show1.info.lastMentionedLine;
+      show2.lastMentionedLine - show1.lastMentionedLine;
     switch (completionType) {
       case CompletionType.Friend:
-        return storage.listFriends();
+        return showRegistry.listFriends();
       case CompletionType.ShowTitle:
-        return [...storage.iterShows()]
+        return [...showRegistry.iterShows()]
           .sort(byLastMentionedLine)
-          .map((show) => show.info.title);
+          .map((show) => show.title);
       case CompletionType.Tag:
         return MarucsAnime.INSTANCE.tagRegistry.listKeys();
       default:
@@ -262,8 +262,8 @@ export default class ShowCompletionItemProvider
     const horizPosition = position.character;
 
     const completionType = this.determineCompletionType(text, horizPosition);
-    const completionOptions = this.getCompletionOptionsFromStorage(
-      extension.showStorage,
+    const completionOptions = this.getCompletionOptionsFromShowRegistry(
+      extension.showRegistry,
       completionType,
     );
     const alreadyTypedText = this.getAlreadyTypedText(

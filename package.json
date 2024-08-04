@@ -63,6 +63,11 @@
 				"command": "marucs-anime.formatFriend",
 				"title": "Format Friend",
 				"category": "Marucs' Anime"
+			},
+			{
+				"command": "marucs-anime.clearCache",
+				"title": "Clear cache",
+				"category": "Marucs' Anime"
 			}
 		],
 		"keybindings": [
@@ -134,6 +139,7 @@
 	"dependencies": {
 		"axios": "^0.21.4",
 		"axios-rate-limit": "^1.4.0",
+		"crypto-js": "^4.2.0",
 		"rustic": "^1.2.2"
 	}
 }

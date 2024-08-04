@@ -5,7 +5,7 @@ import {
   TextDocument,
   TextLine,
 } from "vscode";
-import ShowStorage from "../cache/anime/show-storage";
+import ShowRegistry from "../core/registry/show-registry";
 import DocumentReader from "../utils/document-reader";
 import MADiagnosticController from "../lang/maDiagnosticCollection";
 import LineContext from "./line-context";
@@ -20,23 +20,28 @@ import { checkTags } from "../analysis/check-tags";
 import LineIdentifier from "./line-identifier";
 import {
   DateLineInfo,
+  LineInfo,
   ShowTitleLineInfo,
   TagLineInfo,
   WatchEntryLineInfo,
 } from "./line-info";
-import { equip, isErr } from "rustic";
+import { equip, isErr, isOk } from "rustic";
 import { Tag, TagTarget } from "../core/tag";
 import { MarucsAnime } from "../extension";
 import { Supplier } from "../utils/typescript-utils";
 import { ddmmyyyToDate } from "../utils/date-utils";
+import LineContextFinder from "./line-context-finder";
 
-export default class LineProcessor {
+type ParserListener = (lineInfo: LineInfo) => void;
+
+export default class AnlParser {
   private lineContext: Partial<LineContext>;
   private diagnosticExtraContext: {
     mostRecentDateLine: DateLineInfo | undefined;
   };
+
   constructor(
-    private getStorage: Supplier<ShowStorage>,
+    private getShowRegistry: Supplier<ShowRegistry>,
     private diagnosticController: MADiagnosticController,
   ) {
     this.lineContext = {};
@@ -45,43 +50,62 @@ export default class LineProcessor {
     };
   }
 
-  processDocument(document: TextDocument) {
+  parseDocument(
+    document: TextDocument,
+    config: {
+      listener?: ParserListener;
+      alreadyProccessedLineCount?: number;
+    } = {},
+  ) {
     const reader = new DocumentReader(document);
 
-    console.log(`Processing ${document.uri}...`);
-    for (const currentLine of reader) {
-      this.processLine(currentLine, reader);
+    console.log(`[anl-parser] Processing ${document.uri}...`);
 
-      if (
-        reader.lineCount < 10 ||
-        currentLine.lineNumber % Math.floor(reader.lineCount / 10) === 0
-      ) {
-        console.log(
-          `${currentLine.lineNumber + 1}/${reader.lineCount} lines read (${(((currentLine.lineNumber + 1) / reader.lineCount) * 100).toFixed(2)}%)`,
+    if (config.alreadyProccessedLineCount !== undefined) {
+      console.log(
+        `[anl-parser] Skipping ${config.alreadyProccessedLineCount} lines, because they were already processed (cache)`,
+      );
+      const gotoLine = config.alreadyProccessedLineCount;
+
+      reader.goToLine(gotoLine);
+      const result = LineContextFinder.findContext(document, gotoLine);
+      if (isOk(result)) {
+        this.lineContext = result.data;
+      } else {
+        console.error(
+          `[anl-parser] Error while trying to find context at line ${gotoLine}, error: ${result.data.message}`,
         );
       }
     }
+
+    for (const currentLine of reader) {
+      const lineInfo = this.parseLine(currentLine, reader);
+      config.listener?.(lineInfo);
+    }
+    console.log(`[anl-parser] Finished processing ${document.uri}`);
   }
 
-  processLine(line: TextLine, reader: DocumentReader) {
+  private parseLine(line: TextLine, reader: DocumentReader) {
     const lineInfo = LineIdentifier.identifyLine(line);
 
     if (lineInfo.type === LineType.ShowTitle) {
-      this.processShowTitleLine(lineInfo, reader.document);
+      this.parseShowTitleLine(lineInfo, reader.document);
     } else if (lineInfo.type === LineType.WatchEntry) {
-      this.processWatchLine(lineInfo);
+      this.parseWatchLine(lineInfo);
     } else if (lineInfo.type === LineType.Date) {
-      this.processDateLine(lineInfo);
+      this.parseDateLine(lineInfo);
     } else if (lineInfo.type === LineType.Tag) {
-      this.processTag(lineInfo, reader);
+      this.parseTagLine(lineInfo, reader);
     } else if (lineInfo.type === LineType.Invalid) {
       for (const error of lineInfo.errors) {
         this.diagnosticController.addLineDiagnostic(line, error);
       }
     }
+
+    return lineInfo;
   }
 
-  processDateLine(lineInfo: DateLineInfo) {
+  private parseDateLine(lineInfo: DateLineInfo) {
     if (this.diagnosticExtraContext.mostRecentDateLine === undefined) {
       if (this.lineContext.currentShowLine !== undefined) {
         console.error(
@@ -155,7 +179,10 @@ export default class LineProcessor {
     this.lineContext.currentShowLine = undefined;
   }
 
-  processShowTitleLine(lineInfo: ShowTitleLineInfo, document: TextDocument) {
+  private parseShowTitleLine(
+    lineInfo: ShowTitleLineInfo,
+    document: TextDocument,
+  ) {
     const showTitle = lineInfo.params.showTitle;
 
     if (showTitle === this.lineContext.currentShowLine?.params.showTitle) {
@@ -173,8 +200,8 @@ export default class LineProcessor {
           lineInfo.params.tag.target !== TagTarget.WATCH_SESSION,
       );
 
-    const storage = this.getStorage();
-    const showResult = storage.getOrCreateShow(
+    const showRegistry = this.getShowRegistry();
+    const showResult = showRegistry.getOrCreateShow(
       showTitle,
       lineInfo.line.lineNumber,
       this.lineContext.currentTagsLines?.map((lineInfo) => lineInfo.params.tag),
@@ -190,7 +217,7 @@ export default class LineProcessor {
 
     //TODO: check for empty sessions ( i.e: no watch entries between titles )
     const currShow = showResult.data;
-    currShow.updateLastMentionedLine(lineInfo.line.lineNumber);
+    currShow.lastMentionedLine = lineInfo.line.lineNumber;
 
     const currTags =
       this.lineContext.currentTagsLines?.map(
@@ -227,7 +254,7 @@ export default class LineProcessor {
           {
             location: new Location(
               document.uri,
-              document.lineAt(currShow.info.firstMentionedLine).range,
+              document.lineAt(currShow.firstMentionedLine).range,
             ),
             message: "Fist show declaration is here",
           },
@@ -242,7 +269,7 @@ export default class LineProcessor {
       );
   }
 
-  processWatchLine(lineInfo: WatchEntryLineInfo) {
+  private parseWatchLine(lineInfo: WatchEntryLineInfo) {
     const { currentShowLine } = this.lineContext;
 
     if (!currentShowLine) {
@@ -254,7 +281,7 @@ export default class LineProcessor {
     }
 
     const currentShowTitle = currentShowLine.params.showTitle;
-    const currentShow = this.getStorage().searchShow(
+    const currentShow = this.getShowRegistry().searchShow(
       currentShowLine.params.showTitle,
     );
 
@@ -310,8 +337,7 @@ export default class LineProcessor {
     //TODO: consider currDate and 23:59 - 00:00 entries
     let watchEntry: WatchEntry;
     if (episode === "--") {
-      const lastEpisode =
-        currentShow.info.lastCompleteWatchEntry?.data.episode ?? 0;
+      const lastEpisode = currentShow.lastCompleteWatchEntry?.data.episode ?? 0;
       watchEntry = <PartialWatchEntry>{
         partial: true,
         showTitle: currentShowTitle,
@@ -334,7 +360,7 @@ export default class LineProcessor {
     }
 
     const lastWatchedEpisode =
-      currentShow.info.lastCompleteWatchEntry?.data.episode ?? 0;
+      currentShow.lastCompleteWatchEntry?.data.episode ?? 0;
     if (lastWatchedEpisode >= watchEntry.episode) {
       //TODO: related info last ep's line
       //TODO: check for skipped as well
@@ -357,7 +383,7 @@ export default class LineProcessor {
       if (checkOrder) {
         this.diagnosticController.addLineDiagnostic(
           lineInfo.line,
-          "Watch entry violates ascending episodes rule",
+          `Watch entry violates ascending episodes rule (${lastWatchedEpisode} -> ${watchEntry.episode})`,
         );
       } else {
         this.diagnosticController.addDiagnostic({
@@ -374,14 +400,14 @@ export default class LineProcessor {
       lineNumber: lineInfo.line.lineNumber,
     };
 
-    this.getStorage().registerWatchEntry(currentShowTitle, watchEntryCtx);
+    this.getShowRegistry().registerWatchEntry(currentShowTitle, watchEntryCtx);
 
     for (const friend of friends) {
-      this.getStorage().registerFriend(friend);
+      this.getShowRegistry().registerFriend(friend);
     }
   }
 
-  processTag(lineInfo: TagLineInfo, reader: DocumentReader) {
+  private parseTagLine(lineInfo: TagLineInfo, reader: DocumentReader) {
     const { tagName } = lineInfo.params;
 
     const tag = MarucsAnime.INSTANCE.tagRegistry.get(tagName);
@@ -433,7 +459,7 @@ export default class LineProcessor {
           ?.map((lineInfo) => lineInfo.params.tag)
           .indexOf(tag) === -1
       ) {
-        console.log(`Adding tag ${tag.name}`);
+        console.log(`[anl-parser] Adding tag ${tag.name}`);
         this.lineContext.currentTagsLines
           ?.map((lineInfo) => lineInfo.params.tag)
           .push(tag);

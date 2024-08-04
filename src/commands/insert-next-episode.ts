@@ -2,7 +2,7 @@ import { TextEditor, TextEditorEdit, window } from "vscode";
 import LineContextFinder from "../list-parser/line-context-finder";
 import { isEditingSimpleCursor } from "../utils/editor-utils";
 import { MarucsAnime } from "../extension";
-import { Show } from "../cache/anime/shows";
+import { Show } from "../core/show";
 import { TextEditorCommand } from "./types";
 import { equip, isErr, Option } from "rustic";
 
@@ -28,14 +28,14 @@ export const insertNextEpisode: TextEditorCommand<void> = (
   const context = searchResult.data;
 
   function firstAttempt(): Option<Show> {
-    return extension.showStorage.searchShow(
+    return extension.showRegistry.searchShow(
       context.currentShowLine.params.showTitle,
     );
   }
 
   function secondAttempt(): Option<Show> {
     extension.reactToDocumentChange(extension.context!, textEditor.document);
-    return extension.showStorage.searchShow(
+    return extension.showRegistry.searchShow(
       context.currentShowLine.params.showTitle,
     );
   }
@@ -54,7 +54,7 @@ export const insertNextEpisode: TextEditorCommand<void> = (
     return;
   }
 
-  const lastEp = show.unwrap().info.lastCompleteWatchEntry?.data.episode ?? 0;
+  const lastEp = show.unwrap().lastCompleteWatchEntry?.data.episode ?? 0;
 
   let nextEpStr = (lastEp + 1).toString();
   if (nextEpStr.length < 2) {
