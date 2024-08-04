@@ -12,10 +12,10 @@ import {
   TextDocument,
 } from "vscode";
 import * as vscode from "vscode";
-import ShowStorage from "../../core/show/show-storage";
+import ShowRegistry from "../../core/registry/show-registry";
 import { LANGUAGE_ID } from "../../constants";
 import { MarucsAnime } from "../../extension";
-import { Show } from "../../core/show/shows";
+import { Show } from "../../core/show";
 
 enum CompletionType {
   ShowTitle = "ShowTitle",
@@ -99,18 +99,18 @@ export default class ShowCompletionItemProvider
   }
 
   private getCompletionOptionsFromStorage(
-    storage: ShowStorage,
+    storage: ShowRegistry,
     completionType: CompletionType,
   ): string[] {
     const byLastMentionedLine = (show1: Show, show2: Show) =>
-      show2.info.lastMentionedLine - show1.info.lastMentionedLine;
+      show2.lastMentionedLine - show1.lastMentionedLine;
     switch (completionType) {
       case CompletionType.Friend:
         return storage.listFriends();
       case CompletionType.ShowTitle:
         return [...storage.iterShows()]
           .sort(byLastMentionedLine)
-          .map((show) => show.info.title);
+          .map((show) => show.title);
       case CompletionType.Tag:
         return MarucsAnime.INSTANCE.tagRegistry.listKeys();
       default:

@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import AnlParser from "./list-parser/anl-parser";
 
-import ShowStorage from "./core/show/show-storage";
+import ShowRegistry from "./core/registry/show-registry";
 import * as vscode from "vscode";
 import { ExtensionContext } from "vscode";
 import { TextDocument } from "vscode";
@@ -22,8 +22,8 @@ import { TagRegistry } from "./core/registry/tag-registry";
 import { registerDefaultTags } from "./core/tag";
 import ShowSymbolProvider from "./lang/symbol/anime-symbol-provider";
 import { AnlParserCacheManager } from "./list-parser/anl-parser-cache";
-import { Show } from "./core/show/shows";
 import { LineInfo } from "./list-parser/line-info";
+import { Show } from "./core/show";
 
 type ExtensionActivationState =
   | { activated: true; context: ExtensionContext }
@@ -44,7 +44,7 @@ export class MarucsAnime {
   }
 
   private readonly diagnosticController;
-  public readonly showStorage: ShowStorage = new ShowStorage();
+  public readonly showStorage: ShowRegistry = new ShowRegistry();
   public readonly tagRegistry: TagRegistry = new TagRegistry();
 
   private parserCache: AnlParserCacheManager | undefined = undefined;
@@ -85,9 +85,9 @@ export class MarucsAnime {
 
     this.showStorage.clear();
     if (cache) {
-      const storage = ShowStorage.fromJson<Show, ShowStorage>(
+      const storage = ShowRegistry.fromJson<Show, ShowRegistry>(
         cache.jsonCache,
-        () => new ShowStorage(),
+        () => new ShowRegistry(),
       );
       this.showStorage.incorporate(storage);
     }

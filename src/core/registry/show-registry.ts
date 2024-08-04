@@ -1,13 +1,13 @@
 import { Err, Ok, Result, Option, equip } from "rustic";
-import { Registry } from "../registry/registry";
+import { Registry } from "./registry";
 import { Tag } from "../tag";
 import {
   DocumentContexted as DocumentContexted,
   WatchEntry,
 } from "../../types";
-import { Show } from "./shows";
+import { ShowFactory, Show } from "../show";
 
-export default class ShowStorage extends Registry<Show> {
+export default class ShowRegistry extends Registry<Show> {
   private get showDict() {
     return this._registry;
   }
@@ -24,7 +24,7 @@ export default class ShowStorage extends Registry<Show> {
       return Err(new Error(`Anime already registered: ${title}`));
     }
 
-    const show = new Show(declarationLine, { title, tags });
+    const show = ShowFactory.createShow(declarationLine, { title, tags });
     this.showDict.set(title, show);
     return Ok(show);
   }
@@ -63,8 +63,8 @@ export default class ShowStorage extends Registry<Show> {
 
     if (searchRes.isSome()) {
       const show = searchRes.unwrap();
-      show.info.watchEntries.push(watchEntryCtx);
-      show.info.lastMentionedLine = watchEntryCtx.lineNumber;
+      show.watchEntries.push(watchEntryCtx);
+      show.lastMentionedLine = watchEntryCtx.lineNumber;
       return null;
     }
 

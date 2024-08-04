@@ -2,7 +2,7 @@ import { TextEditor, TextEditorEdit, window } from "vscode";
 import LineContextFinder from "../list-parser/line-context-finder";
 import { isEditingSimpleCursor } from "../utils/editor-utils";
 import { MarucsAnime } from "../extension";
-import { Show } from "../core/show/shows";
+import { Show } from "../core/show";
 import { TextEditorCommand } from "./types";
 import { equip, isErr, Option } from "rustic";
 
@@ -54,7 +54,7 @@ export const insertNextEpisode: TextEditorCommand<void> = (
     return;
   }
 
-  const lastEp = show.unwrap().info.lastCompleteWatchEntry?.data.episode ?? 0;
+  const lastEp = show.unwrap().lastCompleteWatchEntry?.data.episode ?? 0;
 
   let nextEpStr = (lastEp + 1).toString();
   if (nextEpStr.length < 2) {

@@ -1,5 +1,5 @@
 import { TextDocument } from "vscode";
-import { Show } from "../core/show/shows";
+import { Show } from "../core/show";
 import { Tag, TagTarget } from "../core/tag";
 
 export function checkTags(
@@ -7,12 +7,11 @@ export function checkTags(
   currTags: Tag[],
   targetShow: Show,
 ) {
-  const missingTags = targetShow.info.tags.filter(
+  const missingTags = targetShow.tags.filter(
     (tag) => tag.target === TagTarget.SHOW && !currTags.includes(tag),
   );
   const extraTags = currTags.filter(
-    (tag) =>
-      tag.target === TagTarget.SHOW && !targetShow.info.tags.includes(tag),
+    (tag) => tag.target === TagTarget.SHOW && !targetShow.tags.includes(tag),
   );
 
   return { missingTags, extraTags };

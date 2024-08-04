@@ -55,8 +55,7 @@ export default class EpisodeLensProvider implements CodeLensProvider {
       });
     }
 
-    const lastWatchedEpisode =
-      show.info.lastCompleteWatchEntry?.data.episode ?? 0;
+    const lastWatchedEpisode = show.lastCompleteWatchEntry?.data.episode ?? 0;
 
     const bestAnimeMatch = await MAL.searchBestAnime(currShowTitle);
     if (!bestAnimeMatch) {

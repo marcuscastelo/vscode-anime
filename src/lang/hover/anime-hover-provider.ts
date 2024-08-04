@@ -78,7 +78,7 @@ export default class ShowHoverProvider implements HoverProvider {
     if (show) {
       const firstMentionedContext = LineContextFinder.findContext(
         document,
-        show.info.firstMentionedLine + 1,
+        show.firstMentionedLine + 1,
       );
       if (isOk(firstMentionedContext)) {
         showLastTitle =

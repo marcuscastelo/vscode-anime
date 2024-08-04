@@ -47,7 +47,7 @@ export default class TagsLensProvider implements CodeLensProvider {
       } else {
         const originalShowContext = LineContextFinder.findContext(
           document,
-          show.info.firstMentionedLine,
+          show.firstMentionedLine,
         );
         if (!isOk(originalShowContext)) {
           lineMessages.push(

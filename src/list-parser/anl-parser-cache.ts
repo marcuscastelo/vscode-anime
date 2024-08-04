@@ -1,7 +1,7 @@
 import { createHash } from "crypto";
 import { ExtensionContext, Range, TextDocument } from "vscode";
 import { MAX_CACHE_SIZE } from "../constants";
-import ShowStorage from "../core/show/show-storage";
+import ShowRegistry from "../core/registry/show-registry";
 
 type CacheValidity = {
   documentUri: string;
@@ -29,7 +29,7 @@ export class AnlParserCacheManager {
     document,
     lineCount,
   }: {
-    storage: ShowStorage;
+    storage: ShowRegistry;
     document: TextDocument;
     lineCount: number;
   }): void {

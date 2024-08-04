@@ -10,7 +10,7 @@ import {
   SymbolKind,
   TextDocument,
 } from "vscode";
-import { Show } from "../../core/show/shows";
+import { Show } from "../../core/show";
 import { LANGUAGE_ID } from "../../constants";
 import { MarucsAnime } from "../../extension";
 
@@ -31,15 +31,15 @@ export default class ShowSymbolProvider implements DocumentSymbolProvider {
     const shows = [...MarucsAnime.INSTANCE.showStorage.iterShows()];
     const showToSymbol = (show: Show) =>
       <SymbolInformation>{
-        name: show.info.title,
+        name: show.title,
         kind: SymbolKind.Class,
         location: new Location(
           document.uri,
           new Range(
-            show.info.firstMentionedLine,
+            show.firstMentionedLine,
             0,
-            show.info.firstMentionedLine,
-            show.info.title.length - 1,
+            show.firstMentionedLine,
+            show.title.length - 1,
           ),
         ),
       };

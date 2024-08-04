@@ -58,7 +58,7 @@ export default class ShowLensProvider implements CodeLensProvider {
       } else {
         const originalShowContext = LineContextFinder.findContext(
           document,
-          show.info.firstMentionedLine,
+          show.firstMentionedLine,
         );
         if (isErr(originalShowContext)) {
           lineMessages.push(

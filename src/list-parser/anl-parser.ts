@@ -5,7 +5,7 @@ import {
   TextDocument,
   TextLine,
 } from "vscode";
-import ShowStorage from "../core/show/show-storage";
+import ShowRegistry from "../core/registry/show-registry";
 import DocumentReader from "../utils/document-reader";
 import MADiagnosticController from "../lang/maDiagnosticCollection";
 import LineContext from "./line-context";
@@ -41,7 +41,7 @@ export default class AnlParser {
   };
 
   constructor(
-    private getStorage: Supplier<ShowStorage>,
+    private getStorage: Supplier<ShowRegistry>,
     private diagnosticController: MADiagnosticController,
   ) {
     this.lineContext = {};
@@ -217,7 +217,7 @@ export default class AnlParser {
 
     //TODO: check for empty sessions ( i.e: no watch entries between titles )
     const currShow = showResult.data;
-    currShow.info.lastMentionedLine = lineInfo.line.lineNumber;
+    currShow.lastMentionedLine = lineInfo.line.lineNumber;
 
     const currTags =
       this.lineContext.currentTagsLines?.map(
@@ -254,7 +254,7 @@ export default class AnlParser {
           {
             location: new Location(
               document.uri,
-              document.lineAt(currShow.info.firstMentionedLine).range,
+              document.lineAt(currShow.firstMentionedLine).range,
             ),
             message: "Fist show declaration is here",
           },
@@ -337,8 +337,7 @@ export default class AnlParser {
     //TODO: consider currDate and 23:59 - 00:00 entries
     let watchEntry: WatchEntry;
     if (episode === "--") {
-      const lastEpisode =
-        currentShow.info.lastCompleteWatchEntry?.data.episode ?? 0;
+      const lastEpisode = currentShow.lastCompleteWatchEntry?.data.episode ?? 0;
       watchEntry = <PartialWatchEntry>{
         partial: true,
         showTitle: currentShowTitle,
@@ -361,7 +360,7 @@ export default class AnlParser {
     }
 
     const lastWatchedEpisode =
-      currentShow.info.lastCompleteWatchEntry?.data.episode ?? 0;
+      currentShow.lastCompleteWatchEntry?.data.episode ?? 0;
     if (lastWatchedEpisode >= watchEntry.episode) {
       //TODO: related info last ep's line
       //TODO: check for skipped as well

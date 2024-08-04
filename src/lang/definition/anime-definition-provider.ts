@@ -50,7 +50,7 @@ export default class ShowDefinitionProvider implements DefinitionProvider {
     let targetLines = [];
     const originalLine = position.line;
 
-    if (show.info.firstMentionedLine === position.line) {
+    if (show.firstMentionedLine === position.line) {
       const searchText = document.lineAt(currentShowLine).text;
       const allMentions = document
         .getText()
@@ -61,7 +61,7 @@ export default class ShowDefinitionProvider implements DefinitionProvider {
         .map((line) => line.index)
         .filter((line) => line !== position.line);
     } else if (currentShowLine === position.line) {
-      targetLines = [show.info.firstMentionedLine];
+      targetLines = [show.firstMentionedLine];
     } else {
       targetLines = [currentShowLine];
     }
