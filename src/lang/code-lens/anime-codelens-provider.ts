@@ -52,7 +52,7 @@ export default class ShowLensProvider implements CodeLensProvider {
       lineMessages.push(`${lineContext.data}`);
     } else {
       const currShowTitle = lineContext.data.currentShowLine.params.showTitle;
-      const show = MarucsAnime.INSTANCE.showStorage.searchShow(currShowTitle);
+      const show = MarucsAnime.INSTANCE.showRegistry.searchShow(currShowTitle);
       if (!show) {
         lineMessages.push(`Show '${currShowTitle}' not found in database`);
       } else {

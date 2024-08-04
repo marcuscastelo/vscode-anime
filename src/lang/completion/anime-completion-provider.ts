@@ -98,17 +98,17 @@ export default class ShowCompletionItemProvider
     };
   }
 
-  private getCompletionOptionsFromStorage(
-    storage: ShowRegistry,
+  private getCompletionOptionsFromShowRegistry(
+    showRegistry: ShowRegistry,
     completionType: CompletionType,
   ): string[] {
     const byLastMentionedLine = (show1: Show, show2: Show) =>
       show2.lastMentionedLine - show1.lastMentionedLine;
     switch (completionType) {
       case CompletionType.Friend:
-        return storage.listFriends();
+        return showRegistry.listFriends();
       case CompletionType.ShowTitle:
-        return [...storage.iterShows()]
+        return [...showRegistry.iterShows()]
           .sort(byLastMentionedLine)
           .map((show) => show.title);
       case CompletionType.Tag:
@@ -262,8 +262,8 @@ export default class ShowCompletionItemProvider
     const horizPosition = position.character;
 
     const completionType = this.determineCompletionType(text, horizPosition);
-    const completionOptions = this.getCompletionOptionsFromStorage(
-      extension.showStorage,
+    const completionOptions = this.getCompletionOptionsFromShowRegistry(
+      extension.showRegistry,
       completionType,
     );
     const alreadyTypedText = this.getAlreadyTypedText(

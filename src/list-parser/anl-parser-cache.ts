@@ -25,11 +25,11 @@ export class AnlParserCacheManager {
   }
 
   public onCheckpoint({
-    storage,
+    showRegistry,
     document,
     lineCount,
   }: {
-    storage: ShowRegistry;
+    showRegistry: ShowRegistry;
     document: TextDocument;
     lineCount: number;
   }): void {
@@ -52,7 +52,7 @@ export class AnlParserCacheManager {
 
     const cache: AnlParserCache = {
       createdAt: `${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`,
-      jsonCache: storage.toJson(),
+      jsonCache: showRegistry.toJson(),
       validity,
     };
 

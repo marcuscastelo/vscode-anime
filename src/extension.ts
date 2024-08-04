@@ -44,7 +44,7 @@ export class MarucsAnime {
   }
 
   private readonly diagnosticController;
-  public readonly showStorage: ShowRegistry = new ShowRegistry();
+  public readonly showRegistry: ShowRegistry = new ShowRegistry();
   public readonly tagRegistry: TagRegistry = new TagRegistry();
 
   private parserCache: AnlParserCacheManager | undefined = undefined;
@@ -83,13 +83,13 @@ export class MarucsAnime {
 
     const cache = this.parserCache?.findValidCache(document);
 
-    this.showStorage.clear();
+    this.showRegistry.clear();
     if (cache) {
-      const storage = ShowRegistry.fromJson<Show, ShowRegistry>(
+      const showRegistry = ShowRegistry.fromJson<Show, ShowRegistry>(
         cache.jsonCache,
         () => new ShowRegistry(),
       );
-      this.showStorage.incorporate(storage);
+      this.showRegistry.incorporate(showRegistry);
     }
 
     // If last cache is invalid or incomplete (sub-cache), we need to parse the document
@@ -120,7 +120,7 @@ export class MarucsAnime {
     this.diagnosticController.setCurrentDocument(document);
 
     vscode.window.setStatusBarMessage(`Parsing all lines...`);
-    this.updateShowStorage(document);
+    this.updateShowRegistry(document);
 
     const currentCacheCount = this.parserCache?.listCaches().length || 0;
     vscode.window.setStatusBarMessage(
@@ -132,10 +132,10 @@ export class MarucsAnime {
     this.parserCache?.clearCaches();
   }
 
-  private updateShowStorage(textDocument: TextDocument) {
-    const showStorageSupplier = () => this.showStorage;
+  private updateShowRegistry(textDocument: TextDocument) {
+    const showRegistrySupplier = () => this.showRegistry;
     const parser = new AnlParser(
-      showStorageSupplier,
+      showRegistrySupplier,
       this.diagnosticController,
     );
 
@@ -175,7 +175,7 @@ export class MarucsAnime {
             `[marucs-anime] Registering parsing checkpoint at ${line}`,
           );
           this.parserCache?.onCheckpoint({
-            storage: this.showStorage,
+            showRegistry: this.showRegistry,
             document: textDocument,
             lineCount: line + 1,
           });
@@ -183,7 +183,7 @@ export class MarucsAnime {
       },
     });
     console.log(
-      `[marucs-anime] Show storage updated! length: ${this.showStorage.toJson().length} `,
+      `[marucs-anime] Show registry updated! length: ${this.showRegistry.toJson().length} `,
     );
   }
 

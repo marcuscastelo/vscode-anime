@@ -28,14 +28,14 @@ export const insertNextEpisode: TextEditorCommand<void> = (
   const context = searchResult.data;
 
   function firstAttempt(): Option<Show> {
-    return extension.showStorage.searchShow(
+    return extension.showRegistry.searchShow(
       context.currentShowLine.params.showTitle,
     );
   }
 
   function secondAttempt(): Option<Show> {
     extension.reactToDocumentChange(extension.context!, textEditor.document);
-    return extension.showStorage.searchShow(
+    return extension.showRegistry.searchShow(
       context.currentShowLine.params.showTitle,
     );
   }

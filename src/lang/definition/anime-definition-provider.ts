@@ -40,7 +40,7 @@ export default class ShowDefinitionProvider implements DefinitionProvider {
     }
 
     const currentShowLine = contextRes.data.currentShowLine.line.lineNumber;
-    const show = MarucsAnime.INSTANCE.showStorage.searchShow(
+    const show = MarucsAnime.INSTANCE.showRegistry.searchShow(
       contextRes.data.currentShowLine.params.showTitle,
     );
     if (!show) {

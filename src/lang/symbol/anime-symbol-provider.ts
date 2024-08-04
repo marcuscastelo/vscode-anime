@@ -28,7 +28,7 @@ export default class ShowSymbolProvider implements DocumentSymbolProvider {
     document: TextDocument,
     _token: CancellationToken,
   ): ProviderResult<SymbolInformation[]> {
-    const shows = [...MarucsAnime.INSTANCE.showStorage.iterShows()];
+    const shows = [...MarucsAnime.INSTANCE.showRegistry.iterShows()];
     const showToSymbol = (show: Show) =>
       <SymbolInformation>{
         name: show.title,

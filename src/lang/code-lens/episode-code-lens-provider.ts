@@ -46,7 +46,7 @@ export default class EpisodeLensProvider implements CodeLensProvider {
 
     const currShowTitle =
       contextSearchResult.data.currentShowLine.params.showTitle;
-    const show = MarucsAnime.INSTANCE.showStorage.searchShow(currShowTitle);
+    const show = MarucsAnime.INSTANCE.showRegistry.searchShow(currShowTitle);
     if (!show) {
       console.warn(`generateEpisodesLens had invalid show '${currShowTitle}'`);
       return new CodeLens(range, {

@@ -69,7 +69,7 @@ export default class ShowHoverProvider implements HoverProvider {
     );
     const tagNamesString = tagNames.join(", ");
 
-    const show = MarucsAnime.INSTANCE.showStorage.searchShow(
+    const show = MarucsAnime.INSTANCE.showRegistry.searchShow(
       currentShowLine.params.showTitle,
     );
     let showLastTitle = "NOT FOUND";

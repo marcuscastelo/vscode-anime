@@ -41,7 +41,7 @@ export default class AnlParser {
   };
 
   constructor(
-    private getStorage: Supplier<ShowRegistry>,
+    private getShowRegistry: Supplier<ShowRegistry>,
     private diagnosticController: MADiagnosticController,
   ) {
     this.lineContext = {};
@@ -200,8 +200,8 @@ export default class AnlParser {
           lineInfo.params.tag.target !== TagTarget.WATCH_SESSION,
       );
 
-    const storage = this.getStorage();
-    const showResult = storage.getOrCreateShow(
+    const showRegistry = this.getShowRegistry();
+    const showResult = showRegistry.getOrCreateShow(
       showTitle,
       lineInfo.line.lineNumber,
       this.lineContext.currentTagsLines?.map((lineInfo) => lineInfo.params.tag),
@@ -281,7 +281,7 @@ export default class AnlParser {
     }
 
     const currentShowTitle = currentShowLine.params.showTitle;
-    const currentShow = this.getStorage().searchShow(
+    const currentShow = this.getShowRegistry().searchShow(
       currentShowLine.params.showTitle,
     );
 
@@ -400,10 +400,10 @@ export default class AnlParser {
       lineNumber: lineInfo.line.lineNumber,
     };
 
-    this.getStorage().registerWatchEntry(currentShowTitle, watchEntryCtx);
+    this.getShowRegistry().registerWatchEntry(currentShowTitle, watchEntryCtx);
 
     for (const friend of friends) {
-      this.getStorage().registerFriend(friend);
+      this.getShowRegistry().registerFriend(friend);
     }
   }
 
