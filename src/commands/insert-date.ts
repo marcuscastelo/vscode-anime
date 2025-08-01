@@ -1,16 +1,17 @@
-import { TextEditor, TextEditorEdit } from "vscode";
-import { isEditingSimpleCursor } from "../utils/editor-utils";
-import { TextEditorCommand } from "./types";
+import { type TextEditor, type TextEditorEdit } from 'vscode';
+
+import { isEditingSimpleCursor } from '../utils/editor-utils';
+import { type TextEditorCommand } from './types';
 
 export const insertDate: TextEditorCommand<void> = (
-  textEditor: TextEditor,
-  edit: TextEditorEdit,
+	textEditor: TextEditor,
+	edit: TextEditorEdit
 ) => {
-  if (!isEditingSimpleCursor(textEditor)) {
-    return;
-  }
+	if (!isEditingSimpleCursor(textEditor)) {
+		return;
+	}
 
-  const currDate = new Date(Date.now()).toLocaleDateString("pt-BR");
+	const currDate = new Date(Date.now()).toLocaleDateString('pt-BR');
 
-  edit.insert(textEditor.selection.active, currDate);
+	edit.insert(textEditor.selection.active, currDate);
 };

@@ -1,6 +1,6 @@
-import { MarucsAnime } from "../extension";
-import { TextEditorCommand } from "./types";
+import { MarucsAnime } from '../extension';
+import { type TextEditorCommand } from './types';
 
 export const clearCache: TextEditorCommand<void> = () => {
-  MarucsAnime.INSTANCE.clearCache();
+	MarucsAnime.INSTANCE.clearCache();
 };

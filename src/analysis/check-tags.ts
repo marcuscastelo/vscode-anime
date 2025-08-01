@@ -1,18 +1,15 @@
-import { TextDocument } from "vscode";
-import { Show } from "../core/show";
-import { Tag, TagTarget } from "../core/tag";
+import { type TextDocument } from 'vscode';
 
-export function checkTags(
-  _document: TextDocument,
-  currTags: Tag[],
-  targetShow: Show,
-) {
-  const missingTags = targetShow.tags.filter(
-    (tag) => tag.target === TagTarget.SHOW && !currTags.includes(tag),
-  );
-  const extraTags = currTags.filter(
-    (tag) => tag.target === TagTarget.SHOW && !targetShow.tags.includes(tag),
-  );
+import { type Show } from '../core/show';
+import { type Tag, TagTarget } from '../core/tag';
 
-  return { missingTags, extraTags };
+export function checkTags(_document: TextDocument, currTags: Tag[], targetShow: Show) {
+	const missingTags = targetShow.tags.filter(
+		tag => tag.target === TagTarget.SHOW && !currTags.includes(tag)
+	);
+	const extraTags = currTags.filter(
+		tag => tag.target === TagTarget.SHOW && !targetShow.tags.includes(tag)
+	);
+
+	return { missingTags, extraTags };
 }
