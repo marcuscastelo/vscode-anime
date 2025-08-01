@@ -5,3 +5,5 @@ node_modules
 *.vsix
 package-lock.json
 old/
+macroflows/
+brand*/
