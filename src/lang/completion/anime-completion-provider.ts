@@ -1,304 +1,274 @@
+import type * as vscode from 'vscode';
 import {
-  CancellationToken,
-  CompletionContext,
-  CompletionItem,
-  CompletionItemKind,
-  CompletionItemProvider,
-  ExtensionContext,
-  languages,
-  Position,
-  ProviderResult,
-  Range,
-  TextDocument,
-} from "vscode";
-import * as vscode from "vscode";
-import ShowRegistry from "../../core/registry/show-registry";
-import { LANGUAGE_ID } from "../../constants";
-import { MarucsAnime } from "../../extension";
-import { Show } from "../../core/show";
+	type CancellationToken,
+	type CompletionContext,
+	type CompletionItem,
+	CompletionItemKind,
+	type CompletionItemProvider,
+	type ExtensionContext,
+	languages,
+	type Position,
+	type ProviderResult,
+	Range,
+	type TextDocument,
+} from 'vscode';
+
+import { LANGUAGE_ID } from '../../constants';
+import type ShowRegistry from '../../core/registry/show-registry';
+import { type Show } from '../../core/show';
+import { MarucsAnime } from '../../extension';
 
 enum CompletionType {
-  ShowTitle = "ShowTitle",
-  Friend = "Friend",
-  Tag = "Tag",
-  Episode = "Episode",
-  NoCompletion = "NoCompletion",
+	ShowTitle = 'ShowTitle',
+	Friend = 'Friend',
+	Tag = 'Tag',
+	Episode = 'Episode',
+	NoCompletion = 'NoCompletion',
 }
 
 type SurroundingTokenInfo = {
-  insideTokens: boolean;
-  validState: boolean;
+	insideTokens: boolean;
+	validState: boolean;
 };
 
-export default class ShowCompletionItemProvider
-  implements CompletionItemProvider<CompletionItem>
-{
-  public static register(context: ExtensionContext) {
-    const provider = new ShowCompletionItemProvider(context);
-    return languages.registerCompletionItemProvider(
-      this.viewType,
-      provider,
-      "{",
-      "[",
-      ",",
-      " ",
-    );
-  }
+export default class ShowCompletionItemProvider implements CompletionItemProvider<CompletionItem> {
+	public static register(context: ExtensionContext) {
+		const provider = new ShowCompletionItemProvider(context);
+		return languages.registerCompletionItemProvider(this.viewType, provider, '{', '[', ',', ' ');
+	}
 
-  private static readonly viewType = LANGUAGE_ID;
+	private static readonly viewType = LANGUAGE_ID;
 
-  constructor(private readonly context: ExtensionContext) {}
+	constructor(private readonly context: ExtensionContext) {}
 
-  private determineCompletionType(
-    text: string,
-    cursorIndex: number,
-  ): CompletionType {
-    let surroundingInfo: SurroundingTokenInfo;
+	private determineCompletionType(text: string, cursorIndex: number): CompletionType {
+		let surroundingInfo: SurroundingTokenInfo;
 
-    const ifValidElseNoCompletion = (completionType: CompletionType) =>
-      surroundingInfo.validState ? completionType : CompletionType.NoCompletion;
+		const ifValidElseNoCompletion = (completionType: CompletionType) =>
+			surroundingInfo.validState ? completionType : CompletionType.NoCompletion;
 
-    surroundingInfo = this.getSurroundingTokenInfo(text, cursorIndex, "{", "}");
-    if (surroundingInfo.insideTokens) {
-      return ifValidElseNoCompletion(CompletionType.Friend);
-    }
+		surroundingInfo = this.getSurroundingTokenInfo(text, cursorIndex, '{', '}');
+		if (surroundingInfo.insideTokens) {
+			return ifValidElseNoCompletion(CompletionType.Friend);
+		}
 
-    surroundingInfo = this.getSurroundingTokenInfo(text, cursorIndex, "[", "]");
-    if (surroundingInfo.insideTokens) {
-      return ifValidElseNoCompletion(CompletionType.Tag);
-    }
+		surroundingInfo = this.getSurroundingTokenInfo(text, cursorIndex, '[', ']');
+		if (surroundingInfo.insideTokens) {
+			return ifValidElseNoCompletion(CompletionType.Tag);
+		}
 
-    return CompletionType.ShowTitle;
-  }
+		return CompletionType.ShowTitle;
+	}
 
-  private getSurroundingTokenInfo(
-    text: string,
-    cursorIndex: number,
-    startToken: string,
-    endToken: string,
-  ): SurroundingTokenInfo {
-    const countOccurrencesOf = (char: string) =>
-      text.match(`\\${char}`)?.length ?? 0;
+	private getSurroundingTokenInfo(
+		text: string,
+		cursorIndex: number,
+		startToken: string,
+		endToken: string
+	): SurroundingTokenInfo {
+		const countOccurrencesOf = (char: string) => text.match(`\\${char}`)?.length ?? 0;
 
-    const startTokenFirstIdx = text.indexOf(startToken);
-    const endTokenFirstIdx = text.indexOf(endToken);
+		const startTokenFirstIdx = text.indexOf(startToken);
+		const endTokenFirstIdx = text.indexOf(endToken);
 
-    const startTokenCount = countOccurrencesOf(startToken);
-    const endTokenCount = countOccurrencesOf(endToken);
+		const startTokenCount = countOccurrencesOf(startToken);
+		const endTokenCount = countOccurrencesOf(endToken);
 
-    const validState = endTokenCount === 0 && startTokenCount === 1;
-    const insideTokens =
-      startTokenCount > 0 &&
-      cursorIndex > startTokenFirstIdx &&
-      (cursorIndex < endTokenFirstIdx || endTokenCount === 0);
+		const validState = endTokenCount === 0 && startTokenCount === 1;
+		const insideTokens =
+			startTokenCount > 0 &&
+			cursorIndex > startTokenFirstIdx &&
+			(cursorIndex < endTokenFirstIdx || endTokenCount === 0);
 
-    return {
-      validState,
-      insideTokens,
-    };
-  }
+		return {
+			validState,
+			insideTokens,
+		};
+	}
 
-  private getCompletionOptionsFromShowRegistry(
-    showRegistry: ShowRegistry,
-    completionType: CompletionType,
-  ): string[] {
-    const byLastMentionedLine = (show1: Show, show2: Show) =>
-      show2.lastMentionedLine - show1.lastMentionedLine;
-    switch (completionType) {
-      case CompletionType.Friend:
-        return showRegistry.listFriends();
-      case CompletionType.ShowTitle:
-        return [...showRegistry.iterShows()]
-          .sort(byLastMentionedLine)
-          .map((show) => show.title);
-      case CompletionType.Tag:
-        return MarucsAnime.INSTANCE.tagRegistry.listKeys();
-      default:
-        console.error(
-          "Not Implemented completion: ",
-          completionType.toString(),
-        );
-        return [];
-    }
-  }
+	private getCompletionOptionsFromShowRegistry(
+		showRegistry: ShowRegistry,
+		completionType: CompletionType
+	): string[] {
+		const byLastMentionedLine = (show1: Show, show2: Show) =>
+			show2.lastMentionedLine - show1.lastMentionedLine;
+		switch (completionType) {
+			case CompletionType.Friend:
+				return showRegistry.listFriends();
+			case CompletionType.ShowTitle:
+				return [...showRegistry.iterShows()].sort(byLastMentionedLine).map(show => show.title);
+			case CompletionType.Tag:
+				return MarucsAnime.INSTANCE.tagRegistry.listKeys();
+			default:
+				console.error('Not Implemented completion: ', completionType.toString());
+				return [];
+		}
+	}
 
-  private filterCompletionOptions(
-    alreadyTypedText: string,
-    completionOptions: string[],
-    ignoreCase = true,
-    ignoreWhiteSpaces = true,
-  ): string[] {
-    const filterFn = (option: string) => {
-      if (ignoreCase) {
-        option = option.toLowerCase();
-        alreadyTypedText = alreadyTypedText.toLowerCase();
-      }
-      if (ignoreWhiteSpaces) {
-        option = option.trim();
-        alreadyTypedText = alreadyTypedText.trim();
-      }
+	private filterCompletionOptions(
+		alreadyTypedText: string,
+		completionOptions: string[],
+		ignoreCase = true,
+		ignoreWhiteSpaces = true
+	): string[] {
+		const filterFn = (option: string) => {
+			if (ignoreCase) {
+				option = option.toLowerCase();
+				alreadyTypedText = alreadyTypedText.toLowerCase();
+			}
+			if (ignoreWhiteSpaces) {
+				option = option.trim();
+				alreadyTypedText = alreadyTypedText.trim();
+			}
 
-      return option.startsWith(alreadyTypedText);
-    };
+			return option.startsWith(alreadyTypedText);
+		};
 
-    return completionOptions.filter(filterFn);
-  }
+		return completionOptions.filter(filterFn);
+	}
 
-  private convertToItems(
-    alreadyTypedText: string,
-    options: string[],
-    completionType: CompletionType,
-    position: Position,
-  ): CompletionItem[] {
-    const getCompletionKind = () => {
-      const kinds = {
-        [CompletionType.Friend]: CompletionItemKind.User,
-        [CompletionType.ShowTitle]: CompletionItemKind.Class,
-        [CompletionType.Tag]: CompletionItemKind.Property,
-        [CompletionType.Episode]: CompletionItemKind.Constant,
-        [CompletionType.NoCompletion]: CompletionItemKind.Text,
-      };
-      return kinds[completionType] ?? CompletionItemKind.Text;
-    };
+	private convertToItems(
+		alreadyTypedText: string,
+		options: string[],
+		completionType: CompletionType,
+		position: Position
+	): CompletionItem[] {
+		const getCompletionKind = () => {
+			const kinds = {
+				[CompletionType.Friend]: CompletionItemKind.User,
+				[CompletionType.ShowTitle]: CompletionItemKind.Class,
+				[CompletionType.Tag]: CompletionItemKind.Property,
+				[CompletionType.Episode]: CompletionItemKind.Constant,
+				[CompletionType.NoCompletion]: CompletionItemKind.Text,
+			};
+			return kinds[completionType] ?? CompletionItemKind.Text;
+		};
 
-    const postfixesPerType = {
-      [CompletionType.Friend]: "",
-      [CompletionType.ShowTitle]: ":",
-      [CompletionType.Tag]: "]",
-      [CompletionType.Episode]: " ",
-      [CompletionType.NoCompletion]: "",
-    };
+		const postfixesPerType = {
+			[CompletionType.Friend]: '',
+			[CompletionType.ShowTitle]: ':',
+			[CompletionType.Tag]: ']',
+			[CompletionType.Episode]: ' ',
+			[CompletionType.NoCompletion]: '',
+		};
 
-    const commitCharactersPerType = {
-      [CompletionType.Friend]: [",", "}"],
-      [CompletionType.ShowTitle]: [],
-      [CompletionType.Tag]: [],
-      [CompletionType.Episode]: [],
-      [CompletionType.NoCompletion]: [],
-    };
+		const commitCharactersPerType = {
+			[CompletionType.Friend]: [',', '}'],
+			[CompletionType.ShowTitle]: [],
+			[CompletionType.Tag]: [],
+			[CompletionType.Episode]: [],
+			[CompletionType.NoCompletion]: [],
+		};
 
-    const commandPerType = {
-      [CompletionType.Friend]: {
-        title: "Format Friend",
-        command: "marucs-anime.formatFriend",
-      } as vscode.Command,
-      [CompletionType.ShowTitle]: undefined,
-      [CompletionType.Tag]: undefined,
-      [CompletionType.Episode]: undefined,
-      [CompletionType.NoCompletion]: undefined,
-    };
+		const commandPerType = {
+			[CompletionType.Friend]: {
+				title: 'Format Friend',
+				command: 'marucs-anime.formatFriend',
+			} as vscode.Command,
+			[CompletionType.ShowTitle]: undefined,
+			[CompletionType.Tag]: undefined,
+			[CompletionType.Episode]: undefined,
+			[CompletionType.NoCompletion]: undefined,
+		};
 
-    const createCompletionItem = (
-      option: string,
-      index: number,
-    ): CompletionItem => {
-      const commitCharacters = commitCharactersPerType[completionType];
-      const textToInsert = option + postfixesPerType[completionType];
+		const createCompletionItem = (option: string, index: number): CompletionItem => {
+			const commitCharacters = commitCharactersPerType[completionType];
+			const textToInsert = option + postfixesPerType[completionType];
 
-      const zeros = Math.ceil(Math.log10(options.length + 1));
-      const indexAlphaOrdered = `${index + 1}`.padStart(zeros, "0");
-      const sortIndex = `${indexAlphaOrdered}/${options.length}`;
+			const zeros = Math.ceil(Math.log10(options.length + 1));
+			const indexAlphaOrdered = `${index + 1}`.padStart(zeros, '0');
+			const sortIndex = `${indexAlphaOrdered}/${options.length}`;
 
-      const item = <CompletionItem>{
-        // label: `${sortIndex} - ${option}`,
-        label: `${option}`,
-        kind: getCompletionKind(),
-        insertText: textToInsert,
-        keepWhitespace: true,
-        range: new Range(
-          position.translate(0, -alreadyTypedText.length),
-          position,
-        ),
-        commitCharacters: commitCharacters,
-        command: commandPerType[completionType],
-        sortText: sortIndex,
-      };
-      return item;
-    };
+			const item = <CompletionItem>{
+				// label: `${sortIndex} - ${option}`,
+				label: `${option}`,
+				kind: getCompletionKind(),
+				insertText: textToInsert,
+				keepWhitespace: true,
+				range: new Range(position.translate(0, -alreadyTypedText.length), position),
+				commitCharacters: commitCharacters,
+				command: commandPerType[completionType],
+				sortText: sortIndex,
+			};
+			return item;
+		};
 
-    return options.map(createCompletionItem);
-  }
+		return options.map(createCompletionItem);
+	}
 
-  private getAlreadyTypedText(
-    lineText: string,
-    charPosition: number,
-    completionType: CompletionType,
-  ) {
-    let re: RegExp;
-    switch (completionType) {
-      case CompletionType.Friend:
-        re = /(?<=[,{])[^,}]*$/g;
-        break;
-      case CompletionType.Tag:
-        re = /(?<=[,[])[^,\]]*$/g;
-        break;
-      case CompletionType.ShowTitle:
-        re = /^/g;
-        break;
-      default:
-        re = /NOTIMPL/g;
-        break;
-    }
+	private getAlreadyTypedText(
+		lineText: string,
+		charPosition: number,
+		completionType: CompletionType
+	) {
+		let re: RegExp;
+		switch (completionType) {
+			case CompletionType.Friend:
+				re = /(?<=[,{])[^,}]*$/g;
+				break;
+			case CompletionType.Tag:
+				re = /(?<=[,[])[^,\]]*$/g;
+				break;
+			case CompletionType.ShowTitle:
+				re = /^/g;
+				break;
+			default:
+				re = /NOTIMPL/g;
+				break;
+		}
 
-    const attStart = lineText.search(re);
+		const attStart = lineText.search(re);
 
-    if (attStart < 0 || attStart >= lineText.length) {
-      return "";
-    }
+		if (attStart < 0 || attStart >= lineText.length) {
+			return '';
+		}
 
-    const alreadyTypedText = lineText.substring(attStart, charPosition);
-    return alreadyTypedText;
-  }
+		const alreadyTypedText = lineText.substring(attStart, charPosition);
+		return alreadyTypedText;
+	}
 
-  public provideCompletionItems(
-    document: TextDocument,
-    position: Position,
-    _token: CancellationToken,
-    _completionContext: CompletionContext,
-  ): ProviderResult<CompletionItem[]> {
-    const extension = MarucsAnime.INSTANCE;
+	public provideCompletionItems(
+		document: TextDocument,
+		position: Position,
+		_token: CancellationToken,
+		_completionContext: CompletionContext
+	): ProviderResult<CompletionItem[]> {
+		const extension = MarucsAnime.INSTANCE;
 
-    const text = document.lineAt(position.line).text;
-    const horizPosition = position.character;
+		const text = document.lineAt(position.line).text;
+		const horizPosition = position.character;
 
-    const completionType = this.determineCompletionType(text, horizPosition);
-    const completionOptions = this.getCompletionOptionsFromShowRegistry(
-      extension.showRegistry,
-      completionType,
-    );
-    const alreadyTypedText = this.getAlreadyTypedText(
-      text,
-      horizPosition,
-      completionType,
-    );
-    const filteredOptions = this.filterCompletionOptions(
-      alreadyTypedText,
-      completionOptions,
-    );
-    const completionItems = this.convertToItems(
-      alreadyTypedText,
-      filteredOptions,
-      completionType,
-      position,
-    );
+		const completionType = this.determineCompletionType(text, horizPosition);
+		const completionOptions = this.getCompletionOptionsFromShowRegistry(
+			extension.showRegistry,
+			completionType
+		);
+		const alreadyTypedText = this.getAlreadyTypedText(text, horizPosition, completionType);
+		const filteredOptions = this.filterCompletionOptions(alreadyTypedText, completionOptions);
+		const completionItems = this.convertToItems(
+			alreadyTypedText,
+			filteredOptions,
+			completionType,
+			position
+		);
 
-    console.log();
-    console.log({
-      completionType,
-      completionOptions,
-      filteredOptions,
-      completionItems,
-    });
-    console.log({
-      text,
-      alreadyTypedText,
-    });
-    console.log();
+		console.log();
+		console.log({
+			completionType,
+			completionOptions,
+			filteredOptions,
+			completionItems,
+		});
+		console.log({
+			text,
+			alreadyTypedText,
+		});
+		console.log();
 
-    if (completionItems.length === 0) {
-      return [{} as CompletionItem];
-    }
+		if (completionItems.length === 0) {
+			return [{} as CompletionItem];
+		}
 
-    return completionItems;
-  }
+		return completionItems;
+	}
 }

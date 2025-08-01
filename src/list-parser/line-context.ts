@@ -1,13 +1,14 @@
 import {
-  DateLineInfo,
-  ShowTitleLineInfo,
-  TagLineInfo,
-  WatchEntryLineInfo,
-} from "./line-info";
+	type DateLineInfo,
+	type ShowTitleLineInfo,
+	type TagLineInfo,
+	type WatchEntryLineInfo,
+} from './line-info';
 
-export default interface LineContext {
-  currentDateLine: DateLineInfo;
-  currentShowLine: ShowTitleLineInfo;
-  currentTagsLines: TagLineInfo[];
-  lastWatchEntryLine?: WatchEntryLineInfo;
-}
+type LineContext = {
+	currentDateLine: DateLineInfo;
+	currentShowLine: ShowTitleLineInfo;
+	currentTagsLines: TagLineInfo[];
+	lastWatchEntryLine?: WatchEntryLineInfo;
+};
+export default LineContext;
