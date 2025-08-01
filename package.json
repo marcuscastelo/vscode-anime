@@ -124,6 +124,7 @@
 		"pretest:vscode": "pnpm run compile && pnpm run lint",
 		"lint": "eslint src",
 		"type-check": "tsc --noEmit",
+		"check": "pnpm type-check && pnpm lint && pnpm test:run && pnpm build",
 		"clean": "rimraf out *.vsix",
 		"package": "vsce package",
 		"publish": "vsce publish"
@@ -149,6 +150,7 @@
 		"rimraf": "^6.0.1",
 		"typescript": "^5.9.2",
 		"typescript-eslint": "^8.0.0",
+		"vite": "^7.0.6",
 		"vitest": "^3.2.4"
 	},
 	"dependencies": {

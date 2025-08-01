@@ -1,20 +1,16 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig } from "vite";
 
 export default defineConfig({
   test: {
     globals: true,
     environment: "node",
     include: ["src/**/*.test.ts"],
-    exclude: ["node_modules", "out"],
+    exclude: ["node_modules", "out", "src/test/**"],
+    passWithNoTests: true,
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "lcov"],
-      exclude: [
-        "node_modules/",
-        "out/",
-        "src/test/mocks/",
-        "src/test/helpers/",
-      ],
+      exclude: ["node_modules/", "out/", "src/test/"],
       thresholds: {
         global: {
           branches: 70,
@@ -24,7 +20,6 @@ export default defineConfig({
         },
       },
     },
-    // VS Code extension testing configuration
     testTimeout: 10000,
     hookTimeout: 10000,
   },
