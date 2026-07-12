@@ -11,14 +11,20 @@ import {
 
 import type { Disposable } from '../activation/create-extension-app.js'
 import { toEditorDiagnostic } from '../diagnostics/editor-diagnostic.js'
-import { createDocumentController, systemScheduler } from './document-controller.js'
+import {
+  createDocumentController,
+  type DocumentController,
+  systemScheduler,
+} from './document-controller.js'
 
 const LANGUAGE_ID = 'anime-list'
 const CHANGE_DEBOUNCE_MS = 100
 
 const isAnlDocument = (document: TextDocument): boolean => document.languageId === LANGUAGE_ID
 
-export const registerDocumentAnalysis = (): Disposable => {
+export type DocumentAnalysis = Disposable & Readonly<{ controller: DocumentController }>
+
+export const registerDocumentAnalysis = (): DocumentAnalysis => {
   const collection = languages.createDiagnosticCollection('marucs-anime')
   const controller = createDocumentController({
     onParsed: (state) => {
@@ -62,6 +68,7 @@ export const registerDocumentAnalysis = (): Disposable => {
   for (const document of workspace.textDocuments) update(document)
 
   return {
+    controller,
     dispose: () => {
       for (const subscription of subscriptions) subscription.dispose()
       controller.dispose()
