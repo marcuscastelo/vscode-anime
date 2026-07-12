@@ -8,6 +8,10 @@ The executor may split a planned commit when the diff becomes difficult to revie
 
 ## Planned sequence
 
+## Execution notes
+
+- Commits 03 and 04 are executed in reverse order. The legacy parser imports the VS Code runtime, while characterization must run in plain Node. The empty `packages/core` test/build scaffold is therefore established first; fixtures and behavioral tests still precede all new parsing implementation.
+
 ### 01. `docs(rewrite): define compatibility and execution contracts`
 
 - Replace legacy planning material.
