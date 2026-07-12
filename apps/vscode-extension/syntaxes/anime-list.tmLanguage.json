@@ -1,0 +1,41 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Anime List",
+  "scopeName": "source.anl",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#date" },
+    { "include": "#watchEntry" },
+    { "include": "#tag" },
+    { "include": "#show" }
+  ],
+  "repository": {
+    "comment": {
+      "name": "comment.line.double-slash.anl",
+      "begin": "//",
+      "end": "$"
+    },
+    "date": {
+      "name": "constant.other.date.anl",
+      "match": "^\\d{2}/\\d{2}/\\d{4}\\s*(?://.*)?$"
+    },
+    "show": {
+      "name": "entity.name.type.show.anl",
+      "match": "^\\s*[^\\s\\[\\]{}].*:\\s*(?://.*)?$"
+    },
+    "tag": {
+      "name": "keyword.other.tag.anl",
+      "match": "\\[[^\\]]+\\]"
+    },
+    "watchEntry": {
+      "match": "^(\\d{2}:\\d{2})(\\s*-\\s*)(\\d{2}:\\d{2})(\\s+)(\\d{2,}|--)(?:\\s*(\\{[^}]*\\}))?",
+      "captures": {
+        "1": { "name": "constant.other.time.start.anl" },
+        "2": { "name": "punctuation.separator.time.anl" },
+        "3": { "name": "constant.other.time.end.anl" },
+        "5": { "name": "constant.numeric.episode.anl" },
+        "6": { "name": "entity.name.tag.company.anl" }
+      }
+    }
+  }
+}

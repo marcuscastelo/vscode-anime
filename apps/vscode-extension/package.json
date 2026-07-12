@@ -2,6 +2,26 @@
   "name": "@marucs-anime/vscode-extension",
   "version": "0.0.0",
   "private": true,
+  "publisher": "Marucs",
+  "displayName": "Marucs' Anime",
+  "description": "Anime watch-history language support and editing tools for VS Code",
+  "license": "MIT",
+  "categories": [
+    "Linters",
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "anime",
+    "anl",
+    "history",
+    "syntax",
+    "autocomplete"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/marcuscastelo/vscode-anime"
+  },
   "type": "module",
   "main": "./dist/extension.cjs",
   "engines": {
@@ -10,6 +30,64 @@
   "activationEvents": [
     "onLanguage:anime-list"
   ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "marucs-anime.insertDate",
+        "title": "Insert Current Date",
+        "category": "Marucs' Anime"
+      },
+      {
+        "command": "marucs-anime.insertTime",
+        "title": "Insert Current Time",
+        "category": "Marucs' Anime"
+      },
+      {
+        "command": "marucs-anime.insertNextEpisode",
+        "title": "Insert Next Episode",
+        "category": "Marucs' Anime"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "marucs-anime.insertDate",
+        "key": "alt+d",
+        "mac": "cmd+shift+d",
+        "when": "editorTextFocus && editorLangId == anime-list"
+      },
+      {
+        "command": "marucs-anime.insertTime",
+        "key": "alt+t",
+        "mac": "cmd+shift+t",
+        "when": "editorTextFocus && editorLangId == anime-list"
+      },
+      {
+        "command": "marucs-anime.insertNextEpisode",
+        "key": "alt+n",
+        "mac": "cmd+shift+n",
+        "when": "editorTextFocus && editorLangId == anime-list"
+      }
+    ],
+    "languages": [
+      {
+        "id": "anime-list",
+        "extensions": [
+          ".anl"
+        ],
+        "aliases": [
+          "Anime List",
+          "ANL"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "anime-list",
+        "scopeName": "source.anl",
+        "path": "./syntaxes/anime-list.tmLanguage.json"
+      }
+    ]
+  },
   "scripts": {
     "build": "pnpm run clean && tsc -p tsconfig.build.json && node esbuild.config.mjs",
     "clean": "rimraf dist coverage",
