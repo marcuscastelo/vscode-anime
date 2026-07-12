@@ -1,16 +1,16 @@
-import { defineConfig } from "vite";
+import { defineConfig } from 'vite'
 
 export default defineConfig({
   test: {
     globals: true,
-    environment: "node",
-    include: ["src/**/*.test.ts"],
-    exclude: ["node_modules", "out", "src/test/**"],
+    environment: 'node',
+    include: ['src/**/*.test.ts'],
+    exclude: ['node_modules', 'out', 'src/test/**'],
     passWithNoTests: true,
     coverage: {
-      provider: "v8",
-      reporter: ["text", "html", "lcov"],
-      exclude: ["node_modules/", "out/", "src/test/"],
+      provider: 'v8',
+      reporter: ['text', 'html', 'lcov'],
+      exclude: ['node_modules/', 'out/', 'src/test/'],
       thresholds: {
         global: {
           branches: 70,
@@ -23,4 +23,4 @@ export default defineConfig({
     testTimeout: 10000,
     hookTimeout: 10000,
   },
-});
+})
