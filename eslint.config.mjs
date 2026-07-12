@@ -49,7 +49,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['packages/core/**/*.ts'],
+    files: ['packages/core/src/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',
