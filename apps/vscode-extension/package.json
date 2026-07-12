@@ -1,0 +1,32 @@
+{
+  "name": "@marucs-anime/vscode-extension",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/extension.cjs",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "activationEvents": [
+    "onLanguage:anime-list"
+  ],
+  "scripts": {
+    "build": "pnpm run clean && tsc -p tsconfig.build.json && node esbuild.config.mjs",
+    "clean": "rimraf dist coverage",
+    "test": "vitest run --config vitest.config.ts",
+    "test:coverage": "vitest run --coverage --config vitest.config.ts",
+    "type-check": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@marucs-anime/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/vscode": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "esbuild": "catalog:",
+    "rimraf": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
