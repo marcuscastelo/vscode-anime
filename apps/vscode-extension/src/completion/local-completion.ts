@@ -83,3 +83,8 @@ export const localCompletionsAt = (
       replaceFrom: context.replaceFrom,
     }))
 }
+
+export const showQueryAt = (source: string, cursor: number): string | undefined => {
+  const context = contextAt(source, cursor)
+  return context.kind === 'show' ? context.prefix.trim() : undefined
+}

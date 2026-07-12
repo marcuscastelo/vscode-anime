@@ -1,7 +1,7 @@
 import { parseAnlDocument } from '@marucs-anime/core'
 import { describe, expect, it } from 'vitest'
 
-import { localCompletionsAt } from '../../src/completion/local-completion.js'
+import { localCompletionsAt, showQueryAt } from '../../src/completion/local-completion.js'
 
 const document = parseAnlDocument(`01/04/2022
 Older Show:
@@ -39,5 +39,11 @@ describe('local completion', () => {
 
   it('returns an empty list when no option matches', () => {
     expect(localCompletionsAt(document, 'zzz', 3)).toEqual([])
+  })
+
+  it('exposes remote queries only in show-title context', () => {
+    expect(showQueryAt('Fri', 3)).toBe('Fri')
+    expect(showQueryAt('{ali', 4)).toBeUndefined()
+    expect(showQueryAt('[REW', 4)).toBeUndefined()
   })
 })
