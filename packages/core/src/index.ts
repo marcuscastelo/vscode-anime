@@ -17,3 +17,12 @@ export type {
   SourceSpan,
   TagParameter,
 } from './parsing/source-line.js'
+export type { NextEpisodeResult } from './use-cases/document-queries.js'
+export {
+  calculateNextEpisode,
+  findShow,
+  findShowAtLine,
+  listKnownPeople,
+  listKnownTags,
+  listShowTitlesByRecentMention,
+} from './use-cases/document-queries.js'

@@ -263,13 +263,14 @@ const sourceLines = (source: string): readonly SourceLine[] => {
 export const parseAnlDocument = (source: string): ParseAnlResult => {
   const finalState = sourceLines(source).map(classifySourceLine).reduce(applyLine, initialState())
   const shows = [...finalState.shows.values()]
+  const entriesInSourceOrder = shows
+    .flatMap((show) => show.entries)
+    .sort((left, right) => left.line - right.line)
   return {
     diagnostics: finalState.diagnostics,
     document: {
       dates: finalState.dates,
-      people: [
-        ...new Set(shows.flatMap((show) => show.entries.flatMap((entry) => entry.value.people))),
-      ],
+      people: [...new Set(entriesInSourceOrder.flatMap((entry) => entry.value.people))],
       shows,
       tags: [...new Set(shows.flatMap((show) => show.tags.map((tag) => tag.name)))],
     },
