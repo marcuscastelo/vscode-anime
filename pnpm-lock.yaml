@@ -4,21 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-catalogs:
-  default:
-    '@vitest/coverage-v8':
-      specifier: ^4.1.10
-      version: 4.1.10
-    rimraf:
-      specifier: ^6.1.3
-      version: 6.1.3
-    typescript:
-      specifier: ^5.9.2
-      version: 5.9.2
-    vitest:
-      specifier: ^4.1.10
-      version: 4.1.10
-
 importers:
 
   .:

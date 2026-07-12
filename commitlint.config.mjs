@@ -11,6 +11,7 @@ export default {
         'chore',
         'ci',
         'docs',
+        'experiment',
         'feat',
         'fix',
         'perf',
