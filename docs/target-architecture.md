@@ -7,15 +7,19 @@ apps/
   vscode-extension/
     src/
       activation/
+      catalog/
+      clock/
       commands/
-      providers/
+      completion/
       diagnostics/
-      adapters/
+      documents/
+      providers/
     test/
       integration/
 packages/
   core/
     src/
+      diagnostics/
       domain/
       parsing/
       use-cases/
@@ -37,7 +41,7 @@ The first rewrite needs exactly two workspaces. Future web and server applicatio
 - Lefthook formats and lints staged files, Commitlint validates Conventional Commit messages, and the full non-mutating check runs before push.
 - CI must run the same `check` command without relying on Git hooks.
 
-The legacy `src/` tree is excluded from the new lint policy because it is a read-only behavioral reference. New code under `apps/` and `packages/` receives the strict policy immediately.
+The legacy implementation was removed only after characterization, integration, package, and manual macOS parity checks passed. All production TypeScript now receives the strict policy.
 
 ## Dependency direction
 
@@ -66,8 +70,8 @@ The core does not know about editors, completion items, code lenses, hover Markd
 - Translate editor documents into core inputs.
 - Translate core spans and diagnostics into VS Code types.
 - Implement commands using `WorkspaceEdit` or editor edits.
-- Implement providers and schedule incremental parsing.
-- Adapt the anime catalog, workspace cache, logging, and clock.
+- Implement providers and schedule debounced full-document parsing with stale-result protection.
+- Adapt the anime catalog and clock. No workspace cache is currently necessary.
 
 ## State and composition
 
@@ -79,21 +83,18 @@ The parser is deterministic: equal text and configuration produce equal output. 
 
 1. Characterization fixtures freeze legacy `.anl` behavior.
 2. Core unit tests cover grammar, recovery, validation, and calculations without VS Code mocks.
-3. Contract tests cover catalog and cache adapters.
+3. Contract tests cover the catalog adapter and its cache policy.
 4. VS Code integration tests cover activation, commands, diagnostics, providers, and manifest contributions.
 5. Packaging smoke tests install or inspect the VSIX and load its declared entry point.
 
 Coverage is a guardrail, not the objective. Start with meaningful tests and raise enforced thresholds by migration phase; `passWithNoTests` is forbidden.
 
-## Migration strategy
+## Completed migration
 
-- Scaffold the workspaces alongside the untouched legacy `src/` implementation.
-- Build the core and characterization suite first.
-- Implement the extension shell and adapters against the core.
-- Compare both implementations on the same fixtures.
-- Switch the manifest entry point only after parity and manual smoke testing.
-- Delete legacy code, obsolete dependencies, and obsolete scripts in a separate final phase.
+- The workspaces and characterization suite were built alongside the untouched legacy implementation.
+- The manifest switched only after parity, VSIX inspection, Extension Host integration, and manual macOS smoke testing.
+- Legacy code, dependencies, and obsolete scripts were then deleted in a separate cutover commit.
 
-## Architectural decisions to record later
+## Current decisions
 
-Remaining choices such as workspace build orchestration, schema validation, result types, HTTP client, and incremental parse algorithm should be captured as short ADRs when selected during implementation. They are deliberately not locked by this plan without benchmarks or prototypes.
+The core uses structural readonly values and discriminated results. The catalog uses native `fetch`, `AbortSignal`, explicit policies, and an in-memory bounded cache. Documents are reparsed after a 75 ms debounce; a 10,000-entry parser regression test enforces a one-second upper budget. Effect was rejected for this extension in [ADR 0001](adr/0001-effect-adoption.md).

@@ -16,7 +16,7 @@
 
 - Parse on open and after relevant edits without requiring a save.
 - Keep diagnostics scoped to the correct document.
-- Provide document symbols, title definitions, hover information, completion items, and useful code lenses where the behavior remains valuable.
+- Provide document symbols, title definitions, hover information, and completion items. Legacy code lenses are intentionally not retained because explicit commands and navigation cover their useful actions.
 - Never derive one document's state from another document's cache.
 
 ### Completion and anime search
@@ -51,7 +51,7 @@ Command identifiers may change. The Command Palette titles must remain clear and
 - Activation must not erase workspace state.
 - Normal editing must not produce uncaught exceptions.
 - Network failure must not disable parsing or local completion.
-- Large documents should not be reparsed synchronously in full after every keystroke.
+- Edits are debounced before full-document parsing; a 10,000-entry fixture must parse within the documented one-second CI budget.
 - The packaged VSIX must contain the actual entry point declared in its manifest.
 
 ## Out of scope for this rewrite

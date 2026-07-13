@@ -1,7 +1,20 @@
 # Marucs' Anime
 
-VS Code language support and editing commands for `.anl` anime watch-history files.
+Language support and editing tools for existing `.anl` anime watch-history files.
 
-The extension provides syntax highlighting, diagnostics, completion, navigation, anime catalog search, and commands for inserting the current date, current time, and next episode.
+## Features
 
-On macOS, the default command shortcuts are `Cmd+Shift+D`, `Cmd+Shift+T`, and `Cmd+Shift+N`. On Windows and Linux, they are `Alt+D`, `Alt+T`, and `Alt+N`.
+- Live syntax highlighting and diagnostics.
+- Symbols, definitions, hover details, and contextual completion.
+- Local show/person/tag suggestions plus resilient Jikan title search.
+- Current date, start/end time, and next-episode insertion.
+
+| Action | Windows/Linux | macOS |
+| --- | --- | --- |
+| Insert current date | `Alt+D` | `Cmd+Shift+D` |
+| Insert current time | `Alt+T` | `Cmd+Shift+T` |
+| Insert next episode | `Alt+N` | `Cmd+Shift+N` |
+
+All actions are also available from the Command Palette and can be rebound. Commands require a single cursor with no selected text. No `.anl` migration is required.
+
+See the repository README for syntax, local installation, development, architecture, and release instructions.
