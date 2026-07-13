@@ -3,7 +3,7 @@ import { CompletionItem, CompletionItemKind, languages, Range } from 'vscode'
 import type { Disposable } from '../activation/create-extension-app.js'
 import type { AnimeCatalog } from '../catalog/anime-catalog.js'
 import type { DocumentController } from '../documents/document-controller.js'
-import { localCompletionsAt, showQueryAt } from './local-completion.js'
+import { completionSortText, localCompletionsAt, showQueryAt } from './local-completion.js'
 
 const LANGUAGE_ID = 'anime-list'
 
@@ -49,9 +49,10 @@ export const registerLocalCompletion = (
                 }))
             : []),
         ]
-        return combined.map((value) => {
+        return combined.map((value, index) => {
           const item = new CompletionItem(value.label, itemKind(value.kind))
           item.insertText = value.insertText
+          item.sortText = completionSortText(index)
           item.range = new Range(
             position.line,
             value.replaceFrom,

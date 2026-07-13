@@ -1,6 +1,6 @@
 {
   "name": "marucs-anime",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "publisher": "Marucs",
   "displayName": "Marucs' Anime",
   "description": "Anime watch-history language support and editing tools for VS Code",

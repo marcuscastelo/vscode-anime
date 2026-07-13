@@ -21,6 +21,9 @@ describe('time insertion plan', () => {
     expect(
       planTimeInsertion({ lineText: '07:05 -', time: '07:30', today: '02/07/2026' }),
     ).toMatchObject({ tag: 'insert', text: ' 07:30 ' })
+    expect(
+      planTimeInsertion({ lineText: '07:05 - ', time: '07:30', today: '02/07/2026' }),
+    ).toMatchObject({ tag: 'insert', text: '07:30 ' })
   })
 
   it('warns when the document date is different or absent', () => {

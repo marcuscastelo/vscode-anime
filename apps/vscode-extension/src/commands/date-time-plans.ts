@@ -17,7 +17,12 @@ export const planTimeInsertion = (
     return { reason: 'unsupported-line', tag: 'no-change' }
   }
 
-  const text = empty ? `${input.time} - ` : startOnly ? ` - ${input.time} ` : ` ${input.time} `
+  const separator = /\s$/u.test(input.lineText) ? '' : ' '
+  const text = empty
+    ? `${input.time} - `
+    : startOnly
+      ? ` - ${input.time} `
+      : `${separator}${input.time} `
   const warning =
     input.currentDocumentDate === input.today
       ? undefined
