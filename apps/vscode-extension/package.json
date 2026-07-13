@@ -88,6 +88,7 @@
     ]
   },
   "scripts": {
+    "prebuild": "pnpm --filter @marucs-anime/core run build",
     "build": "pnpm run clean && tsc -p tsconfig.build.json && node esbuild.config.mjs",
     "clean": "rimraf dist coverage",
     "prepackage": "node scripts/prepare-package.mjs",
