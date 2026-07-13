@@ -1,7 +1,6 @@
 {
-  "name": "@marucs-anime/vscode-extension",
-  "version": "0.0.0",
-  "private": true,
+  "name": "marucs-anime",
+  "version": "0.5.0",
   "publisher": "Marucs",
   "displayName": "Marucs' Anime",
   "description": "Anime watch-history language support and editing tools for VS Code",
@@ -25,7 +24,7 @@
   "type": "module",
   "main": "./dist/extension.cjs",
   "engines": {
-    "vscode": "^1.95.0"
+    "vscode": "^1.102.0"
   },
   "activationEvents": [
     "onLanguage:anime-list"
@@ -91,20 +90,27 @@
   "scripts": {
     "build": "pnpm run clean && tsc -p tsconfig.build.json && node esbuild.config.mjs",
     "clean": "rimraf dist coverage",
+    "prepackage": "node scripts/prepare-package.mjs",
+    "package": "pnpm run build && vsce package --no-dependencies --out ../../artifacts/marucs-anime.vsix",
+    "package:verify": "node scripts/verify-vsix.mjs ../../artifacts/marucs-anime.vsix",
     "test": "vitest run --config vitest.config.ts",
     "test:coverage": "vitest run --coverage --config vitest.config.ts",
+    "test:integration:build": "node esbuild.integration.config.mjs",
+    "test:integration": "pnpm run build && pnpm run test:integration:build && node scripts/run-integration.mjs",
     "type-check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@marucs-anime/core": "workspace:*"
+    "@marucs-anime/core": "0.0.0"
   },
   "devDependencies": {
-    "@types/node": "catalog:",
-    "@types/vscode": "catalog:",
-    "@vitest/coverage-v8": "catalog:",
-    "esbuild": "catalog:",
-    "rimraf": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:"
+    "@types/node": "^22.17.0",
+    "@types/vscode": "^1.102.0",
+    "@vitest/coverage-v8": "^4.1.10",
+    "@vscode/test-electron": "^3.0.0",
+    "@vscode/vsce": "^3.9.2",
+    "esbuild": "^0.28.1",
+    "rimraf": "^6.1.3",
+    "typescript": "^5.9.2",
+    "vitest": "^4.1.10"
   }
 }

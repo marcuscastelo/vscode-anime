@@ -1,5 +1,6 @@
 out
 dist
+dist-test
 node_modules
 .vscode-test/
 *.vsix
@@ -10,3 +11,5 @@ brand*/
 .eslintcache
 coverage/
 .DS_Store
+artifacts/
+.pnpm-store/

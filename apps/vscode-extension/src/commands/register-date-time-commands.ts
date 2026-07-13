@@ -27,11 +27,6 @@ export const registerDateTimeCommands = (
   controller: DocumentController,
   clock: Clock,
 ): Disposable => {
-  const insertDate = async (editor: TextEditor): Promise<void> => {
-    if (!singleCursor(editor)) return
-    await insert(editor, formatLocalDate(clock.now()))
-  }
-
   const insertTime = async (editor: TextEditor): Promise<void> => {
     if (!singleCursor(editor)) return
     const now = clock.now()
@@ -57,8 +52,9 @@ export const registerDateTimeCommands = (
   }
 
   const subscriptions = [
-    commands.registerTextEditorCommand(INSERT_DATE_COMMAND, (editor) => {
-      void insertDate(editor)
+    commands.registerTextEditorCommand(INSERT_DATE_COMMAND, (editor, edit) => {
+      if (!singleCursor(editor)) return
+      edit.insert(editor.selection.active, formatLocalDate(clock.now()))
     }),
     commands.registerTextEditorCommand(INSERT_TIME_COMMAND, (editor) => {
       void insertTime(editor)

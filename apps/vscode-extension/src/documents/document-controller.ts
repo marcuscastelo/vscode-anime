@@ -53,11 +53,18 @@ export const createDocumentController = (
     get: (uri) => states.get(uri),
     update: (snapshot, delayMs = 0) => {
       cancelPending(snapshot.uri)
-      const handle = dependencies.scheduler.schedule(() => {
-        pending.delete(snapshot.uri)
+      const parseSnapshot = (): void => {
         const state = { ...snapshot, result: dependencies.parse(snapshot.text) }
         states.set(snapshot.uri, state)
         dependencies.onParsed(state)
+      }
+      if (delayMs <= 0) {
+        parseSnapshot()
+        return
+      }
+      const handle = dependencies.scheduler.schedule(() => {
+        pending.delete(snapshot.uri)
+        parseSnapshot()
       }, delayMs)
       pending.set(snapshot.uri, handle)
     },

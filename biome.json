@@ -11,9 +11,10 @@
       "!node_modules",
       "!out",
       "!**/dist",
+      "!**/dist-test",
       "!**/build",
       "!coverage",
-      "!.vscode-test",
+      "!**/.vscode-test",
       "!.worktrees",
       "!src",
       "!*.vsix"

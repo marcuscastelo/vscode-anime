@@ -1,0 +1,10 @@
+.vscode/**
+coverage/**
+dist-test/**
+src/**
+test/**
+scripts/**
+*.config.*
+tsconfig*.json
+node_modules/**
+**/*.map

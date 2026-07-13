@@ -31,6 +31,19 @@ const createManualScheduler = () => {
 }
 
 describe('document controller', () => {
+  it('parses initial documents synchronously', () => {
+    const manual = createManualScheduler()
+    const onParsed = vi.fn()
+    const controller = createDocumentController({
+      onParsed,
+      parse: parseAnlDocument,
+      scheduler: manual.scheduler,
+    })
+    controller.update({ text: '01/01/2022', uri: 'file:///a.anl', version: 1 })
+    expect(controller.get('file:///a.anl')).toBeDefined()
+    expect(onParsed).toHaveBeenCalledTimes(1)
+  })
+
   it('keeps only the latest scheduled version', () => {
     const manual = createManualScheduler()
     const onParsed = vi.fn()
