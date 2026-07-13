@@ -5,11 +5,11 @@ Shingeki no Kyojin:
 23:05 - 23:15 01 {marcuscastelo} // I've watched 'Anime Title' this day from 23:05 to 23:15. with marcuscastelo
 
 // Workflow:
-//  1. Press Alt + D to insert current date
+//  1. Press Alt + D (Windows/Linux) or Cmd + Shift + D (macOS) to insert current date
 //  2. Type 'Shingeki no Kyojin' (it'll suggest the anime title)
-//  3. Press Alt + T when you start watching
-//  4. Press Alt + T when you finish watching
-//  5. Press Alt + N to insert the current episode number (last + 1)
+//  3. Press Alt + T or Cmd + Shift + T when you start watching
+//  4. Press the same shortcut when you finish watching
+//  5. Press Alt + N or Cmd + Shift + N to insert the next episode
 //  6. Open curly bracket and navigate the list of friends you watched the anime with (Ctrl + Space to force autocomplete)
 
 //Testing:
