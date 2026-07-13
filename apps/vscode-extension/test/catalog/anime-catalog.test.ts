@@ -8,6 +8,7 @@ import {
 
 const policy: CatalogPolicy = {
   cacheTtlMs: 100,
+  debounceMs: 5,
   maxCacheEntries: 2,
   minQueryLength: 3,
   minRequestIntervalMs: 10,
@@ -50,6 +51,7 @@ describe('anime catalog', () => {
     now = 200
     await catalog.search('first')
     expect(wait).toHaveBeenCalled()
+    expect(wait).toHaveBeenCalledWith(5, expect.any(AbortSignal))
     expect(transport).toHaveBeenCalledTimes(4)
   })
 

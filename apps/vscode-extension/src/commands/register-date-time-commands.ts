@@ -8,8 +8,15 @@ import { planTimeInsertion } from './date-time-plans.js'
 export const INSERT_DATE_COMMAND = 'marucs-anime.insertDate'
 export const INSERT_TIME_COMMAND = 'marucs-anime.insertTime'
 
-const singleCursor = (editor: TextEditor): boolean =>
-  editor.selections.length === 1 && editor.selection.isEmpty
+const singleCursor = (editor: TextEditor): boolean => {
+  const supported = editor.selections.length === 1 && editor.selection.isEmpty
+  if (!supported) {
+    void window.showInformationMessage(
+      "Marucs' Anime commands require one cursor with no selected text.",
+    )
+  }
+  return supported
+}
 
 const dateAtLine = (controller: DocumentController, editor: TextEditor): string | undefined => {
   const state = controller.get(editor.document.uri.toString())

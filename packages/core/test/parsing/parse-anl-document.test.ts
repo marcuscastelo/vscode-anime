@@ -72,4 +72,19 @@ describe('parseAnlDocument', () => {
       'redundant-date',
     ])
   })
+
+  it('parses a 10,000-entry document inside the interactive budget', () => {
+    const entries = Array.from(
+      { length: 10_000 },
+      (_, index) => `20:00 - 20:24 ${String(index + 1).padStart(2, '0')}`,
+    )
+    const source = ['12/07/2026', 'Long-running show:', ...entries].join('\n')
+    const startedAt = performance.now()
+    const result = parseAnlDocument(source)
+    const elapsedMs = performance.now() - startedAt
+
+    expect(result.document.shows[0]?.entries).toHaveLength(10_000)
+    expect(result.diagnostics).toEqual([])
+    expect(elapsedMs).toBeLessThan(1_000)
+  })
 })

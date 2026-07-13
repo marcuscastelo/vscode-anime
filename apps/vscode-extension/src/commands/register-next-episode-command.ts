@@ -10,7 +10,12 @@ export const registerNextEpisodeCommand = (controller: DocumentController): Disp
   const subscription = commands.registerTextEditorCommand(
     INSERT_NEXT_EPISODE_COMMAND,
     (editor, edit) => {
-      if (editor.selections.length !== 1 || !editor.selection.isEmpty) return
+      if (editor.selections.length !== 1 || !editor.selection.isEmpty) {
+        void window.showInformationMessage(
+          "Marucs' Anime commands require one cursor with no selected text.",
+        )
+        return
+      }
       const state = controller.get(editor.document.uri.toString())
       if (state === undefined) return
       const plan = planNextEpisode(state.result.document, editor.selection.active.line)

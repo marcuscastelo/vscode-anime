@@ -18,6 +18,7 @@ export type CatalogDependencies = Readonly<{
 }>
 export type CatalogPolicy = Readonly<{
   cacheTtlMs: number
+  debounceMs: number
   maxCacheEntries: number
   minQueryLength: number
   minRequestIntervalMs: number
@@ -28,6 +29,7 @@ type CacheEntry = Readonly<{ expiresAt: number; results: readonly AnimeSearchRes
 
 export const DEFAULT_CATALOG_POLICY: CatalogPolicy = {
   cacheTtlMs: 24 * 60 * 60 * 1_000,
+  debounceMs: 250,
   maxCacheEntries: 100,
   minQueryLength: 3,
   minRequestIntervalMs: 1_000,
@@ -110,6 +112,7 @@ export const createAnimeCatalog = (
       const timeout = setTimeout(() => controller.abort('timeout'), policy.timeoutMs)
 
       try {
+        if (policy.debounceMs > 0) await dependencies.wait(policy.debounceMs, controller.signal)
         const waitMs = Math.max(
           0,
           policy.minRequestIntervalMs - (dependencies.now() - lastRequestAt),

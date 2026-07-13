@@ -89,6 +89,19 @@ Frieren:
   await vscode.commands.executeCommand('marucs-anime.insertNextEpisode')
   assert(editor.document.lineAt(3).text === '02', 'Next episode command inserted the wrong value')
 
+  const beforeMultipleCursors = editor.document.getText()
+  const firstCursor = new vscode.Position(0, 0)
+  const secondCursor = new vscode.Position(1, 0)
+  editor.selections = [
+    new vscode.Selection(firstCursor, firstCursor),
+    new vscode.Selection(secondCursor, secondCursor),
+  ]
+  await vscode.commands.executeCommand('marucs-anime.insertNextEpisode')
+  assert(
+    editor.document.getText() === beforeMultipleCursors,
+    'Next episode command modified a document with multiple cursors',
+  )
+
   const dateEditor = await open('')
   await vscode.commands.executeCommand('marucs-anime.insertDate')
   assert(/^\d{2}\/\d{2}\/\d{4}$/u.test(dateEditor.document.getText()), 'Date command failed')
