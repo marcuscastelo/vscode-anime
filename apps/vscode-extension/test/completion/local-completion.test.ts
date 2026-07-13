@@ -1,7 +1,11 @@
 import { parseAnlDocument } from '@marucs-anime/core'
 import { describe, expect, it } from 'vitest'
 
-import { localCompletionsAt, showQueryAt } from '../../src/completion/local-completion.js'
+import {
+  completionSortText,
+  localCompletionsAt,
+  showQueryAt,
+} from '../../src/completion/local-completion.js'
 
 const document = parseAnlDocument(`01/04/2022
 Older Show:
@@ -23,6 +27,10 @@ describe('local completion', () => {
         replaceFrom: 0,
       },
     ])
+  })
+
+  it('provides lexical sort keys that preserve recency order in VS Code', () => {
+    expect([0, 1, 12].map(completionSortText)).toEqual(['00000000', '00000001', '00000012'])
   })
 
   it('completes people inside company braces', () => {

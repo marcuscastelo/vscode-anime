@@ -14,6 +14,8 @@ export type LocalCompletion = Readonly<{
   replaceFrom: number
 }>
 
+export const completionSortText = (index: number): string => String(index).padStart(8, '0')
+
 type CompletionContext = Readonly<{
   kind: CompletionKind
   prefix: string
