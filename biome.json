@@ -16,7 +16,6 @@
       "!coverage",
       "!**/.vscode-test",
       "!.worktrees",
-      "!src",
       "!*.vsix"
     ]
   },

@@ -13,7 +13,6 @@ export default tseslint.config(
       '**/build/**',
       '**/.vscode-test/**',
       '.worktrees/**',
-      'src/**',
       '*.vsix',
     ],
   },
