@@ -67,8 +67,8 @@ importers:
         specifier: ^4.1.10
         version: 4.1.10(vitest@4.1.10)
       '@vscode/test-electron':
-        specifier: ^3.0.0
-        version: 3.0.0
+        specifier: ^3.1.0
+        version: 3.1.0
       '@vscode/vsce':
         specifier: ^3.9.2
         version: 3.9.2
@@ -906,8 +906,8 @@ packages:
   '@vitest/utils@4.1.10':
     resolution: {integrity: sha512-fy9am/HWxbaGt/Sawrp90vt6Y6jQwf1RX77cz3uwoJwJVMli/e1IEwRPnMNJ7vKfPTwo0diXifkpPvwH9v7nGA==}
 
-  '@vscode/test-electron@3.0.0':
-    resolution: {integrity: sha512-TY5mC7aAjxSLDXsyjhrG8cJHgc/HLdiE5lvtW7hABYQrY24Qwozzr5UoO3HiuAM4Hzz4b7K/eZlwrCILj94CcA==}
+  '@vscode/test-electron@3.1.0':
+    resolution: {integrity: sha512-CRqv5u+YYoseuNVJ6Tyo4k0sF0mx4qnKMihRB0PjsUF8Dc0WKtCXo6CNL6nWWm5esfFQsQA/pejMj4ZbpJVLTw==}
     engines: {node: '>=22'}
 
   '@vscode/vsce-sign-alpine-arm64@2.0.6':
@@ -3459,7 +3459,7 @@ snapshots:
       convert-source-map: 2.0.0
       tinyrainbow: 3.1.0
 
-  '@vscode/test-electron@3.0.0':
+  '@vscode/test-electron@3.1.0':
     dependencies:
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.6
