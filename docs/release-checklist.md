@@ -39,3 +39,7 @@ before loading the extension. The same failure affects the earlier `develop` bas
 when it downloads a current bundle. The unit contract exercises both `Code` and legacy
 `Electron` bundles on Intel and ARM paths, and CI runs the real macOS Extension Host.
 The runner also clears inherited `ELECTRON_RUN_AS_NODE` and isolates temporary profiles.
+
+Unix test profiles use a short, unique `/tmp/anl-*` directory. macOS TMPDIR can be
+long enough to exceed the 103-character IPC socket path limit; the runner contract
+sets a long TMPDIR and opens a real Unix socket before checking profile cleanup.

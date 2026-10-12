@@ -6,7 +6,8 @@ import { runTests } from '@vscode/test-electron'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
-const temporary = await mkdtemp(resolve(tmpdir(), 'marucs-anime-integration-'))
+// Unix domain sockets have short path limits; macOS TMPDIR may already be very long.
+const temporary = await mkdtemp(resolve(process.platform === 'win32' ? tmpdir() : '/tmp', 'anl-'))
 try {
   await runTests({
     extensionDevelopmentPath: root,
