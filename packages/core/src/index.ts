@@ -1,28 +1,21 @@
 export type {
-  AnlDiagnostic,
-  DiagnosticCode,
-  DiagnosticSeverity,
-} from './diagnostics/diagnostic.js'
-export type { AnlTag, Located, ParsedAnlDocument, Show, WatchEntry } from './domain/anl-document.js'
-export type { TagDefinition, TagTarget } from './domain/tags.js'
-export { DEFAULT_TAGS, findTagDefinition } from './domain/tags.js'
-export { classifySourceLine } from './parsing/classify-source-line.js'
-export type { ParseAnlResult } from './parsing/parse-anl-document.js'
-export { parseAnlDocument } from './parsing/parse-anl-document.js'
+  HistoryReader,
+  HistoryResult,
+  HistoryStorage,
+  RecordResult,
+  StorageFailure,
+  WatchHistory,
+} from './history.js'
+export { createWatchHistory } from './history.js'
 export type {
-  ClassifiedSourceLine,
-  InvalidSourceLine,
-  SourceLine,
-  SourcePosition,
-  SourceSpan,
-  TagParameter,
-} from './parsing/source-line.js'
-export type { NextEpisodeResult } from './use-cases/document-queries.js'
-export {
-  calculateNextEpisode,
-  findShow,
-  findShowAtLine,
-  listKnownPeople,
-  listKnownTags,
-  listShowTitlesByRecentMention,
-} from './use-cases/document-queries.js'
+  EpisodeObservation,
+  InvalidObservation,
+  ManualWatch,
+  ObservationResult,
+  PlaybackEvent,
+  PlaybackSession,
+  WatchRecord,
+  WatchTime,
+} from './model.js'
+export { nextEpisode } from './model.js'
+export { observePlayback, projectPlayback } from './playback.js'

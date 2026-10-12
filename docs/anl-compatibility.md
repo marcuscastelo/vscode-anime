@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines the input that the rewritten core must continue to accept. It describes compatibility, not an idealized future grammar. A future format revision must be designed separately and must not silently reinterpret existing files.
+This document defines the input that the ANL adapter must continue to accept. It describes compatibility, not an idealized future grammar. A future format revision must be designed separately and must not silently reinterpret existing files.
 
 ## Document model
 
@@ -76,7 +76,7 @@ The initial rewrite must recognize the legacy built-ins:
 
 ## Semantic output
 
-The core parser must produce a serializable document model containing shows, dated watch sessions, entries, people, tags, and source locations. Source locations belong to the parsed-document representation and must not contaminate reusable business entities.
+The ANL adapter parser must produce a serializable document model containing shows, dated watch sessions, entries, people, tags, and source locations. Source locations belong to the parsed-document representation and must not contaminate reusable business entities.
 
 Parsing must return both recovered data and diagnostics whenever safe recovery is possible. One invalid line must not prevent later valid lines from being processed.
 

@@ -3,7 +3,7 @@ import {
   findShowAtLine,
   type ParsedAnlDocument,
   type SourceSpan,
-} from '@marucs-anime/core'
+} from '@marucs-anime/anl-adapter'
 
 export type DocumentSymbolInsight = Readonly<{ line: number; name: string; span: SourceSpan }>
 export type DefinitionInsight = Readonly<{ line: number; span: SourceSpan }>

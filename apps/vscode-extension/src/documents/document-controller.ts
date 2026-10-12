@@ -1,8 +1,10 @@
-import type { ParseAnlResult } from '@marucs-anime/core'
+import { type ParseAnlResult, toWatchRecords } from '@marucs-anime/anl-adapter'
+import type { WatchRecord } from '@marucs-anime/core'
 
 export type DocumentSnapshot = Readonly<{ text: string; uri: string; version: number }>
 
-export type ParsedDocumentState = DocumentSnapshot & Readonly<{ result: ParseAnlResult }>
+export type ParsedDocumentState = DocumentSnapshot &
+  Readonly<{ result: ParseAnlResult; history: readonly WatchRecord[] }>
 
 export type Scheduler = Readonly<{
   cancel: (handle: unknown) => void
@@ -54,7 +56,8 @@ export const createDocumentController = (
     update: (snapshot, delayMs = 0) => {
       cancelPending(snapshot.uri)
       const parseSnapshot = (): void => {
-        const state = { ...snapshot, result: dependencies.parse(snapshot.text) }
+        const result = dependencies.parse(snapshot.text)
+        const state = { ...snapshot, result, history: toWatchRecords(result.document) }
         states.set(snapshot.uri, state)
         dependencies.onParsed(state)
       }

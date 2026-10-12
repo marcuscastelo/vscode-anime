@@ -1,3 +1,4 @@
+import { nextEpisode } from '@marucs-anime/core'
 import type { AnlDiagnostic, DiagnosticCode } from '../diagnostics/diagnostic.js'
 import type {
   AnlTag,
@@ -157,10 +158,12 @@ const applyShow = (
 }
 
 const lastCompletedEpisode = (show: Show): number =>
-  show.entries.reduce(
-    (latest, entry) => (!entry.value.partial ? Math.max(latest, entry.value.episode) : latest),
-    0,
-  )
+  nextEpisode(
+    show.entries.map((entry) => ({
+      episode: entry.value.episode,
+      completed: !entry.value.partial,
+    })),
+  ) - 1
 
 const applyWatchEntry = (
   state: ParserState,
