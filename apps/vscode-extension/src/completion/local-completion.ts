@@ -3,7 +3,7 @@ import {
   listKnownTags,
   listShowTitlesByRecentMention,
   type ParsedAnlDocument,
-} from '@marucs-anime/core'
+} from '@marucs-anime/anl-adapter'
 
 export type CompletionKind = 'person' | 'show' | 'tag'
 

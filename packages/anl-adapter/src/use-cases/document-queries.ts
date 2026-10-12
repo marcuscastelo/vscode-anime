@@ -1,3 +1,4 @@
+import { nextEpisode } from '@marucs-anime/core'
 import type { ParsedAnlDocument, Show } from '../domain/anl-document.js'
 import { DEFAULT_TAGS } from '../domain/tags.js'
 
@@ -33,11 +34,13 @@ export const calculateNextEpisode = (
   const show = findShow(document, showTitle)
   if (show === undefined) return { tag: 'show-not-found' }
 
-  const latest = show.entries.reduce(
-    (episode, entry) => (!entry.value.partial ? Math.max(episode, entry.value.episode) : episode),
-    0,
+  const episode = nextEpisode(
+    show.entries.map((entry) => ({
+      episode: entry.value.episode,
+      completed: !entry.value.partial,
+    })),
   )
-  return { episode: latest + 1, tag: 'found' }
+  return { episode, tag: 'found' }
 }
 
 export const listShowTitlesByRecentMention = (document: ParsedAnlDocument): readonly string[] =>

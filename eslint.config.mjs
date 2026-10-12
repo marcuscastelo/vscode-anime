@@ -53,7 +53,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['packages/core/src/**/*.ts'],
+    files: ['packages/core/src/**/*.ts', 'packages/anl-adapter/src/**/*.ts'],
     rules: {
       'no-restricted-imports': [
         'error',

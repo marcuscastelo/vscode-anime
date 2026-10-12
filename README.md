@@ -1,6 +1,6 @@
 # Marucs' Anime
 
-Marucs' Anime is a VS Code extension for recording anime watch history in portable, human-readable `.anl` files. The repository is a pnpm monorepo with a functional editor-neutral core and a thin VS Code application.
+Marucs' Anime records what was watched, when, and how far playback progressed. Its domain core is independent of editors, text formats and storage implementations. The VS Code extension is the current input adapter and keeps the portable, human-readable `.anl` workflow.
 
 ## Install
 
@@ -57,8 +57,40 @@ pnpm package:verify
 pnpm audit:production
 ```
 
-`packages/core` contains pure parsing, domain values, diagnostics, and queries. It has no VS Code, Node-only, HTTP, storage, or persistence dependency. `apps/vscode-extension` owns all editor, clock, network, packaging, and activation adapters. See [target architecture](docs/target-architecture.md), the [Effect decision](docs/adr/0001-effect-adoption.md), and the [release checklist](docs/release-checklist.md).
+The workspaces have separate responsibilities:
+
+| Workspace | Responsibility |
+| --- | --- |
+| `packages/core` (`@marucs-anime/core`) | Manual observations, playback events and sessions, completed-episode progress, input and storage ports. No files, text, source locations, VS Code, Node APIs or network clients. |
+| `packages/anl-adapter` (`@marucs-anime/anl-adapter`) | `.anl` grammar, parsing, diagnostics, tags and source positions; maps valid manual entries into core observations. Runs without VS Code. |
+| `apps/vscode-extension` | Editor activation, commands, providers, document lifecycle, clock and catalog. Uses the ANL adapter and the core's episode rule. |
+
+The current `.anl` file remains authoritative: editing and saving use the VS Code adapter, with no migration or extra history file. `createAnlHistoryReader(readText)` implements the core's read port; the caller supplies the file or buffer read. The extension also exposes normalized history per parsed document. Invalid recovered entries remain in the document and diagnostics and are excluded from this normalized history view.
+
+The core's `createWatchHistory(storage)` input port accepts `recordManual` and `recordPlayback`. Its `HistoryStorage` port accepts asynchronous `read` and ordered `append`, so a storage implementation can use files, a database or an API. No storage implementation is selected inside the core. Existing `.anl` syntax cannot preserve automatic playback positions; it is a manual source, and is not silently used as a playback event store.
+
+For example, a future Crunchyroll adapter can send observations without any editor or document:
+
+```ts
+import { createWatchHistory, type HistoryStorage } from '@marucs-anime/core'
+
+const connectObserver = (storage: HistoryStorage) => {
+  const history = createWatchHistory(storage)
+  return history.recordPlayback({
+    type: 'play', // also pause, position, end
+    sessionId: 'crunchyroll-watch-1',
+    showTitle: 'Frieren',
+    episode: 1,
+    occurredAt: '2026-10-12T12:00:00-03:00',
+    positionSeconds: 120.5,
+  })
+}
+```
+
+Manual times can remain local civil dates/times when their timezone is unknown. Playback timestamps carry an explicit offset and positions retain subsecond precision. Pauses do not count as playing time; rewinds update the current position while retaining the furthest observed position. Observed playing time is wall time between events while playing, not proof that skipped or buffered media was watched. See the [history contract](docs/watch-history-core.md) for ordering, failures and persistence semantics.
+
+Future UI, MCP, CLI and browser inputs call the same core port; they are not implemented here. This separation follows the existing fleet precedent in `lib/fleet/decisoes_core.py` and `docs/decisoes-core.md`: one domain authority with interchangeable screen clients. See [target architecture](docs/target-architecture.md), the [Effect decision](docs/adr/0001-effect-adoption.md), and the [release checklist](docs/release-checklist.md).
 
 ## Scope and limitations
 
-This rewrite does not include accounts, synchronization, persistence, a SaaS backend, or automatic Marketplace publication. Code lenses were not retained: symbols, definitions, hover, completion, and explicit commands cover the useful legacy workflows with less UI noise and less coupling.
+This extraction does not implement future input adapters, a database/API backend, accounts, synchronization or automatic Marketplace publication. The extension's commands, syntax, diagnostics, navigation and completion retain their existing behavior. Code lenses were not retained in the earlier extension rewrite.

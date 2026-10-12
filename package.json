@@ -9,7 +9,7 @@
   },
   "scripts": {
     "prepare": "lefthook install",
-    "build:core": "pnpm --filter @marucs-anime/core run build",
+    "build:core": "pnpm --filter @marucs-anime/anl-adapter... run build",
     "format": "biome format --write .",
     "format:check": "biome format .",
     "lint": "pnpm run build:core && pnpm run lint:biome && pnpm run lint:eslint",

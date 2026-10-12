@@ -1,4 +1,4 @@
-import type { AnlDiagnostic } from '@marucs-anime/core'
+import type { AnlDiagnostic } from '@marucs-anime/anl-adapter'
 
 export type EditorDiagnostic = Readonly<{
   code: string

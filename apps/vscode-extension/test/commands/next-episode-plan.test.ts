@@ -1,4 +1,4 @@
-import { parseAnlDocument } from '@marucs-anime/core'
+import { parseAnlDocument } from '@marucs-anime/anl-adapter'
 import { describe, expect, it } from 'vitest'
 
 import { planNextEpisode } from '../../src/commands/next-episode-plan.js'

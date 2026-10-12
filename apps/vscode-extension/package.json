@@ -88,7 +88,7 @@
     ]
   },
   "scripts": {
-    "prebuild": "pnpm --filter @marucs-anime/core run build",
+    "prebuild": "pnpm --filter @marucs-anime/anl-adapter... run build",
     "build": "pnpm run clean && tsc -p tsconfig.build.json && node esbuild.config.mjs",
     "clean": "rimraf dist coverage",
     "prepackage": "node scripts/prepare-package.mjs",
@@ -101,13 +101,14 @@
     "type-check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@marucs-anime/core": "0.0.0"
+    "@marucs-anime/anl-adapter": "workspace:*",
+    "@marucs-anime/core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.17.0",
     "@types/vscode": "^1.102.0",
     "@vitest/coverage-v8": "^4.1.10",
-    "@vscode/test-electron": "^3.0.0",
+    "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^3.9.2",
     "esbuild": "^0.28.1",
     "rimraf": "^6.1.3",

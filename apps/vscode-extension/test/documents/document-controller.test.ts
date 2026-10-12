@@ -1,4 +1,4 @@
-import { parseAnlDocument } from '@marucs-anime/core'
+import { parseAnlDocument } from '@marucs-anime/anl-adapter'
 import { describe, expect, it, vi } from 'vitest'
 
 import {
@@ -31,6 +31,33 @@ const createManualScheduler = () => {
 }
 
 describe('document controller', () => {
+  it('exposes a location-free core history alongside editor parsing state', () => {
+    const manual = createManualScheduler()
+    const controller = createDocumentController({
+      onParsed: () => undefined,
+      parse: parseAnlDocument,
+      scheduler: manual.scheduler,
+    })
+    controller.update({
+      text: '12/10/2026\nFrieren:\n20:00 - 20:20 01',
+      uri: 'file:///history.anl',
+      version: 1,
+    })
+    expect(controller.get('file:///history.anl')?.history).toEqual([
+      {
+        kind: 'manual',
+        watch: {
+          showTitle: 'Frieren',
+          episode: 1,
+          completed: true,
+          people: [],
+          startedAt: { kind: 'local', date: '2026-10-12', time: '20:00' },
+          endedAt: { kind: 'local', date: '2026-10-12', time: '20:20' },
+        },
+      },
+    ])
+  })
+
   it('parses initial documents synchronously', () => {
     const manual = createManualScheduler()
     const onParsed = vi.fn()
